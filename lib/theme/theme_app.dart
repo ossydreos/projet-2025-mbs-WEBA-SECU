@@ -12,7 +12,6 @@ class AppTheme {
     const cs = ColorScheme.dark(
       primary: AppColors.accent, // CTA, boutons
       secondary: AppColors.textSecondary,
-      background: AppColors.background, // fond global
       surface: AppColors.surface, // cartes / panneaux
     );
 
@@ -30,7 +29,7 @@ class AppTheme {
       textTheme: const TextTheme(
         // adapte selon besoin
         titleLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        bodyLarge: TextStyle(color: AppColors.textSecondary),
+        bodyLarge: TextStyle(color: Colors.white),
         bodyMedium: TextStyle(color: Colors.white),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -48,6 +47,7 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surface,
         hintStyle: const TextStyle(color: AppColors.textSecondary),
+
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
