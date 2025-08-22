@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import '../theme/theme_app.dart';
+
+final defaultTextStyle = GoogleFonts.urbanist();
 
 class VehicleReservationScreen extends StatefulWidget {
   const VehicleReservationScreen({Key? key}) : super(key: key);
@@ -162,9 +165,9 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
               offset: Offset(0, 20 * (1 - value)),
               child: Opacity(
                 opacity: value,
-                child: const Text(
+                child: Text(
                   'Where do you\nwant to go?',
-                  style: TextStyle(
+                  style: defaultTextStyle.copyWith(
                     color: Colors.white,
                     fontSize: 34,
                     fontWeight: FontWeight.w800,
@@ -207,30 +210,50 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
           const SizedBox(width: 15),
 
           // Infos chauffeur
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Chauffeur',
-                  style: TextStyle(
+                  style: defaultTextStyle.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Row(
                   children: [
-                    Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-                    Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-                    Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-                    Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-                    Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-                    SizedBox(width: 8),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.accent,
+                      size: 18,
+                    ),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.accent,
+                      size: 18,
+                    ),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.accent,
+                      size: 18,
+                    ),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.accent,
+                      size: 18,
+                    ),
+                    const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.accent,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
                     Text(
                       '5.0',
-                      style: TextStyle(
+                      style: defaultTextStyle.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 12,
                       ),
@@ -249,9 +272,9 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.accent.withOpacity(0.3)),
             ),
-            child: const Text(
+            child: Text(
               'Available',
-              style: TextStyle(
+              style: defaultTextStyle.copyWith(
                 color: AppColors.accent,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -359,14 +382,14 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
               child: TextField(
                 controller: controller,
                 cursorColor: Colors.white, // 🔧 CORRECTION: Curseur blanc
-                style: const TextStyle(
+                style: defaultTextStyle.copyWith(
                   color: Colors.white, // 🔧 CORRECTION: Texte saisi en blanc
                   fontSize: 16,
                   fontWeight: FontWeight.w400,
                 ),
                 decoration: InputDecoration(
                   hintText: hint,
-                  hintStyle: const TextStyle(
+                  hintStyle: defaultTextStyle.copyWith(
                     color: Color(0xFF6B7280), // Couleur du placeholder
                     fontSize: 16,
                     fontWeight: FontWeight.w400,
@@ -396,9 +419,9 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Choose your ride',
-          style: TextStyle(
+          style: defaultTextStyle.copyWith(
             color: Colors.white,
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -473,7 +496,7 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
                   children: [
                     Text(
                       vehicle.name,
-                      style: TextStyle(
+                      style: defaultTextStyle.copyWith(
                         color: Colors.white,
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
@@ -490,7 +513,7 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
                         ),
                         Text(
                           ' ${vehicle.capacity}',
-                          style: const TextStyle(
+                          style: defaultTextStyle.copyWith(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -504,7 +527,7 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
                         ),
                         Text(
                           ' ${vehicle.luggage}',
-                          style: const TextStyle(
+                          style: defaultTextStyle.copyWith(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
@@ -522,15 +545,15 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
                 children: [
                   Text(
                     vehicle.price,
-                    style: const TextStyle(
+                    style: defaultTextStyle.copyWith(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const Text(
+                  Text(
                     'estimated',
-                    style: TextStyle(
+                    style: defaultTextStyle.copyWith(
                       color: AppColors.textSecondary,
                       fontSize: 11,
                     ),
@@ -575,14 +598,18 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
             borderRadius: BorderRadius.circular(30),
           ),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.directions_car, color: AppColors.background, size: 26),
-            SizedBox(width: 12),
+            const Icon(
+              Icons.directions_car,
+              color: AppColors.background,
+              size: 26,
+            ),
+            const SizedBox(width: 12),
             Text(
               'Book Now',
-              style: TextStyle(
+              style: defaultTextStyle.copyWith(
                 color: AppColors.background,
                 fontSize: 19,
                 fontWeight: FontWeight.w800,
@@ -791,9 +818,9 @@ class _BookingConfirmationDialogState extends State<BookingConfirmationDialog>
 
                       const SizedBox(height: 25),
 
-                      const Text(
+                      Text(
                         'Booking Confirmed!',
-                        style: TextStyle(
+                        style: defaultTextStyle.copyWith(
                           color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
@@ -806,7 +833,7 @@ class _BookingConfirmationDialogState extends State<BookingConfirmationDialog>
                       Text(
                         'Your ride has been booked successfully.\nDriver will arrive in 3 minutes.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: defaultTextStyle.copyWith(
                           color: AppColors.textSecondary.withOpacity(0.9),
                           fontSize: 15,
                           height: 1.4,
@@ -847,9 +874,9 @@ class _BookingConfirmationDialogState extends State<BookingConfirmationDialog>
                               borderRadius: BorderRadius.circular(25),
                             ),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Perfect!',
-                            style: TextStyle(
+                            style: defaultTextStyle.copyWith(
                               color: AppColors.background,
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
