@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import './screens/welcome_login_screen.dart';
 import 'firebase_options.dart';
-import './screens/login_page.dart';
 import './theme/theme_app.dart';
 
 void main() async {
@@ -19,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Login v0.1',
       theme: AppTheme.dark(),
-      home: LoginPage(),
+      home: const WelcomeLoginSignup(),
     );
   }
 }
