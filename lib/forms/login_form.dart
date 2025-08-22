@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
@@ -150,30 +152,42 @@ class LoginFormState extends State<LoginForm> {
         const SizedBox(height: 12),
 
         // Boutons sociaux
-        const Row(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              child: SocialBtn(
-                label: 'Google',
-                icon: Icons.g_mobiledata,
-                tooltip: 'Sign in with Google',
+            SocialBtn(
+              icon: SvgPicture.asset(
+                'assets/images/Google__G__logo.svg',
+                width: 32,
+                height: 32,
               ),
+              tooltip: 'Sign in with Google',
+              size: 64,
+              iconSize: 32,
             ),
-            SizedBox(width: 10),
-            Expanded(
-              child: SocialBtn(
-                label: 'Apple',
-                icon: Icons.apple,
-                tooltip: 'Sign in with Apple',
+            const SizedBox(width: 24),
+            SocialBtn(
+              icon: SvgPicture.asset(
+                'assets/images/Apple_logo_black.svg',
+                width: 30,
+                height: 30,
+                // color: Colors.white,
+                colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
               ),
+              tooltip: 'Sign in with Apple',
+              size: 64,
+              iconSize: 30,
             ),
-            SizedBox(width: 10),
-            Expanded(
-              child: SocialBtn(
-                label: 'Facebook',
-                icon: Icons.facebook,
-                tooltip: 'Sign in with Facebook',
+            const SizedBox(width: 24),
+            SocialBtn(
+              icon: SvgPicture.asset(
+                'assets/images/2023_Facebook_icon.svg',
+                width: 30,
+                height: 30,
               ),
+              tooltip: 'Sign in with Facebook',
+              size: 64,
+              iconSize: 30,
             ),
           ],
         ),

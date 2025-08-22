@@ -1,32 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SocialBtn extends StatelessWidget {
-  const SocialBtn({required this.label, required this.icon, this.tooltip});
-  final String label;
-  final IconData icon;
+  const SocialBtn({
+    super.key,
+    required this.icon,
+    this.onTap,
+    this.size = 64, // zone cliquable
+    this.iconSize = 32, // taille visuelle du logo
+    this.tooltip,
+  });
+
+  final Widget icon;
+  final VoidCallback? onTap;
+  final double size;
+  final double iconSize;
   final String? tooltip;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton(
-      onPressed: () {
-        // TODO: Implémenter le social sign-in correspondant
-      },
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.white,
-        side: const BorderSide(color: Color.fromRGBO(255, 255, 255, 0.35)),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        padding: const EdgeInsets.symmetric(vertical: 14),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Tooltip(message: tooltip ?? label, child: Icon(icon, size: 20)),
-          const SizedBox(width: 8),
-          Text(label, style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-        ],
+    final child = Material(
+      type: MaterialType.transparency,
+      shape: const CircleBorder(),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: Center(
+            child: SizedBox(width: iconSize, height: iconSize, child: icon),
+          ),
+        ),
       ),
     );
+
+    return tooltip == null ? child : Tooltip(message: tooltip!, child: child);
   }
 }

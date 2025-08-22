@@ -149,8 +149,6 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
       body: Stack(
         children: [
           buildBackground(),
-
-          // Contenu central « Welcome » (logo + tagline + CTA)
           SafeArea(
             child: Center(
               child: Padding(
@@ -160,7 +158,6 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Logo (SVG teinté par la couleur d’accent)
                       SvgPicture.asset(
                         'assets/images/MBG-Logo.svg',
                         height: 86,
