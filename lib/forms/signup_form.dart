@@ -4,16 +4,8 @@ import 'package:my_mobility_services/theme/theme_app.dart' show AppColors;
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
 
 class SignupForm extends StatefulWidget {
-  const SignupForm({
-    required this.onClose,
-    this.onVerticalDragUpdate,
-    this.onVerticalDragEnd,
-    super.key,
-  });
-
+  const SignupForm({required this.onClose, super.key});
   final VoidCallback onClose;
-  final GestureDragUpdateCallback? onVerticalDragUpdate;
-  final GestureDragEndCallback? onVerticalDragEnd;
 
   @override
   State<SignupForm> createState() => SignupFormState();
@@ -42,10 +34,7 @@ class SignupFormState extends State<SignupForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SheetHandle(
-          onVerticalDragUpdate: widget.onVerticalDragUpdate,
-          onVerticalDragEnd: widget.onVerticalDragEnd,
-        ),
+        SheetHandle(),
         Center(
           child: Text(
             'Create Your Account',

@@ -258,24 +258,23 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
             position: _slideAnimation,
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: GlassSheet(
-                child: SafeArea(
-                  top: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-                    child: switch (_panelType) {
-                      PanelType.login => LoginForm(
-                        onClose: _closePanel,
-                        onVerticalDragUpdate: _onVerticalDragUpdate,
-                        onVerticalDragEnd: _onVerticalDragEnd,
-                      ),
-                      PanelType.signup => SignupForm(
-                        onClose: _closePanel,
-                        onVerticalDragUpdate: _onVerticalDragUpdate,
-                        onVerticalDragEnd: _onVerticalDragEnd,
-                      ),
-                      PanelType.none => const SizedBox.shrink(),
-                    },
+              child: GestureDetector(
+                onVerticalDragUpdate: _onVerticalDragUpdate,
+                onVerticalDragEnd: _onVerticalDragEnd,
+                behavior: HitTestBehavior.translucent,
+                child: GlassSheet(
+                  onVerticalDragUpdate: _onVerticalDragUpdate,
+                  onVerticalDragEnd: _onVerticalDragEnd,
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                      child: switch (_panelType) {
+                        PanelType.login => LoginForm(onClose: _closePanel),
+                        PanelType.signup => SignupForm(onClose: _closePanel),
+                        PanelType.none => const SizedBox.shrink(),
+                      },
+                    ),
                   ),
                 ),
               ),
