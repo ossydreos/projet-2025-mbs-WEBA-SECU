@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import './screens/welcome_login_screen.dart';
 import 'firebase_options.dart';
 import './theme/theme_app.dart';
+import 'screens/reservation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Login v0.1',
       theme: AppTheme.dark(),
-      home: const WelcomeLoginSignup(),
+      home: const VehicleReservationScreen(),
     );
   }
 }
