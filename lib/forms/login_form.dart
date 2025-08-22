@@ -156,38 +156,23 @@ class LoginFormState extends State<LoginForm> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SocialBtn(
-              icon: SvgPicture.asset(
-                'assets/images/Google__G__logo.svg',
-                width: 32,
-                height: 32,
-              ),
+              icon: SvgPicture.asset('assets/images/Google__G__logo.svg'),
               tooltip: 'Sign in with Google',
-              size: 64,
-              iconSize: 32,
             ),
             const SizedBox(width: 24),
             SocialBtn(
               icon: SvgPicture.asset(
                 'assets/images/Apple_logo_black.svg',
-                width: 30,
-                height: 30,
                 // color: Colors.white,
                 colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
               ),
               tooltip: 'Sign in with Apple',
-              size: 64,
-              iconSize: 30,
             ),
             const SizedBox(width: 24),
             SocialBtn(
-              icon: SvgPicture.asset(
-                'assets/images/2023_Facebook_icon.svg',
-                width: 30,
-                height: 30,
-              ),
+              icon: SvgPicture.asset('assets/images/2023_Facebook_icon.svg'),
               tooltip: 'Sign in with Facebook',
-              size: 64,
-              iconSize: 30,
+              onTap: () {},
             ),
           ],
         ),

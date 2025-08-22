@@ -7,7 +7,7 @@ class SocialBtn extends StatelessWidget {
     required this.icon,
     this.onTap,
     this.size = 64, // zone cliquable
-    this.iconSize = 32, // taille visuelle du logo
+    this.iconSize = 35, // taille visuelle du logo
     this.tooltip,
   });
 
