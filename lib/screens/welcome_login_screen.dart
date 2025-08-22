@@ -25,6 +25,7 @@ import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/glass_sheet.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
+import 'package:my_mobility_services/widgets/welcome_bg.dart';
 import '../theme/theme_app.dart';
 
 // ----------------------------
@@ -47,11 +48,11 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
   // -----------------------------------------------------------
   // SECTION 1 — Champs privés (state) + contrôleurs d'anim
   // -----------------------------------------------------------
-  // ⚠️ Noms privés avec underscore, camelCase, explicites.
   PanelType _panelType = PanelType.none;
 
   late final AnimationController _animationController; // contrôle global
   late final Animation<double> _fadeAnimation; // pour le scrim (fondu)
+  late final Animation<Offset> _slideAnimation; // pour SlideTransition
 
   // -----------------------------------------------------------
   // SECTION 2 — Fonctions (mises en HAUT comme demandé)
@@ -86,6 +87,10 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
       parent: _animationController,
       curve: Curves.easeOutCubic,
     );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(_fadeAnimation);
   }
 
   @override
@@ -95,18 +100,55 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
   }
 
   // -----------------------------------------------------------
+  // Helper: Drag handling for the sheet
+  // -----------------------------------------------------------
+  void _onVerticalDragUpdate(DragUpdateDetails details) {
+    // On calcule la fraction liée à la hauteur de la sheet (GlassSheet force 70% de l'écran)
+    final sheetHeight = MediaQuery.of(context).size.height * 0.7;
+    final delta = details.primaryDelta ?? 0.0;
+    final fraction = delta / sheetHeight;
+    // quand on tire vers le bas (delta > 0) on diminue la valeur (fermer),
+    // quand on tire vers le haut (delta < 0) on augmente (ouvrir)
+    _animationController.value = (_animationController.value - fraction).clamp(
+      0.0,
+      1.0,
+    );
+  }
+
+  void _onVerticalDragEnd(DragEndDetails details) {
+    final velocity = details.primaryVelocity ?? 0.0;
+
+    // Swipe down rapide -> fermer
+    if (velocity > 700) {
+      _closePanel();
+      return;
+    }
+
+    // Swipe up rapide -> ouvrir complètement
+    if (velocity < -700) {
+      _animationController.forward();
+      return;
+    }
+
+    // Sinon, on choisit selon le seuil d'avancement
+    if (_animationController.value > 0.5) {
+      _animationController.forward();
+    } else {
+      _closePanel();
+    }
+  }
+
+  // -----------------------------------------------------------
   // SECTION 4 — Build
   // -----------------------------------------------------------
   @override
   Widget build(BuildContext context) {
-    // Police par défaut (Poppins) — on l’utilise partout via copyWith
     final defaultTextStyle = GoogleFonts.poppins();
 
     return Scaffold(
       body: Stack(
         children: [
-          // Fond dégradé + halos (visuel d’accueil)
-          _buildBackground(),
+          buildBackground(),
 
           // Contenu central « Welcome » (logo + tagline + CTA)
           SafeArea(
@@ -196,25 +238,24 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
             ),
           ),
 
-          // SCRIM (fond sombre cliquable pour fermer la sheet)
-          if (_isSheetVisible)
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: GestureDetector(
-                onTap: _closePanel,
-                child: Semantics(
-                  label: 'Fermer le panneau',
-                  button: true,
-                  child: ColoredBox(color: Color.fromRGBO(0, 0, 0, 0.45)),
+          // Scrim: capte les taps en dehors de la sheet pour la fermer
+          Positioned.fill(
+            child: IgnorePointer(
+              ignoring: !_isSheetVisible,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _closePanel,
+                  child: Container(color: Colors.black.withOpacity(0.45)),
                 ),
               ),
             ),
+          ),
 
-          // SHEET coulissante (login/signup)
-          AnimatedSlide(
-            duration: const Duration(milliseconds: 420),
-            curve: Curves.easeOutCubic,
-            offset: _isSheetVisible ? Offset.zero : const Offset(0, 1),
+          // SHEET coulissante (login/signup) avec drag pour ouvrir/fermer
+          SlideTransition(
+            position: _slideAnimation,
             child: Align(
               alignment: Alignment.bottomCenter,
               child: GlassSheet(
@@ -223,8 +264,16 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                     child: switch (_panelType) {
-                      PanelType.login => LoginForm(onClose: _closePanel),
-                      PanelType.signup => SignupForm(onClose: _closePanel),
+                      PanelType.login => LoginForm(
+                        onClose: _closePanel,
+                        onVerticalDragUpdate: _onVerticalDragUpdate,
+                        onVerticalDragEnd: _onVerticalDragEnd,
+                      ),
+                      PanelType.signup => SignupForm(
+                        onClose: _closePanel,
+                        onVerticalDragUpdate: _onVerticalDragUpdate,
+                        onVerticalDragEnd: _onVerticalDragEnd,
+                      ),
                       PanelType.none => const SizedBox.shrink(),
                     },
                   ),
@@ -234,65 +283,6 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
           ),
         ],
       ),
-    );
-  }
-
-  // -----------------------------------------------------------
-  // SECTION 5 — Widgets privés (lisibilité + réutilisation)
-  // -----------------------------------------------------------
-  /// Construit le fond dégradé + halos décoratifs.
-  Widget _buildBackground() {
-    return Stack(
-      children: [
-        // Dégradé principal
-        const Positioned.fill(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.background, AppColors.surface],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
-        ),
-        // Halo supérieur droit
-        Positioned(
-          right: -60,
-          top: -60,
-          child: Container(
-            width: 240,
-            height: 240,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color.fromRGBO(
-                AppColors.accent.red,
-                AppColors.accent.green,
-                AppColors.accent.blue,
-                0.12,
-              ),
-            ),
-          ),
-        ),
-        // Halo inférieur gauche
-        Positioned(
-          left: -80,
-          bottom: -80,
-          child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color.fromRGBO(
-                AppColors.accent.red,
-                AppColors.accent.green,
-                AppColors.accent.blue,
-                0.08,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

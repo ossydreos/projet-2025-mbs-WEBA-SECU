@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Login v0.1',
       theme: AppTheme.dark(),
-      home: const VehicleReservationScreen(),
+      home: WelcomeLoginSignup(),
     );
   }
 }

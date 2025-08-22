@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 
 class GlassSheet extends StatelessWidget {
-  const GlassSheet({required this.child});
+  const GlassSheet({super.key, required this.child});
   final Widget child;
 
   @override
@@ -14,8 +14,9 @@ class GlassSheet extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
         child: Container(
           width: double.infinity,
+          // Forcer la feuille à occuper exactement 70% de l'écran
           constraints: BoxConstraints(
-            // Limite à 80% de la hauteur écran
+            minHeight: screenHeight * 0.7,
             maxHeight: screenHeight * 0.7,
           ),
           decoration: const BoxDecoration(
@@ -28,7 +29,10 @@ class GlassSheet extends StatelessWidget {
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-            child: child,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: screenHeight * 0.7),
+              child: child,
+            ),
           ),
         ),
       ),
