@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import '../constants.dart';
 
 class GlassSheet extends StatelessWidget {
   const GlassSheet({
@@ -28,8 +29,8 @@ class GlassSheet extends StatelessWidget {
           child: Container(
             width: double.infinity,
             constraints: BoxConstraints(
-              minHeight: screenHeight * 0.7,
-              maxHeight: screenHeight * 0.7,
+              minHeight: screenHeight * AppConstants.sheetRatio,
+              maxHeight: screenHeight * AppConstants.sheetRatio,
             ),
             decoration: const BoxDecoration(
               color: Color.fromRGBO(255, 255, 255, 0.06),
