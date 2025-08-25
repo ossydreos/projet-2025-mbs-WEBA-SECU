@@ -87,30 +87,11 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen> {
     final selected = selectedVehicleName;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        centerTitle: false,
-        title: const SizedBox.shrink(),
-        actions: [
-          IconButton(
-            tooltip: 'Sign out',
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () async {
-              HapticFeedback.lightImpact();
-              await FirebaseAuth.instance.signOut();
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Logged out')));
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
         title: const Text('Reservation'),
         backgroundColor: AppColors.background,
         elevation: 0,
       ),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
