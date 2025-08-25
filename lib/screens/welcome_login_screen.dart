@@ -103,7 +103,6 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
     return Scaffold(
       body: Stack(
         children: [
-          buildBackground(),
           SafeArea(
             child: Center(
               child: Padding(

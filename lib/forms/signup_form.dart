@@ -14,6 +14,7 @@ class SignupForm extends StatefulWidget {
 class SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
+  final _surname = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
@@ -62,6 +63,18 @@ class SignupFormState extends State<SignupForm> {
                 validator: (v) => (v == null || v.isEmpty)
                     ? 'Nom requis'
                     : (v.length < 2 ? 'Nom trop court' : null),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _surname,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Enter surname',
+                  labelStyle: TextStyle(color: Colors.white),
+                ),
+                validator: (v) => (v == null || v.isEmpty)
+                    ? 'Prénom requis'
+                    : (v.length < 2 ? 'Prénom trop court' : null),
               ),
               const SizedBox(height: 12),
               TextFormField(
