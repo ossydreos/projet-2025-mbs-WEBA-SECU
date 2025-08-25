@@ -1,12 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:my_mobility_services/screens/welcome_login_screen.dart';
 import 'package:my_mobility_services/theme/theme_app.dart' show AppColors;
+import 'package:my_mobility_services/widgets/authgate.dart';
 import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
+import 'package:my_mobility_services/widgets/waiting_widget.dart';
 
 class SignupForm extends StatefulWidget {
   const SignupForm({required this.onClose, required this.onSwitch, super.key});
@@ -24,6 +28,8 @@ class SignupFormState extends State<SignupForm> {
   final _passwordCtrl = TextEditingController();
 
   var _autovalidate = AutovalidateMode.disabled;
+
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -100,16 +106,59 @@ class SignupFormState extends State<SignupForm> {
                 height: 54,
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    setState(() => _autovalidate = AutovalidateMode.always);
-                    if (_formKey.currentState!.validate()) {
-                      // TODO: Implémente la logique de signup
-                      // final name = _nameCtrl.text;
-                      // final email = _emailCtrl.text;
-                      // final password = _passwordCtrl.text;
-                    }
-                  },
-                  child: const Text('Get Started'),
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          setState(
+                            () => _autovalidate = AutovalidateMode.always,
+                          );
+                          setState(() {
+                            _isLoading = true;
+                          });
+
+                          if (!_formKey.currentState!.validate()) return;
+                          final name = _nameCtrl.text.trim();
+                          final email = _emailCtrl.text.trim();
+                          final password = _passwordCtrl.text;
+
+                          try {
+                            final cred = await FirebaseAuth.instance
+                                .createUserWithEmailAndPassword(
+                                  email: email,
+                                  password: password,
+                                );
+
+                            final uid = cred.user?.uid;
+                            if (uid != null) {
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(uid)
+                                  .set({
+                                    'name': name,
+                                    'email': email,
+                                    'createdAt': FieldValue.serverTimestamp(),
+                                  });
+                            }
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Compte créé')),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Erreur: $e')),
+                              );
+                            }
+                          } finally {
+                            if (mounted) {
+                              setState(() => _isLoading = false);
+                            }
+                          }
+                        },
+                  child: _isLoading
+                      ? const LoadingMBS()
+                      : const Text('Get Started'),
                 ),
               ),
             ],
