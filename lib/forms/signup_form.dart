@@ -1,11 +1,17 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:my_mobility_services/screens/welcome_login_screen.dart';
 import 'package:my_mobility_services/theme/theme_app.dart' show AppColors;
+import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
+import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
 
 class SignupForm extends StatefulWidget {
-  const SignupForm({required this.onClose, super.key});
+  const SignupForm({required this.onClose, required this.onSwitch, super.key});
   final VoidCallback onClose;
+  final void Function(PanelType) onSwitch;
 
   @override
   State<SignupForm> createState() => SignupFormState();
@@ -14,7 +20,6 @@ class SignupForm extends StatefulWidget {
 class SignupFormState extends State<SignupForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
-  final _surname = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
@@ -66,18 +71,6 @@ class SignupFormState extends State<SignupForm> {
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: _surname,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Enter surname',
-                  labelStyle: TextStyle(color: Colors.white),
-                ),
-                validator: (v) => (v == null || v.isEmpty)
-                    ? 'Prénom requis'
-                    : (v.length < 2 ? 'Prénom trop court' : null),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
                 controller: _emailCtrl,
                 style: const TextStyle(color: Colors.white),
                 keyboardType: TextInputType.emailAddress,
@@ -122,15 +115,56 @@ class SignupFormState extends State<SignupForm> {
             ],
           ),
         ),
+        const SizedBox(height: 24),
+
+        DividerText('or sign up with'),
+
         const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SocialBtn(
+              icon: SvgPicture.asset('assets/images/Google__G__logo.svg'),
+              tooltip: 'Sign in with Google',
+            ),
+            const SizedBox(width: 24),
+            SocialBtn(
+              icon: SvgPicture.asset(
+                'assets/images/Apple_logo_black.svg',
+                // color: Colors.white,
+                colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              ),
+              tooltip: 'Sign in with Apple',
+            ),
+            const SizedBox(width: 24),
+            SocialBtn(
+              icon: SvgPicture.asset('assets/images/2023_Facebook_icon.svg'),
+              tooltip: 'Sign in with Facebook',
+              onTap: () {},
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
         Center(
-          child: TextButton(
-            onPressed: widget.onClose,
-            style: TextButton.styleFrom(foregroundColor: AppColors.accent),
-            child: const Text('I already have an account'),
+          child: RichText(
+            text: TextSpan(
+              style: txt,
+              text: 'Already have an account? ',
+              children: [
+                TextSpan(
+                  style: GoogleFonts.poppins(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  text: 'Login',
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => widget.onSwitch(PanelType.login),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 8),
       ],
     );
   }

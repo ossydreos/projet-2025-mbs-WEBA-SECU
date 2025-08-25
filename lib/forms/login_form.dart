@@ -1,15 +1,18 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:my_mobility_services/screens/welcome_login_screen.dart';
 import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
 import '../theme/theme_app.dart';
 
 class LoginForm extends StatefulWidget {
-  const LoginForm({required this.onClose, super.key});
+  const LoginForm({required this.onClose, required this.onSwitch, super.key});
 
+  final void Function(PanelType) onSwitch;
   final VoidCallback onClose;
 
   @override
@@ -177,6 +180,26 @@ class LoginFormState extends State<LoginForm> {
           ],
         ),
         const SizedBox(height: 12),
+
+        Center(
+          child: RichText(
+            text: TextSpan(
+              style: txt,
+              text: 'Dont have an account? ',
+              children: [
+                TextSpan(
+                  style: GoogleFonts.poppins(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  text: 'Sign up',
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () => widget.onSwitch(PanelType.signup),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }

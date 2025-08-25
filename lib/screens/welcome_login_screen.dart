@@ -217,8 +217,14 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
                       child: switch (_panelType) {
-                        PanelType.login => LoginForm(onClose: _closePanel),
-                        PanelType.signup => SignupForm(onClose: _closePanel),
+                        PanelType.login => LoginForm(
+                          onClose: _closePanel,
+                          onSwitch: _openPanel,
+                        ),
+                        PanelType.signup => SignupForm(
+                          onClose: _closePanel,
+                          onSwitch: _openPanel,
+                        ),
                         PanelType.none => const SizedBox.shrink(),
                       },
                     ),
