@@ -100,8 +100,6 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
 
   @override
   Widget build(BuildContext context) {
-    final defaultTextStyle = GoogleFonts.poppins();
-
     return Scaffold(
       body: Stack(
         children: [
@@ -127,7 +125,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                       const SizedBox(height: 12),
                       Text(
                         'Welcome',
-                        style: defaultTextStyle.copyWith(
+                        style: AppConstants.defaultTextStyle.copyWith(
                           color: Colors.white,
                           fontSize: 30,
                           fontWeight: FontWeight.w800,
@@ -137,7 +135,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                       Text(
                         'Réservez votre chauffeur en quelques secondes — moderne, fluide et fiable.',
                         textAlign: TextAlign.center,
-                        style: defaultTextStyle.copyWith(
+                        style: AppConstants.defaultTextStyle.copyWith(
                           color: Colors.white70,
                           fontSize: 14,
                         ),
@@ -154,7 +152,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                           ),
                           child: Text(
                             'Create Account',
-                            style: defaultTextStyle.copyWith(
+                            style: AppConstants.defaultTextStyle.copyWith(
                               fontWeight: FontWeight.w800,
                               fontSize: 16,
                             ),
@@ -177,7 +175,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                           ),
                           child: Text(
                             'I already have an account',
-                            style: defaultTextStyle.copyWith(
+                            style: AppConstants.defaultTextStyle.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                           ),
