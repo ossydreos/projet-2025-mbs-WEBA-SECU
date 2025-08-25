@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -73,6 +74,25 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        centerTitle: false,
+        title: const SizedBox.shrink(),
+        actions: [
+          IconButton(
+            tooltip: 'Sign out',
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () async {
+              HapticFeedback.lightImpact();
+              await FirebaseAuth.instance.signOut();
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Logged out')));
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: FadeTransition(
