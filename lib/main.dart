@@ -1,12 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:my_mobility_services/screens/reservation_screen.dart';
 import 'package:my_mobility_services/widgets/authgate.dart';
-import './screens/welcome_login_screen.dart';
 import 'firebase_options.dart';
 import './theme/theme_app.dart';
-import './screens/reservation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

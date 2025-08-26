@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:my_mobility_services/widgets/glassmorphic.dart';
 import '../theme/theme_app.dart';
 import '../modele/vehicule_type.dart';
-import 'glassmorphic.dart';
 
 class VehiculeOptionCard extends StatelessWidget {
   final VehiculeType vehicle;

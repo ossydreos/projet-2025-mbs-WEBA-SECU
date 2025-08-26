@@ -1,65 +1,85 @@
 import 'package:flutter/material.dart';
+import '../theme/theme_app.dart';
 
-class LocationBubble extends StatelessWidget {
+class LocalisationBubble extends StatelessWidget {
   final TextEditingController controller;
-  final String hint;
-  final IconData icon;
-  final Color pillColor;
-  final Color iconBgColor;
+  final String hintText;
   final Color iconColor;
-  final Color textColor;
-  final Color hintColor;
+  final IconData icon; // ✨ Paramètre manquant ajouté
 
-  const LocationBubble({
+  const LocalisationBubble({
     super.key,
     required this.controller,
-    required this.hint,
-    required this.icon,
-    required this.pillColor,
-    required this.iconBgColor,
+    required this.hintText,
     required this.iconColor,
-    required this.textColor,
-    required this.hintColor,
+    required this.icon, // ✨ Correct maintenant
   });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(26), // pilule visuelle
-      child: Container(
-        height: 56,
-        color: pillColor,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            // pastille circulaire grisée + icône goutte
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: iconBgColor,
-                shape: BoxShape.circle,
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: AppColors.background, // fond bulle localisation
+        borderRadius: BorderRadius.circular(26),
+      ),
+      child: Row(
+        children: [
+          // Conteneur pour l'icône avec cercle
+          Container(
+            width: 52,
+            height: 52,
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(26),
+                bottomLeft: Radius.circular(26),
               ),
-              alignment: Alignment.center,
-              child: Icon(icon, color: iconColor, size: 18),
             ),
-            const SizedBox(width: 12),
-            Expanded(
+            child: Center(
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: const BoxDecoration(
+                  color: AppColors.surface, // fond logo
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon, // ✨ Utilise le paramètre au lieu de Icons.location_on
+                  color: iconColor,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+
+          // Zone de texte
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8, right: 16),
               child: TextField(
                 controller: controller,
-                style: TextStyle(color: textColor, fontSize: 16),
-                cursorColor: textColor,
+                style: const TextStyle(
+                  color: Colors.white, // couleur du texte
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                ),
                 decoration: InputDecoration(
-                  hintText: hint,
-                  hintStyle: TextStyle(color: hintColor, fontSize: 16),
+                  hintText: hintText,
+                  hintStyle: const TextStyle(
+                    color: Colors.white, // couleur du texte exemple
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                  ),
                   border: InputBorder.none,
-                  isDense: true,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  filled: false,
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

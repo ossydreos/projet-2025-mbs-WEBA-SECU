@@ -4,12 +4,10 @@ class AppColors {
   static const background = Color.fromARGB(255, 0, 0, 0);
   static const surface = Color(0xFF2E3A47);
   static const textSecondary = Color(0xFF476582);
-  static const accent = Color.fromARGB(
-    255,
-    218,
-    255,
-    52,
-  ); //static const accent = Color.fromARGB(255, 183, 255, 49) VERT CITRON JAUNE 0xFF55FF99 MENTHE menthe CLAIRE 255,78,253,151,
+  static const accent = Color.fromARGB(255, 218, 255, 52);
+
+  static Color? get cardBackground =>
+      null; //static const accent = Color.fromARGB(255, 183, 255, 49) VERT CITRON JAUNE 0xFF55FF99 MENTHE menthe CLAIRE 255,78,253,151,
 }
 
 class AppTheme {
@@ -18,7 +16,6 @@ class AppTheme {
       primary: AppColors.accent,
       secondary: AppColors.textSecondary,
       surface: AppColors.surface,
-      background: AppColors.background,
     );
 
     return ThemeData(

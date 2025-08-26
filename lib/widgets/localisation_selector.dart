@@ -1,136 +1,161 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import './localisation_bubble.dart';
+import 'package:my_mobility_services/widgets/hexagon_shapes.dart';
+import 'localisation_bubble.dart';
+import '../theme/theme_app.dart';
 
-class LocationSelector extends StatelessWidget {
+class LocalisationSelector extends StatefulWidget {
+  // ✨ Changé en StatefulWidget
   final TextEditingController pickupController;
   final TextEditingController destinationController;
   final VoidCallback onSwap;
   final String pickupHint;
   final String destinationHint;
 
-  // Palette calée sur le mock (tu peux ajuster finement si besoin)
-  static const Color _outerBg = Color(0xFF11151B); // fond écran (réf)
-  static const Color _container = Color(0xFF1A1F27); // cadre
-  static const Color _stroke = Color(0xFF2B3039); // bord du cadre/pont
-  static const Color _pill = Color(0xFF0F1319); // pilules très sombres
-  static const Color _iconBg = Color(0xFF2B3039); // rond gris icône
-  static const Color _icon = Color(0xFFFFFFFF); // icône blanche
-  static const Color _text = Color(0xFFE6E7EB); // texte
-  static const Color _hint = Color(0xFF9EA3AB); // hint gris
-  static const Color _swapBg = Color(0xFF232733); // bouton swap
-  static const Color _swapIcon = Color(0xFFE6E7EB);
-
-  const LocationSelector({
+  const LocalisationSelector({
     super.key,
     required this.pickupController,
     required this.destinationController,
     required this.onSwap,
-    this.pickupHint = 'Add a pick-up location',
-    this.destinationHint = 'Add your destination',
+    required this.pickupHint,
+    required this.destinationHint,
   });
 
-  void _haptic() => HapticFeedback.lightImpact();
+  @override
+  State<LocalisationSelector> createState() => _LocalisationSelectorState();
+}
+
+class _LocalisationSelectorState extends State<LocalisationSelector>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _rotationController;
+  late Animation<double> _rotationAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✨ Configuration de l'animation
+    _rotationController = AnimationController(
+      duration: const Duration(milliseconds: 500), // Animation de 500ms
+      vsync: this,
+    );
+
+    _rotationAnimation =
+        Tween<double>(
+          begin: 0.0,
+          end: 0.5, // 0.5 = 180° (1.0 = 360°)
+        ).animate(
+          CurvedAnimation(parent: _rotationController, curve: Curves.easeInOut),
+        );
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
+  }
+
+  // ✨ Fonction qui lance l'animation + ton action
+  void _handleSwap() {
+    _rotationController.forward().then((_) {
+      _rotationController.reset(); // Remet à zéro pour la prochaine fois
+    });
+
+    widget.onSwap(); // ✨ Utilise widget.onSwap au lieu de onSwap
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _container,
+        color: AppColors.surface, // couleur bulle widget
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _stroke, width: 2), // cadre gris visible
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.background.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      child: SizedBox(
-        height: 150, // hauteur calibrée sur l’image
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            // Espacement vertical entre pilules: calibré pour laisser le pont + bouton
-            const double gap = 26;
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Column(
+            children: [
+              // Bulle du haut (pickup)
+              LocalisationBubble(
+                controller: widget.pickupController, // ✨ Utilise widget.
+                hintText: widget.pickupHint, // ✨ Utilise widget.
+                iconColor: Colors.white,
+                icon: Icons.my_location,
+              ),
 
-            return Stack(
-              alignment: Alignment.center,
-              children: [
-                // Pont central (derrière le bouton)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: Center(
+              const SizedBox(height: 16), // Espace entre les bulles
+              // Bulle du bas (destination)
+              LocalisationBubble(
+                controller: widget.destinationController, // ✨ Utilise widget.
+                hintText: widget.destinationHint, // ✨ Utilise widget.
+                iconColor: Colors.white,
+                icon: Icons.location_on,
+              ),
+            ],
+          ),
+
+          // Bouton swap avec espace autour
+          Positioned(
+            top: 44, // Positionné entre les deux bulles
+            left: 0,
+            right: 0,
+            child: Center(
+              child: ClipPath(
+                clipper: RoundedHexagonClipper(cornerRadius: 1.0),
+                child: Container(
+                  width: 65, // Largeur de la zone grise autour
+                  height: 34, // Hauteur de la zone grise
+                  decoration: BoxDecoration(
+                    color: AppColors.surface, // fond contour bulle échange
+                  ),
+                  child: Center(
+                    child: GestureDetector(
+                      onTap: _handleSwap, // ✨ Utilise la nouvelle fonction
                       child: Container(
-                        height: 18,
+                        width: 26,
+                        height: 26,
                         decoration: BoxDecoration(
-                          color: _stroke.withOpacity(0.85),
-                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.background, // fond logo echange
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.background.withOpacity(0.4),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                        margin: const EdgeInsets.symmetric(horizontal: 40),
+                        child: AnimatedBuilder(
+                          // ✨ Animation ajoutée
+                          animation: _rotationAnimation,
+                          builder: (context, child) {
+                            return Transform.rotate(
+                              angle: _rotationAnimation.value * 2 * 3.14159,
+                              child: const Icon(
+                                Icons.cached,
+                                color: Colors.white, // couleur logo echange
+                                size: 20,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
                 ),
-
-                // Colonne des deux pilules
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    LocationBubble(
-                      controller: pickupController,
-                      hint: pickupHint,
-                      icon: Icons.place_rounded,
-                      pillColor: _pill,
-                      iconBgColor: _iconBg,
-                      iconColor: _icon,
-                      textColor: _text,
-                      hintColor: _hint,
-                    ),
-                    const SizedBox(height: gap),
-                    LocationBubble(
-                      controller: destinationController,
-                      hint: destinationHint,
-                      icon: Icons.place_rounded,
-                      pillColor: _pill,
-                      iconBgColor: _iconBg,
-                      iconColor: _icon,
-                      textColor: _text,
-                      hintColor: _hint,
-                    ),
-                  ],
-                ),
-
-                // Bouton swap circulaire encastré
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    _haptic();
-                    final tmp = pickupController.text;
-                    pickupController.text = destinationController.text;
-                    destinationController.text = tmp;
-                    onSwap();
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: _swapBg,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: _stroke, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.35),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.sync_rounded,
-                      color: _swapIcon,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

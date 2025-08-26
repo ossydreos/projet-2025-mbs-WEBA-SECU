@@ -6,7 +6,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:my_mobility_services/screens/welcome_login_screen.dart';
 import 'package:my_mobility_services/theme/theme_app.dart' show AppColors;
-import 'package:my_mobility_services/widgets/authgate.dart';
 import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';

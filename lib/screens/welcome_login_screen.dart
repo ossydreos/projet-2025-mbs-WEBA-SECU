@@ -1,15 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:my_mobility_services/constants.dart';
 import 'package:my_mobility_services/forms/login_form.dart';
 import 'package:my_mobility_services/forms/signup_form.dart';
-import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
-import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/glass_sheet.dart';
-import 'package:my_mobility_services/widgets/sheet_handle.dart';
-import 'package:my_mobility_services/theme/welcome_bg.dart';
 import '../theme/theme_app.dart';
 
 enum PanelType { none, login, signup }

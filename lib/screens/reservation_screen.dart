@@ -14,7 +14,7 @@ import '../modele/vehicule_type.dart';
 final defaultTextStyle = GoogleFonts.poppins();
 
 class VehicleReservationScreen extends StatefulWidget {
-  const VehicleReservationScreen({Key? key}) : super(key: key);
+  const VehicleReservationScreen({super.key});
 
   @override
   State<VehicleReservationScreen> createState() =>
@@ -125,7 +125,7 @@ class _VehicleReservationScreenState extends State<VehicleReservationScreen> {
                   _buildDriverInfo(),
                   const SizedBox(height: 20),
 
-                  LocationSelector(
+                  LocalisationSelector(
                     pickupController: _pickupController,
                     destinationController: _destinationController,
                     onSwap: _swapLocations,

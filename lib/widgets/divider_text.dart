@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class DividerText extends StatelessWidget {
-  const DividerText(this.text);
+  const DividerText(this.text, {super.key});
   final String text;
 
   @override
