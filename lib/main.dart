@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:my_mobility_services/screens/welcome_login_screen.dart';
 import 'package:my_mobility_services/widgets/authgate.dart';
 import 'firebase_options.dart';
 import './theme/theme_app.dart';
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Login v0.1',
       theme: AppTheme.dark(),
-      home: Authgate(),
+      home: WelcomeLoginSignup(),
     );
   }
 }
