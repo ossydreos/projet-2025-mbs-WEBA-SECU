@@ -1,20 +1,17 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:my_mobility_services/widgets/glassmorphic.dart';
-
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'localisation_recherche_screen.dart';
 import '../theme/theme_app.dart';
-import '../widgets/localisation_selector.dart';
-import '../widgets/glassmorphic.dart';
-import '../widgets/vehicule_option_carte.dart';
-import '../widgets/booking_confirmation.dart';
-import '../modele/vehicule_type.dart';
 
-final defaultTextStyle = GoogleFonts.poppins();
+// Pour Google Maps, remplacez les imports par :
+// import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class VehicleReservationScreen extends StatefulWidget {
-  const VehicleReservationScreen({super.key});
+  // Callback pour naviguer vers les autres écrans
+  final Function(int)? onNavigate;
+
+  const VehicleReservationScreen({super.key, this.onNavigate});
 
   @override
   State<VehicleReservationScreen> createState() =>
@@ -22,268 +19,380 @@ class VehicleReservationScreen extends StatefulWidget {
 }
 
 class _VehicleReservationScreenState extends State<VehicleReservationScreen> {
-  final TextEditingController _pickupController = TextEditingController();
-  final TextEditingController _destinationController = TextEditingController();
+  final MapController _mapController = MapController();
 
-  // Liste des véhicules (gardée telle qu’indiquée)
-  final List<VehiculeType> vehicleTypes = const [
-    VehiculeType('Standard', '\$10', '4 seats', '487 kg', Icons.directions_car),
-    VehiculeType('Comfort', '\$15', '4 seats', '500 kg', Icons.airport_shuttle),
-    VehiculeType('Luxury', '\$25', '4 seats', '600 kg', Icons.time_to_leave),
-  ];
+  // Pour Google Maps, remplacez par :
+  // GoogleMapController? _googleMapController;
 
-  String? selectedVehicleName = 'Standard'; // sélection par défaut
+  String? _selectedDestination;
+  LatLng? _destinationCoordinates;
 
-  bool get _canReserve =>
-      _pickupController.text.trim().isNotEmpty &&
-      _destinationController.text.trim().isNotEmpty &&
-      selectedVehicleName != null;
+  // Marker pour la destination sélectionnée
+  List<Marker> _markers = [];
+
+  // Pour Google Maps, remplacez par :
+  // Set<Marker> _googleMarkers = {};
 
   @override
   void initState() {
     super.initState();
-    // Rebuild quand les champs changent (pour activer/désactiver le bouton)
-    _pickupController.addListener(_onFieldsChanged);
-    _destinationController.addListener(_onFieldsChanged);
+    _addUserLocationMarker();
   }
 
-  void _onFieldsChanged() => setState(() {});
+  void _addUserLocationMarker() {
+    // Position par défaut (vous pouvez utiliser la géolocalisation)
+    final userLocation = LatLng(48.8566, 2.3522); // Paris
 
-  @override
-  void dispose() {
-    _pickupController
-      ..removeListener(_onFieldsChanged)
-      ..dispose();
-    _destinationController
-      ..removeListener(_onFieldsChanged)
-      ..dispose();
-    super.dispose();
-  }
+    setState(() {
+      _markers.add(
+        Marker(
+          point: userLocation,
+          width: 30,
+          height: 30,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: const Icon(Icons.person, color: Colors.white, size: 16),
+          ),
+        ),
+      );
+    });
 
-  void _hapticFeedback() => HapticFeedback.lightImpact();
-
-  void _swapLocations() {
-    _hapticFeedback();
-    final tmp = _pickupController.text;
-    _pickupController.text = _destinationController.text;
-    _destinationController.text = tmp;
-    final scope = FocusScope.of(context);
-    if (scope.hasFocus) scope.nextFocus();
-  }
-
-  void _reserve() {
-    if (!_canReserve) return;
-    _hapticFeedback();
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black.withOpacity(0.7),
-      builder: (_) => const BookingConfirmationDialog(),
+    // Pour Google Maps, remplacez par :
+    /*
+    _googleMarkers.add(
+      Marker(
+        markerId: const MarkerId('user_location'),
+        position: LatLng(48.8566, 2.3522),
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+      ),
     );
+    */
+  }
+
+  void _addDestinationMarker(LatLng destination) {
+    setState(() {
+      // Supprimer l'ancien marker de destination s'il existe
+      _markers.removeWhere((marker) => marker.point != LatLng(48.8566, 2.3522));
+
+      // Ajouter le nouveau marker
+      _markers.add(
+        Marker(
+          point: destination,
+          width: 30,
+          height: 30,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: const Icon(Icons.location_on, color: Colors.white, size: 16),
+          ),
+        ),
+      );
+    });
+
+    // Centrer la carte pour voir les deux points
+    _fitMapToShowBothMarkers(destination);
+
+    // Pour Google Maps, remplacez par :
+    /*
+    _googleMarkers.removeWhere((marker) => marker.markerId.value == 'destination');
+    _googleMarkers.add(
+      Marker(
+        markerId: const MarkerId('destination'),
+        position: destination,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+      ),
+    );
+    setState(() {});
+    */
+  }
+
+  void _fitMapToShowBothMarkers(LatLng destination) {
+    final userLocation = LatLng(48.8566, 2.3522);
+    final bounds = LatLngBounds.fromPoints([userLocation, destination]);
+
+    _mapController.fitCamera(
+      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
+    );
+
+    // Pour Google Maps, remplacez par :
+    /*
+    if (_googleMapController != null) {
+      _googleMapController!.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(
+              math.min(userLocation.latitude, destination.latitude),
+              math.min(userLocation.longitude, destination.longitude),
+            ),
+            northeast: LatLng(
+              math.max(userLocation.latitude, destination.latitude),
+              math.max(userLocation.longitude, destination.longitude),
+            ),
+          ),
+          100.0, // padding
+        ),
+      );
+    }
+    */
+  }
+
+  void _openLocationSearch() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            LocationSearchScreen(currentDestination: _selectedDestination),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _selectedDestination = result['address'];
+        _destinationCoordinates = result['coordinates'];
+      });
+
+      if (_destinationCoordinates != null) {
+        _addDestinationMarker(_destinationCoordinates!);
+      }
+    }
+  }
+
+  void _openDrawer() {
+    // Si on est dans main_screen, ouvrir le drawer
+    final scaffoldState = Scaffold.maybeOf(context);
+    if (scaffoldState != null && scaffoldState.hasDrawer) {
+      scaffoldState.openDrawer();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final selected = selectedVehicleName;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reservation'),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-      ),
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  TweenAnimationBuilder<double>(
-                    duration: const Duration(milliseconds: 600),
-                    tween: Tween(begin: 0, end: 1),
-                    builder: (context, value, child) => Opacity(
-                      opacity: value,
-                      child: Transform.translate(
-                        offset: Offset(0, 16 * (1 - value)),
-                        child: child,
+      body: Stack(
+        children: [
+          // Carte Flutter Map
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: const LatLng(48.8566, 2.3522),
+              initialZoom: 14.0,
+              maxZoom: 18.0,
+              minZoom: 3.0,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.example.my_mobility_services',
+                maxZoom: 19,
+              ),
+              MarkerLayer(markers: _markers),
+            ],
+          ),
+
+          // Pour Google Maps, remplacez la FlutterMap par :
+          /*
+          GoogleMap(
+            onMapCreated: (GoogleMapController controller) {
+              _googleMapController = controller;
+            },
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(48.8566, 2.3522),
+              zoom: 14.0,
+            ),
+            markers: _googleMarkers,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+          ),
+          */
+
+          // Bouton menu en haut à gauche (seulement si pas dans main_screen)
+          if (widget.onNavigate == null)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              left: 16,
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.menu, size: 20),
+                  onPressed: _openDrawer,
+                ),
+              ),
+            ),
+
+          // Titre principal
+          const Positioned(
+            top: 100,
+            left: 20,
+            child: Text(
+              'On vous emmène !',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          // Zone de saisie en bas
+          Positioned(
+            bottom: widget.onNavigate != null
+                ? 120
+                : 200, // Adjust based on navigation
+            left: 16,
+            right: 16,
+            child: GestureDetector(
+              onTap: _openLocationSearch,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search, color: Colors.grey, size: 24),
+                    const SizedBox(width: 12),
+                    Text(
+                      _selectedDestination ?? 'Où allez-vous ?',
+                      style: TextStyle(
+                        color: _selectedDestination != null
+                            ? Colors.black
+                            : Colors.grey,
+                        fontSize: 16,
                       ),
                     ),
-                    child: Text(
-                      'Where do you\nwant to go?',
-                      style: defaultTextStyle.copyWith(
-                        color: Colors.white,
-                        fontSize: 34,
-                        fontWeight: FontWeight.w800,
-                        height: 1.1,
-                        letterSpacing: -0.5,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Barre de navigation en bas (seulement si pas dans main_screen)
+          if (widget.onNavigate == null)
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 80 + MediaQuery.of(context).padding.bottom,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                  ),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom,
+                    top: 10,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildNavItem(
+                        icon: Icons.home,
+                        label: 'Accueil',
+                        isActive: true,
+                        onTap: () {}, // Déjà sur accueil
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  _buildDriverInfo(),
-                  const SizedBox(height: 20),
-
-                  LocalisationSelector(
-                    pickupController: _pickupController,
-                    destinationController: _destinationController,
-                    onSwap: _swapLocations,
-                    pickupHint: 'Add a pick-up location',
-                    destinationHint: 'Add your destination',
-                  ),
-
-                  const SizedBox(height: 24),
-                  Text(
-                    'Choose a vehicle',
-                    style: defaultTextStyle.copyWith(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Liste des options véhicules
-                  ...vehicleTypes.map(
-                    (v) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: VehiculeOptionCard(
-                        vehicle: v,
-                        isSelected: v.name == selected,
+                      _buildNavItem(
+                        icon: Icons.calendar_today,
+                        label: 'Trajets',
+                        isActive: false,
                         onTap: () {
-                          setState(() => selectedVehicleName = v.name);
-                          _hapticFeedback();
+                          // Navigation vers trajets
+                          if (widget.onNavigate != null) {
+                            widget.onNavigate!(1);
+                          }
                         },
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 96), // espace pour le bouton bas
-                ],
-              ),
-            ),
-
-            // Barre de réservation en bas
-            Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: FilledButton(
-                  onPressed: _canReserve ? _reserve : null,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    disabledBackgroundColor: const Color(0xFF3A3F4A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: Text(
-                    selected != null
-                        ? 'Reserve now • $selected'
-                        : 'Reserve now',
-                    style: defaultTextStyle.copyWith(
-                      color: AppColors.background,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
+                      _buildNavItem(
+                        icon: Icons.person,
+                        label: 'Compte',
+                        isActive: false,
+                        onTap: () {
+                          // 🎯 NAVIGATION VERS TON PROFIL
+                          if (widget.onNavigate != null) {
+                            widget.onNavigate!(2);
+                          } else {
+                            // Si utilisé sans main_screen, navigation directe
+                            Navigator.pushNamed(context, '/profile');
+                          }
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDriverInfo() {
-    return GlassmorphicCard(
-      child: Row(
-        children: [
-          Container(
-            width: 45,
-            height: 45,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.accent, AppColors.accent.withOpacity(0.7)],
-              ),
-              borderRadius: BorderRadius.circular(22.5),
-            ),
-            child: const Icon(
-              Icons.person,
-              color: AppColors.background,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Chauffeur',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                  ),
-                ),
-                SizedBox(height: 4),
-                _StarsRow(),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.accent.withOpacity(0.3)),
-            ),
-            child: const Text(
-              'Available',
-              style: TextStyle(
-                color: AppColors.accent,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
-}
 
-class _StarsRow extends StatelessWidget {
-  const _StarsRow();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: const [
-        Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-        Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-        Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-        Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-        Icon(Icons.star_rounded, color: AppColors.accent, size: 18),
-        SizedBox(width: 8),
-        Text(
-          '5.0',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-        ),
-      ],
+  Widget _buildNavItem({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: isActive ? Colors.black : Colors.grey),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: isActive ? Colors.black : Colors.grey,
+            ),
+          ),
+          if (isActive)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              width: 60,
+              height: 3,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
