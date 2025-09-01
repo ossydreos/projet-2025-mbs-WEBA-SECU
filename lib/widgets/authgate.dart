@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:my_mobility_services/screens/reservation_screen.dart';
+import 'package:my_mobility_services/screens/acceuil_screen.dart';
 import 'package:my_mobility_services/screens/splash_screen.dart';
 import 'package:my_mobility_services/screens/welcome_login_screen.dart';
 
@@ -20,7 +20,7 @@ class Authgate extends StatelessWidget {
         if (user == null) {
           return const WelcomeLoginSignup();
         } else {
-          return const VehicleReservationScreen();
+          return const AccueilScreen();
         }
       },
     );

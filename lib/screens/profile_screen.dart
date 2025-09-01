@@ -1,32 +1,10 @@
+// lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/widget_navBar.dart';
+import '../theme/theme_app.dart';
 
-// TODO: Intégrer Firebase Auth
-// import 'package:firebase_auth/firebase_auth.dart';
-
-// TODO: Intégrer Firestore pour les données utilisateur
-// import 'package:cloud_firestore/cloud_firestore.dart';
-
-// TODO: Services à implémenter avec Firebase
-/*
-class AuthService {
-  User? get utilisateurActuel => FirebaseAuth.instance.currentUser;
-  Future<void> deconnexion() async {
-    await FirebaseAuth.instance.signOut();
-  }
-}
-
-class DataService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  
-  Future<Utilisateur> obtenirUtilisateur(String uid) async {
-    final doc = await _firestore.collection('utilisateurs').doc(uid).get();
-    return Utilisateur.fromMap(doc.data()!);
-  }
-}
-*/
-
-// Modèle utilisateur (à adapter selon votre structure Firebase)
+/// Modèle utilisateur (temporaire - sans Firebase)
 class Utilisateur {
   final String uid;
   final String nom;
@@ -41,45 +19,20 @@ class Utilisateur {
     required this.email,
     required this.telephone,
     required this.dateCreation,
-    this.notation = 0.0,
+    required this.notation,
   });
-
-  // TODO: Ajouter les méthodes Firebase
-  /*
-  factory Utilisateur.fromMap(Map<String, dynamic> map) {
-    return Utilisateur(
-      uid: map['uid'],
-      nom: map['nom'],
-      email: map['email'],
-      telephone: map['telephone'],
-      dateCreation: (map['dateCreation'] as Timestamp).toDate(),
-      notation: map['notation']?.toDouble() ?? 0.0,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'uid': uid,
-      'nom': nom,
-      'email': email,
-      'telephone': telephone,
-      'dateCreation': Timestamp.fromDate(dateCreation),
-      'notation': notation,
-    };
-  }
-  */
 }
 
-/// Écran de profil - Version mockée (sans Firebase)
-class EcranProfile extends StatefulWidget {
-  const EcranProfile({super.key});
+/// Écran de profil - Version thématisée sombre
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
   @override
-  State<EcranProfile> createState() => _EcranProfilState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _EcranProfilState extends State<EcranProfile> {
-  // Données mockées - TODO: Remplacer par les vraies données Firebase
+class _ProfileScreenState extends State<ProfileScreen> {
+  // Données mockées
   final Utilisateur _utilisateur = Utilisateur(
     uid: 'mock_uid_123',
     nom: 'bob teste',
@@ -89,240 +42,285 @@ class _EcranProfilState extends State<EcranProfile> {
     notation: 5.0,
   );
 
-  // TODO: États pour Firebase
-  // bool _loadingLogout = false;
-  // bool _loadingDelete = false;
-
-  // TODO: Méthodes Firebase à implémenter
-  /*
-  Future<void> _seDeconnecter() async {
-    final confirmation = await _afficherDialogueConfirmation(
-      'Se déconnecter',
-      'Voulez-vous vraiment vous déconnecter ?',
-      'Se déconnecter',
-    );
-
-    if (confirmation != true) return;
-    setState(() => _loadingLogout = true);
-
-    try {
-      await FirebaseAuth.instance.signOut();
-      if (!mounted) return;
-      // Navigation vers écran de connexion
-      Navigator.of(context).pushReplacementNamed('/login');
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loadingLogout = false);
-      _afficherSnack('Erreur de déconnexion : $e', isError: true);
-    }
-  }
-
-  Future<void> _supprimerCompte() async {
-    final confirmation = await _afficherDialogueConfirmation(
-      'Supprimer le compte',
-      'Cette action est définitive et ne peut pas être annulée.',
-      'Supprimer',
-      isDanger: true,
-    );
-
-    if (confirmation != true) return;
-    setState(() => _loadingDelete = true);
-
-    try {
-      // Supprimer les données Firestore
-      await FirebaseFirestore.instance
-          .collection('utilisateurs')
-          .doc(_utilisateur.uid)
-          .delete();
-      
-      // Supprimer le compte Auth
-      await FirebaseAuth.instance.currentUser?.delete();
-      
-      if (!mounted) return;
-      _afficherSnack('Compte supprimé avec succès', isError: false);
-      Navigator.of(context).pushReplacementNamed('/login');
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _loadingDelete = false);
-      _afficherSnack('Erreur lors de la suppression', isError: true);
-    }
-  }
-  */
-
-  // Méthodes mockées pour la démo
-  void _seDecconnecterMock() {
-    _afficherSnack('Déconnexion (demo mode)', isError: false);
-    // TODO: Remplacer par la vraie déconnexion Firebase
-  }
-
-  void _supprimerCompteMock() {
-    _afficherSnack('Suppression de compte (demo mode)', isError: false);
-    // TODO: Remplacer par la vraie suppression Firebase
-  }
-
-  Future<bool?> _afficherDialogueConfirmation(
-    String titre,
-    String contenu,
-    String actionText, {
-    bool isDanger = false,
-  }) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2E3A47),
-        title: Text(titre, style: const TextStyle(color: Colors.white)),
-        content: Text(contenu, style: const TextStyle(color: Colors.white)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text(
-              'Annuler',
-              style: TextStyle(color: Color(0xFF476582)),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isDanger
-                  ? Colors.red
-                  : const Color.fromARGB(255, 218, 255, 52),
-              foregroundColor: Colors.black,
-            ),
-            child: Text(actionText),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _afficherSnack(String message, {required bool isError}) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError
-            ? Colors.red
-            : const Color.fromARGB(255, 218, 255, 52),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: _buildContent(),
-      bottomNavigationBar: _buildBottomNavigation(),
+      // ✅ Utilise le thème sombre automatiquement
+      appBar: AppBar(
+        title: const Text('Profil'),
+        centerTitle: true,
+        // Le thème AppBarTheme s'applique automatiquement
+      ),
+      body: Stack(
+        children: [
+          // Contenu principal
+          _buildContent(),
+          // Barre de navigation en bas
+          CustomBottomNavBar(currentIndex: 2, onNavigate: _handleNavigation),
+        ],
+      ),
     );
   }
 
+  /// Gestion de la navigation
+  void _handleNavigation(int index) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/trajets');
+        break;
+      case 2:
+        // Déjà sur la page profil
+        break;
+    }
+  }
+
+  /// Contenu principal avec padding pour éviter le chevauchement
   Widget _buildContent() {
     return SingleChildScrollView(
-      child: Column(
-        children: [
-          _buildHeader(),
-          _buildUpdateAccountCard(),
-          _buildMenuSection(),
-          _buildLocationSection(),
-          _buildSettingsSection(),
-          _buildAccountActions(),
-          const SizedBox(height: 100), // Espace pour la bottom nav
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: Column(
+          children: [
+            _buildHeader(),
+            _buildUpdateAccountCard(),
+            _buildMenuSection(),
+            _buildLocationSection(),
+            _buildSettingsSection(),
+            _buildAccountActions(),
+          ],
+        ),
       ),
     );
   }
 
+  /// Header avec photo et infos utilisateur - THÉMATISÉ
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
+      padding: const EdgeInsets.all(20),
+      color: AppColors.surface, // ✅ Couleur du thème
       child: Column(
         children: [
-          // Avatar
-          Container(
-            width: 80,
-            height: 80,
-            decoration: const BoxDecoration(
-              color: Color(0xFF2E3A47),
-              shape: BoxShape.circle,
+          // Photo de profil avec couleur accent
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: AppColors.accent.withOpacity(0.2),
+            child: Icon(
+              Icons.person,
+              size: 60,
+              color: AppColors.accent, // ✅ Couleur accent
             ),
-            child: const Icon(Icons.person, size: 40, color: Color(0xFF476582)),
           ),
-          const SizedBox(height: 16),
-          // Nom
+          const SizedBox(height: 15),
+          // Nom en blanc (thème appliqué automatiquement)
+          Text(_utilisateur.nom, style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 5),
+          // Email avec couleur secondaire
           Text(
-            _utilisateur.nom,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+            _utilisateur.email,
+            style: TextStyle(
+              fontSize: 16,
+              color: AppColors.textSecondary, // ✅ Couleur secondaire
             ),
           ),
-          const SizedBox(height: 8),
-          // Notation
+          const SizedBox(height: 10),
+          // Étoiles avec couleur accent
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.star, color: Colors.green, size: 20),
-              const SizedBox(width: 4),
-              Text(
-                '${_utilisateur.notation.toStringAsFixed(2)} Notation',
-                style: const TextStyle(color: Color(0xFF476582), fontSize: 16),
-              ),
-            ],
+            children: List.generate(5, (index) {
+              return Icon(
+                index < _utilisateur.notation ? Icons.star : Icons.star_border,
+                color: AppColors.accent, // ✅ Couleur accent
+                size: 20,
+              );
+            }),
           ),
         ],
       ),
     );
   }
 
+  /// Carte de mise à jour - THÉMATISÉE
   Widget _buildUpdateAccountCard() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 218, 255, 52).withOpacity(0.1),
+        color: AppColors.surface, // ✅ Surface sombre
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color.fromARGB(255, 218, 255, 52).withOpacity(0.3),
-        ),
+          color: AppColors.accent.withOpacity(0.3),
+        ), // ✅ Bordure accent
       ),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: Colors.green,
-              shape: BoxShape.circle,
+          Icon(Icons.info_outline, color: AppColors.accent), // ✅ Icône accent
+          const SizedBox(width: 15),
+          Expanded(
+            child: Text(
+              'Mettez à jour vos informations de compte',
+              style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
             ),
-            child: const Icon(Icons.check, color: Colors.white, size: 24),
           ),
-          const SizedBox(width: 16),
-          const Expanded(
+          Icon(
+            Icons.arrow_forward_ios,
+            size: 16,
+            color: AppColors.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Section menu - THÉMATISÉE
+  Widget _buildMenuSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: Text(
+              'Menu',
+              style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface, // ✅ Surface sombre
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildMenuItem(Icons.directions_car, 'Mes réservations'),
+                _buildMenuItem(Icons.history, 'Historique'),
+                _buildMenuItem(Icons.payment, 'Paiements'),
+                _buildMenuItem(Icons.help_outline, 'Aide'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Section localisation - THÉMATISÉE
+  Widget _buildLocationSection() {
+    return Container(
+      margin: const EdgeInsets.all(15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: Text(
+              'Localisation',
+              style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface, // ✅ Surface sombre
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _buildMenuItem(Icons.location_on, 'Adresses sauvegardées'),
+                _buildMenuItem(Icons.map, 'Gérer les lieux favoris'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Section paramètres - THÉMATISÉE
+  Widget _buildSettingsSection() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(15),
+            child: Text(
+              'Paramètres',
+              style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface, // ✅ Surface sombre
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _buildMenuItem(Icons.notifications, 'Notifications'),
+                _buildMenuItem(Icons.privacy_tip, 'Confidentialité'),
+                _buildMenuItem(Icons.language, 'Langue'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Actions de compte - THÉMATISÉES
+  Widget _buildAccountActions() {
+    return Container(
+      margin: const EdgeInsets.all(15),
+      child: Column(
+        children: [
+          // Bouton déconnexion
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: AppColors.surface, // ✅ Surface sombre
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: const Text(
+                'Se déconnecter',
+                style: TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              onTap: () {
+                _showLogoutDialog();
+              },
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Informations compte
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: AppColors.background, // ✅ Background noir
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.surface),
+            ),
+            child: Column(
               children: [
                 Text(
-                  'Mettez à jour votre compte',
+                  'Membre depuis le ${DateFormat('dd/MM/yyyy').format(_utilisateur.dateCreation)}',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    color: AppColors.textSecondary, // ✅ Texte secondaire
+                    fontSize: 14,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 5),
                 Text(
-                  'Améliorez votre expérience d\'application',
-                  style: TextStyle(color: Color(0xFF476582), fontSize: 14),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '2 nouvelles suggestions',
+                  'ID: ${_utilisateur.uid}',
                   style: TextStyle(
-                    color: Colors.green,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary.withOpacity(0.7),
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -333,223 +331,96 @@ class _EcranProfilState extends State<EcranProfile> {
     );
   }
 
-  Widget _buildMenuSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Column(
-        children: [
-          // TODO: Navigation vers pages détail avec Firebase
-          _buildMenuItem(Icons.person_outline, 'Infos personnelles', () {
-            // TODO: Navigator.push(context, MaterialPageRoute(builder: (_) => InfosPersonnellesPage()));
-            _afficherSnack('À connecter avec Firebase', isError: false);
-          }),
-          _buildMenuItem(Icons.family_restroom, 'Profil familial', () {
-            // TODO: Navigation vers profil familial
-            _afficherSnack('À connecter avec Firebase', isError: false);
-          }),
-          _buildMenuItem(Icons.security, 'Sécurité', () {
-            // TODO: Navigation vers paramètres sécurité
-            _afficherSnack('À connecter avec Firebase', isError: false);
-          }),
-          _buildMenuItem(
-            Icons.verified_user_outlined,
-            'Connexion et sécurité',
-            () {
-              // TODO: Navigation vers paramètres connexion
-              _afficherSnack('À connecter avec Firebase', isError: false);
-            },
-          ),
-          _buildMenuItem(Icons.privacy_tip_outlined, 'Confidentialité', () {
-            // TODO: Navigation vers paramètres confidentialité
-            _afficherSnack('À connecter avec Firebase', isError: false);
-          }),
-        ],
+  /// Item de menu réutilisable - THÉMATISÉ
+  Widget _buildMenuItem(IconData icon, String title) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.textSecondary), // ✅ Icône secondaire
+      title: Text(
+        title,
+        style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
       ),
+      trailing: Icon(
+        Icons.arrow_forward_ios,
+        size: 16,
+        color: AppColors.textSecondary.withOpacity(0.6),
+      ),
+      onTap: () {
+        _showFeatureDialog(title);
+      },
     );
   }
 
-  Widget _buildLocationSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Lieux sauvegardés',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
+  /// Dialog de confirmation de déconnexion - THÉMATISÉ
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface, // ✅ Dialog sombre
+          title: Text(
+            'Déconnexion',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          content: Text(
+            'Êtes-vous sûr de vouloir vous déconnecter ?',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Annuler',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          // TODO: Connecter avec Firestore pour sauvegarder les adresses
-          _buildMenuItem(
-            Icons.home_outlined,
-            'Ajouter l\'adresse de domicile',
-            () {
-              // TODO: Navigation vers ajout adresse + sauvegarde Firestore
-              _afficherSnack('À connecter avec Firestore', isError: false);
-            },
-          ),
-          _buildMenuItem(
-            Icons.work_outline,
-            'Ajouter l\'adresse professionnelle',
-            () {
-              // TODO: Navigation vers ajout adresse + sauvegarde Firestore
-              _afficherSnack('À connecter avec Firestore', isError: false);
-            },
-          ),
-          _buildMenuItem(Icons.add, 'Ajouter un lieu', () {
-            // TODO: Navigation vers ajout lieu personnalisé + sauvegarde Firestore
-            _afficherSnack('À connecter avec Firestore', isError: false);
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsSection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: Column(
-        children: [
-          _buildMenuItem(
-            Icons.language,
-            'Langue',
-            () {
-              // TODO: Sauvegarder préférence dans Firestore
-              _afficherSnack(
-                'À connecter avec Firestore pour les préférences',
-                isError: false,
-              );
-            },
-            trailing: const Text(
-              'Français',
-              style: TextStyle(color: Color(0xFF476582)),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _performLogout();
+              },
+              child: Text(
+                'Déconnexion',
+                style: TextStyle(color: AppColors.accent), // ✅ Couleur accent
+              ),
             ),
-          ),
-          _buildMenuItem(
-            Icons.volume_up_outlined,
-            'Préférences de communication',
-            () {
-              // TODO: Navigation vers paramètres notifications + sauvegarde Firebase
-              _afficherSnack(
-                'À connecter avec Firebase pour les notifications',
-                isError: false,
-              );
-            },
-          ),
-          _buildMenuItem(Icons.calendar_month_outlined, 'Calendriers', () {
-            // TODO: Intégration Google Calendar + sauvegarde Firestore
-            _afficherSnack(
-              'À connecter avec Google Calendar API',
-              isError: false,
-            );
-          }),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildAccountActions() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Column(
-        children: [
-          _buildMenuItem(
-            Icons.logout,
-            'Se déconnecter',
-            _seDecconnecterMock, // TODO: Remplacer par _seDeconnecter() avec Firebase
+  /// Dialog pour les fonctionnalités à implémenter - THÉMATISÉ
+  void _showFeatureDialog(String feature) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface, // ✅ Dialog sombre
+          title: Text(feature, style: Theme.of(context).textTheme.titleLarge),
+          content: Text(
+            'Cette fonctionnalité sera bientôt disponible.',
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
-          _buildMenuItem(
-            Icons.delete_outline,
-            'Supprimer le compte',
-            _supprimerCompteMock, // TODO: Remplacer par _supprimerCompte() avec Firebase
-            isDanger: true,
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'OK',
+                style: TextStyle(color: AppColors.accent), // ✅ Couleur accent
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildMenuItem(
-    IconData icon,
-    String title,
-    VoidCallback? onTap, {
-    Widget? trailing,
-    bool isDanger = false,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 1),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-        leading: Icon(
-          icon,
-          color: isDanger ? Colors.red : const Color(0xFF476582),
-          size: 24,
-        ),
-        title: Text(
-          title,
-          style: TextStyle(
-            color: isDanger ? Colors.red : Colors.white,
-            fontSize: 16,
-          ),
-        ),
-        trailing:
-            trailing ??
-            const Icon(Icons.chevron_right, color: Color(0xFF476582)),
-        onTap: onTap,
-      ),
-    );
-  }
-
-  Widget _buildBottomNavigation() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF2E3A47),
-        border: Border(top: BorderSide(color: Color(0xFF476582), width: 0.5)),
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        type: BottomNavigationBarType.fixed,
-        currentIndex: 2, // Index du profil
-        selectedItemColor: const Color.fromARGB(255, 218, 255, 52),
-        unselectedItemColor: const Color(0xFF476582),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Accueil',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.route_outlined),
-            label: 'Trajets',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Compte'),
-        ],
-        // TODO: Gérer la navigation entre les onglets
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              // TODO: Navigator.pushReplacementNamed(context, '/home');
-              _afficherSnack(
-                'Navigation Accueil - À implémenter',
-                isError: false,
-              );
-              break;
-            case 1:
-              // TODO: Navigator.pushReplacementNamed(context, '/trajets');
-              _afficherSnack(
-                'Navigation Trajets - À implémenter',
-                isError: false,
-              );
-              break;
-            case 2:
-              // Déjà sur la page profil
-              break;
-          }
-        },
+  /// Simuler la déconnexion
+  void _performLogout() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Déconnexion simulée (mode développement)'),
+        backgroundColor: AppColors.accent, // ✅ Couleur accent
       ),
     );
   }

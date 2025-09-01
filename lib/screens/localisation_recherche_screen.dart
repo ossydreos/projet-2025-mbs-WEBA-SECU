@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import '../theme/theme_app.dart';
+import '../theme/theme_app.dart'; // ✅ Import corrigé
 
 class Suggestion {
   final String displayName;
@@ -61,9 +61,7 @@ class Suggestion {
         double.parse(json['lon'].toString()),
       ),
       icon: iconData,
-      distance: _calculateDistance(
-        json,
-      ), // Vous pouvez implémenter le calcul de distance
+      distance: _calculateDistance(json),
     );
   }
 
@@ -105,8 +103,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   List<Suggestion> _suggestions = [];
   bool _isLoading = false;
-  String _currentPickupLocation =
-      "Chemin du Domaine-Patry 1"; // Valeur fixe pour correspondre aux images
+  String _currentPickupLocation = "Chemin du Domaine-Patry 1";
 
   @override
   void initState() {
@@ -199,10 +196,10 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background, // ✅ Background noir
       body: Column(
         children: [
-          // Header avec boutons et titre
+          // Header avec boutons et titre - THÉMATISÉ
           Container(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 16,
@@ -210,54 +207,71 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               right: 16,
               bottom: 16,
             ),
+            decoration: BoxDecoration(
+              color: AppColors.surface, // ✅ Surface sombre
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.accent.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Column(
               children: [
-                // Barre de titre
+                // Barre de titre - THÉMATISÉE
                 Row(
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close,
                         size: 24,
-                        color: Colors.black,
+                        color: AppColors.accent, // ✅ Couleur accent
                       ),
                     ),
-                    const Expanded(
+                    Expanded(
                       child: Center(
                         child: Text(
                           'Votre itinéraire',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                            color: Colors.white, // ✅ Texte blanc
                           ),
                         ),
                       ),
                     ),
-                    const Icon(Icons.sort, size: 24, color: Colors.black),
+                    Icon(
+                      Icons.sort,
+                      size: 24,
+                      color: AppColors.textSecondary, // ✅ Couleur secondaire
+                    ),
                   ],
                 ),
 
                 const SizedBox(height: 20),
 
-                // Point de départ (fixe)
+                // Point de départ (fixe) - THÉMATISÉ
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: AppColors.background, // ✅ Background noir
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.textSecondary.withOpacity(0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
                       Container(
                         width: 8,
                         height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.blue,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent, // ✅ Point accent
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -267,28 +281,41 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           _currentPickupLocation,
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Colors.black87,
+                            color: Colors.white, // ✅ Texte blanc
                           ),
                         ),
                       ),
-                      const Icon(Icons.add, color: Colors.black54, size: 20),
+                      Icon(
+                        Icons.add,
+                        color: AppColors.textSecondary, // ✅ Icône secondaire
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),
 
                 const SizedBox(height: 12),
 
-                // Zone de recherche destination
+                // Zone de recherche destination - THÉMATISÉE
                 Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.green, width: 2),
+                    border: Border.all(
+                      color: AppColors.accent, // ✅ Bordure accent
+                      width: 2,
+                    ),
                     borderRadius: BorderRadius.circular(12),
+                    color: AppColors.background, // ✅ Background noir
                   ),
                   child: Row(
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(Icons.search, color: Colors.grey, size: 20),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Icon(
+                          Icons.search,
+                          color:
+                              AppColors.textSecondary, // ✅ Couleur secondaire
+                          size: 20,
+                        ),
                       ),
                       Expanded(
                         child: TextField(
@@ -296,16 +323,17 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           focusNode: _focusNode,
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Colors.black,
+                            color: Colors.white, // ✅ Texte blanc
                           ),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             hintText: 'Destination',
                             hintStyle: TextStyle(
-                              color: Colors.grey,
+                              color:
+                                  AppColors.textSecondary, // ✅ Hint secondaire
                               fontSize: 16,
                             ),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
+                            contentPadding: const EdgeInsets.symmetric(
                               horizontal: 0,
                               vertical: 12,
                             ),
@@ -315,20 +343,21 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       if (_searchController.text.isNotEmpty)
                         GestureDetector(
                           onTap: _clearSearch,
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Icon(
                               Icons.clear,
-                              color: Colors.grey,
+                              color: AppColors
+                                  .textSecondary, // ✅ Couleur secondaire
                               size: 20,
                             ),
                           ),
                         ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Icon(
                           Icons.location_on,
-                          color: Colors.blue,
+                          color: AppColors.accent, // ✅ Couleur accent
                           size: 20,
                         ),
                       ),
@@ -339,65 +368,99 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             ),
           ),
 
-          // Liste des suggestions
+          // Liste des suggestions - THÉMATISÉE
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _suggestions.isEmpty && _searchController.text.isNotEmpty
-                ? const Center(
-                    child: Text(
-                      'Aucun résultat trouvé',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
+            child: Container(
+              color: AppColors.background, // ✅ Background noir
+              child: _isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.accent, // ✅ Couleur accent
+                      ),
+                    )
+                  : _suggestions.isEmpty && _searchController.text.isNotEmpty
+                  ? Center(
+                      child: Text(
+                        'Aucun résultat trouvé',
+                        style: TextStyle(
+                          color:
+                              AppColors.textSecondary, // ✅ Couleur secondaire
+                          fontSize: 16,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      itemCount: _suggestions.length,
+                      itemBuilder: (context, index) {
+                        final suggestion = _suggestions[index];
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                            vertical: 4,
+                            horizontal: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface, // ✅ Surface sombre
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.textSecondary.withOpacity(0.1),
+                            ),
+                          ),
+                          child: ListTile(
+                            leading: Icon(
+                              suggestion.icon,
+                              color: AppColors.accent, // ✅ Icône accent
+                              size: 24,
+                            ),
+                            title: Text(
+                              suggestion.shortName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white, // ✅ Titre blanc
+                              ),
+                            ),
+                            subtitle: suggestion.address.isNotEmpty
+                                ? Text(
+                                    suggestion.address,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: AppColors
+                                          .textSecondary, // ✅ Subtitle secondaire
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                : null,
+                            trailing: Text(
+                              suggestion.distance,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors
+                                    .textSecondary, // ✅ Distance secondaire
+                              ),
+                            ),
+                            onTap: () => _onSuggestionTap(suggestion),
+                          ),
+                        );
+                      },
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: _suggestions.length,
-                    itemBuilder: (context, index) {
-                      final suggestion = _suggestions[index];
-                      return ListTile(
-                        leading: Icon(
-                          suggestion.icon,
-                          color: Colors.black54,
-                          size: 24,
-                        ),
-                        title: Text(
-                          suggestion.shortName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        subtitle: suggestion.address.isNotEmpty
-                            ? Text(
-                                suggestion.address,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.black54,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              )
-                            : null,
-                        trailing: Text(
-                          suggestion.distance,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
-                        ),
-                        onTap: () => _onSuggestionTap(suggestion),
-                      );
-                    },
-                  ),
+            ),
           ),
 
-          // Footer "powered by Google" (comme dans vos images)
+          // Footer "powered by Google" - THÉMATISÉ
           Container(
             padding: const EdgeInsets.all(16),
-            child: const Text(
-              'powered by Google',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+            color: AppColors.surface, // ✅ Surface sombre
+            child: Text(
+              'powered by OpenStreetMap',
+              style: TextStyle(
+                color: AppColors.textSecondary.withOpacity(
+                  0.7,
+                ), // ✅ Texte très subtil
+                fontSize: 12,
+              ),
+              textAlign: TextAlign.center,
             ),
           ),
         ],

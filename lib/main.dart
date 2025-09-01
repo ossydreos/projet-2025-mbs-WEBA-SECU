@@ -5,7 +5,7 @@ import 'package:my_mobility_services/widgets/authgate.dart';
 import 'firebase_options.dart';
 import './theme/theme_app.dart';
 // Import des écrans pour les routes
-import './screens/reservation_screen.dart';
+import 'screens/acceuil_screen.dart';
 import './screens/profile_screen.dart';
 import './screens/localisation_recherche_screen.dart';
 
@@ -24,11 +24,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Login v0.1',
       theme: AppTheme.dark(),
-      home: WelcomeLoginSignup(),
+      home: const AccueilScreen(),
       // 🎯 ROUTES POUR NAVIGATION
       routes: {
-        '/home': (context) => const VehicleReservationScreen(),
-        '/profile': (context) => const EcranProfile(),
+        '/home': (context) => const AccueilScreen(),
+        '/profile': (context) => const ProfileScreen(),
         '/search': (context) => LocationSearchScreen(),
         '/trips': (context) => const TripsScreen(),
       },
