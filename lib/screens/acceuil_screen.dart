@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'localisation_recherche_screen.dart';
 import '../theme/theme_app.dart'; // ✅ Import corrigé
+import '../widgets/widget_navBar.dart';
 
 // Pour Google Maps, remplacez les imports par :
 // import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -20,6 +21,7 @@ class AccueilScreen extends StatefulWidget {
 
 class _AccueilScreenState extends State<AccueilScreen> {
   final MapController _mapController = MapController();
+  int _selectedIndex = 0; // Index 0 pour "Accueil" (actif)
 
   String? _selectedDestination;
   LatLng? _destinationCoordinates;
@@ -31,6 +33,27 @@ class _AccueilScreenState extends State<AccueilScreen> {
   void initState() {
     super.initState();
     _addUserLocationMarker();
+  }
+
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex)
+      return; // Éviter la navigation si déjà sur la page
+
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    // Navigation vers les autres écrans
+    switch (index) {
+      case 0: // Accueil (déjà sur cette page)
+        break;
+      case 1: // Trajets
+        Navigator.pushReplacementNamed(context, '/trajets');
+        break;
+      case 2: // Compte
+        Navigator.pushReplacementNamed(context, '/profile');
+        break;
+    }
   }
 
   void _addUserLocationMarker() {
@@ -149,6 +172,10 @@ class _AccueilScreenState extends State<AccueilScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background, // ✅ Background noir
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
       body: Stack(
         children: [
           // Carte Flutter Map - THÉMATISÉE SOMBRE
@@ -321,115 +348,6 @@ class _AccueilScreenState extends State<AccueilScreen> {
               ),
             ),
           ),
-
-          // Barre de navigation en bas - THÉMATISÉE
-          if (widget.onNavigate == null)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 80 + MediaQuery.of(context).padding.bottom,
-                decoration: BoxDecoration(
-                  color: AppColors.surface, // ✅ Surface sombre
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  border: Border(
-                    top: BorderSide(
-                      color: AppColors.accent.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).padding.bottom,
-                    top: 10,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildNavItem(
-                        icon: Icons.home,
-                        label: 'Accueil',
-                        isActive: true,
-                        onTap: () {}, // Déjà sur accueil
-                      ),
-                      _buildNavItem(
-                        icon: Icons.calendar_today,
-                        label: 'Trajets',
-                        isActive: false,
-                        onTap: () {
-                          if (widget.onNavigate != null) {
-                            widget.onNavigate!(1);
-                          }
-                        },
-                      ),
-                      _buildNavItem(
-                        icon: Icons.person,
-                        label: 'Compte',
-                        isActive: false,
-                        onTap: () {
-                          if (widget.onNavigate != null) {
-                            widget.onNavigate!(2);
-                          } else {
-                            Navigator.pushNamed(context, '/profile');
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isActive
-                ? AppColors
-                      .accent // ✅ Couleur accent pour l'actif
-                : AppColors
-                      .textSecondary, // ✅ Couleur secondaire pour l'inactif
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isActive
-                  ? AppColors
-                        .accent // ✅ Couleur accent pour l'actif
-                  : AppColors
-                        .textSecondary, // ✅ Couleur secondaire pour l'inactif
-            ),
-          ),
-          if (isActive)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              width: 60,
-              height: 3,
-              decoration: BoxDecoration(
-                color: AppColors.accent, // ✅ Indicateur accent
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
         ],
       ),
     );

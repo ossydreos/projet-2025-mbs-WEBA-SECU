@@ -56,7 +56,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Contenu principal
           _buildContent(),
           // Barre de navigation en bas
-          CustomBottomNavBar(currentIndex: 2, onNavigate: _handleNavigation),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: CustomBottomNavigationBar(
+              currentIndex: 2,
+              onTap: _handleNavigation,
+            ),
+          ),
         ],
       ),
     );
@@ -64,15 +72,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Gestion de la navigation
   void _handleNavigation(int index) {
+    if (index == 2) return; // Déjà sur la page profil
+
     switch (index) {
-      case 0:
+      case 0: // Accueil
         Navigator.pushReplacementNamed(context, '/home');
         break;
-      case 1:
+      case 1: // Trajets
         Navigator.pushReplacementNamed(context, '/trajets');
-        break;
-      case 2:
-        // Déjà sur la page profil
         break;
     }
   }
