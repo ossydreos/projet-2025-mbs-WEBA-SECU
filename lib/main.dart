@@ -26,10 +26,30 @@ class MyApp extends StatelessWidget {
       title: 'My Mobility Services',
       theme: AppTheme.dark(),
       home: const Authgate(),
-      routes: {
-        '/home': (context) => const AccueilScreen(),
-        '/trajets': (context) => const TrajetsScreen(),
-        '/profile': (context) => const ProfileScreen(),
+      onGenerateRoute: (settings) {
+        // Configuration des transitions fluides sans animations
+        Widget page;
+        switch (settings.name) {
+          case '/home':
+            page = const AccueilScreen();
+            break;
+          case '/trajets':
+            page = const TrajetsScreen();
+            break;
+          case '/profile':
+            page = const ProfileScreen();
+            break;
+          default:
+            page = const AccueilScreen();
+        }
+
+        return PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => page,
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              child,
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        );
       },
     );
   }

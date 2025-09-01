@@ -30,8 +30,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
         onTap: onTap,
         type: BottomNavigationBarType.fixed,
         backgroundColor: AppColors.surface,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey[400],
+        selectedItemColor: AppColors.accent,
+        unselectedItemColor: AppColors.textSecondary,
         selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontFamily: 'Poppins',
@@ -40,6 +40,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
           fontWeight: FontWeight.w500,
           fontFamily: 'Poppins',
         ),
+        elevation: 0, // Supprimer l'ombre par défaut
+        enableFeedback: true, // Activer le retour haptique
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
