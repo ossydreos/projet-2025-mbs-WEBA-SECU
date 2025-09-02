@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'localisation_recherche_screen.dart';
+import 'booking_screen.dart';
 import '../theme/theme_app.dart';
 import '../widgets/widget_navBar.dart';
 import '../widgets/paneau_recherche.dart';
@@ -233,13 +234,29 @@ class _AccueilScreenState extends State<AccueilScreen> {
     );
 
     if (result != null) {
-      setState(() {
-        _selectedDestination = result['address'];
-        _destinationCoordinates = result['coordinates'];
-      });
+      // Si on a les deux adresses (départ et destination), ouvrir la page de réservation
+      if (result['departure'] != null && result['destination'] != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookingScreen(
+              departure: result['departure'],
+              destination: result['destination'],
+              departureCoordinates: result['departureCoordinates'],
+              destinationCoordinates: result['destinationCoordinates'],
+            ),
+          ),
+        );
+      } else {
+        // Ancien comportement pour la destination uniquement
+        setState(() {
+          _selectedDestination = result['address'];
+          _destinationCoordinates = result['coordinates'];
+        });
 
-      if (_destinationCoordinates != null) {
-        _addDestinationMarker(_destinationCoordinates!);
+        if (_destinationCoordinates != null) {
+          _addDestinationMarker(_destinationCoordinates!);
+        }
       }
     }
   }
