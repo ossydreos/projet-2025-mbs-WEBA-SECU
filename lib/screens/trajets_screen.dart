@@ -140,6 +140,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         }
 
         if (snapshot.hasError) {
+          print('Erreur dans trajets_screen: ${snapshot.error}');
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -162,11 +163,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'Vérifiez votre connexion internet et réessayez.',
+                    'Erreur: ${snapshot.error}',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                      color: Colors.red[300],
                     ),
                   ),
                 ),

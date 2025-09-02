@@ -28,21 +28,15 @@ class ReservationService {
   // Obtenir toutes les réservations d'un utilisateur
   Future<List<Reservation>> getUserReservations(String userId) async {
     try {
-      // Requête simple sans orderBy pour éviter l'erreur d'index
       final querySnapshot = await _firestore
           .collection(_collection)
           .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
           .get();
 
-      // Trier manuellement par date de création
-      final reservations = querySnapshot.docs
+      return querySnapshot.docs
           .map((doc) => Reservation.fromMap(doc.data()))
           .toList();
-      
-      // Trier par date de création (plus récent en premier)
-      reservations.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      
-      return reservations;
     } catch (e) {
       throw Exception('Erreur lors de la récupération des réservations: $e');
     }

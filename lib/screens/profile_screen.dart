@@ -13,7 +13,6 @@ class Utilisateur {
   final String email;
   final String telephone;
   final DateTime dateCreation;
-  final double notation;
 
   Utilisateur({
     required this.uid,
@@ -21,7 +20,6 @@ class Utilisateur {
     required this.email,
     required this.telephone,
     required this.dateCreation,
-    required this.notation,
   });
 }
 
@@ -42,15 +40,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Données utilisateur avec Firebase Auth
   Utilisateur get _utilisateur {
     if (_currentUser != null) {
+      print('ProfileScreen - Utilisateur connecté: ${_currentUser!.email}');
+      print('ProfileScreen - DisplayName: ${_currentUser!.displayName}');
       return Utilisateur(
         uid: _currentUser!.uid,
-        nom: _currentUser!.displayName ?? 'Utilisateur',
+        nom: _currentUser!.displayName ?? _currentUser!.email?.split('@')[0] ?? 'Utilisateur',
         email: _currentUser!.email ?? 'email@example.com',
         telephone: _currentUser!.phoneNumber ?? '+33 0 00 00 00 00',
         dateCreation: _currentUser!.metadata.creationTime ?? DateTime.now(),
-        notation: 5.0,
       );
     } else {
+      print('ProfileScreen - Aucun utilisateur connecté');
       // Utilisateur par défaut si pas connecté
       return Utilisateur(
         uid: 'guest',
@@ -58,36 +58,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
         email: 'invite@example.com',
         telephone: '+33 0 00 00 00 00',
         dateCreation: DateTime.now(),
-        notation: 0.0,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // ✅ Utilise le thème sombre automatiquement
-      appBar: AppBar(
-        title: const Text('Profil'),
-        centerTitle: true,
-        // Le thème AppBarTheme s'applique automatiquement
-      ),
-      body: Stack(
-        children: [
-          // Contenu principal
-          _buildContent(),
-          // Barre de navigation en bas
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: CustomBottomNavigationBar(
-              currentIndex: 2,
-              onTap: _handleNavigation,
-            ),
+    return StreamBuilder<User?>(
+      stream: _auth.authStateChanges(),
+      builder: (context, snapshot) {
+        return Scaffold(
+          // ✅ Utilise le thème sombre automatiquement
+          appBar: AppBar(
+            title: const Text('Profil'),
+            centerTitle: true,
+            // Le thème AppBarTheme s'applique automatiquement
           ),
-        ],
-      ),
+          body: Stack(
+            children: [
+              // Contenu principal
+              _buildContent(),
+              // Barre de navigation en bas
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: CustomBottomNavigationBar(
+                  currentIndex: 2,
+                  onTap: _handleNavigation,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -127,6 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Header avec photo et infos utilisateur - THÉMATISÉ
   Widget _buildHeader() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       color: AppColors.surface, // ✅ Couleur du thème
       child: Column(
@@ -153,18 +158,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.textSecondary, // ✅ Couleur secondaire
             ),
           ),
-          const SizedBox(height: 10),
-          // Étoiles avec couleur accent
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(5, (index) {
-              return Icon(
-                index < _utilisateur.notation ? Icons.star : Icons.star_border,
-                color: AppColors.accent, // ✅ Couleur accent
-                size: 20,
-              );
-            }),
-          ),
         ],
       ),
     );
@@ -173,7 +166,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Carte de mise à jour - THÉMATISÉE
   Widget _buildUpdateAccountCard() {
     return Container(
-      margin: const EdgeInsets.all(15),
+      margin: const EdgeInsets.fromLTRB(15, 20, 15, 15),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.surface, // ✅ Surface sombre
