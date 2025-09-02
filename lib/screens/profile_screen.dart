@@ -1,7 +1,9 @@
 // lib/screens/profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/widget_navBar.dart';
+import '../widgets/authgate.dart';
 import '../theme/theme_app.dart';
 
 /// Modèle utilisateur (temporaire - sans Firebase)
@@ -32,15 +34,34 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Données mockées
-  final Utilisateur _utilisateur = Utilisateur(
-    uid: 'mock_uid_123',
-    nom: 'bob teste',
-    email: 'bob@teste.ch',
-    telephone: '+41 79 123 45 67',
-    dateCreation: DateTime(2024, 1, 10),
-    notation: 5.0,
-  );
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  
+  // Obtenir les données utilisateur depuis Firebase Auth
+  User? get _currentUser => _auth.currentUser;
+  
+  // Données utilisateur avec Firebase Auth
+  Utilisateur get _utilisateur {
+    if (_currentUser != null) {
+      return Utilisateur(
+        uid: _currentUser!.uid,
+        nom: _currentUser!.displayName ?? 'Utilisateur',
+        email: _currentUser!.email ?? 'email@example.com',
+        telephone: _currentUser!.phoneNumber ?? '+33 0 00 00 00 00',
+        dateCreation: _currentUser!.metadata.creationTime ?? DateTime.now(),
+        notation: 5.0,
+      );
+    } else {
+      // Utilisateur par défaut si pas connecté
+      return Utilisateur(
+        uid: 'guest',
+        nom: 'Invité',
+        email: 'invite@example.com',
+        telephone: '+33 0 00 00 00 00',
+        dateCreation: DateTime.now(),
+        notation: 0.0,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -422,13 +443,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Simuler la déconnexion
-  void _performLogout() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Déconnexion simulée (mode développement)'),
-        backgroundColor: AppColors.accent, // ✅ Couleur accent
-      ),
-    );
+  /// Déconnexion réelle avec Firebase Auth
+  Future<void> _performLogout() async {
+    try {
+      print('ProfileScreen - Début de la déconnexion');
+      await _auth.signOut();
+      print('ProfileScreen - signOut() terminé');
+      
+      // Forcer la navigation vers l'écran de connexion
+      if (mounted) {
+        print('ProfileScreen - Navigation vers AuthGate');
+        // Naviguer vers AuthGate qui gérera la redirection
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const Authgate()),
+          (route) => false,
+        );
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Déconnexion réussie'),
+            backgroundColor: AppColors.accent,
+          ),
+        );
+      }
+    } catch (e) {
+      print('ProfileScreen - Erreur lors de la déconnexion: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la déconnexion: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

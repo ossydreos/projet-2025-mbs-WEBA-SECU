@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/theme_app.dart';
+import '../models/reservation.dart';
+import '../services/reservation_service.dart';
 
 class TripSummaryScreen extends StatefulWidget {
   final String vehicleName;
@@ -26,6 +28,8 @@ class TripSummaryScreen extends StatefulWidget {
 class _TripSummaryScreenState extends State<TripSummaryScreen> {
   String _paymentMethod = 'Espèces';
   String _totalPrice = '28,1 €';
+  final ReservationService _reservationService = ReservationService();
+  bool _isCreatingReservation = false;
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -51,6 +55,72 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  Future<void> _createReservation() async {
+    if (_isCreatingReservation) return;
+
+    setState(() {
+      _isCreatingReservation = true;
+    });
+
+    try {
+      // Obtenir l'ID utilisateur (connecté ou temporaire)
+      String userId;
+      if (_reservationService.isUserLoggedIn()) {
+        userId = _reservationService.getCurrentUserId()!;
+      } else {
+        // Utilisateur non connecté - créer un ID temporaire
+        userId = 'temp_user_${DateTime.now().millisecondsSinceEpoch}';
+      }
+      
+      // Créer la réservation
+      final reservation = Reservation(
+        id: '', // Sera généré par le service
+        userId: userId,
+        vehicleName: widget.vehicleName,
+        departure: widget.departure,
+        destination: widget.destination,
+        selectedDate: widget.selectedDate,
+        selectedTime: _formatTime(widget.selectedTime),
+        estimatedArrival: widget.estimatedArrival,
+        paymentMethod: _paymentMethod,
+        totalPrice: 28.1, // Prix fixe pour l'instant
+        status: ReservationStatus.pending,
+        createdAt: DateTime.now(),
+      );
+
+      // Sauvegarder dans Firebase
+      final reservationId = await _reservationService.createReservation(reservation);
+
+      // Afficher le succès
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Réservation créée avec succès ! ID: $reservationId'),
+            backgroundColor: AppColors.accent,
+          ),
+        );
+        
+        // Retourner à l'accueil
+        Navigator.popUntil(context, (route) => route.isFirst);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la création de la réservation: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isCreatingReservation = false;
+        });
+      }
+    }
   }
 
   @override
@@ -379,16 +449,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Confirmer la réservation
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Course ${widget.vehicleName} confirmée pour ${_formatDate(widget.selectedDate)} à ${_formatTime(widget.selectedTime)}'),
-                            backgroundColor: AppColors.accent,
-                          ),
-                        );
-                        Navigator.popUntil(context, (route) => route.isFirst);
-                      },
+                      onPressed: _isCreatingReservation ? null : _createReservation,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,
                         foregroundColor: Colors.white,
@@ -398,14 +459,23 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                         ),
                         elevation: 0,
                       ),
-                                             child: const Text(
-                         'Confirmer',
-                         style: TextStyle(
-                           fontSize: 16,
-                           fontWeight: FontWeight.w600,
-                           color: Colors.black,
-                         ),
-                       ),
+                                                                   child: _isCreatingReservation
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                              ),
+                            )
+                          : const Text(
+                              'Confirmer',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
                     ),
                   ),
                   

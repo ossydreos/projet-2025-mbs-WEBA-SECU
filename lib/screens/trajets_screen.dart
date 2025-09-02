@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/theme_app.dart';
 import '../widgets/widget_navBar.dart';
+import '../models/reservation.dart';
+import '../services/reservation_service.dart';
 
 class TrajetsScreen extends StatefulWidget {
   const TrajetsScreen({super.key});
@@ -13,6 +16,8 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedIndex = 1; // Index 1 pour "Trajets" (actif)
+  final ReservationService _reservationService = ReservationService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
@@ -117,6 +122,120 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   Widget _buildUpcomingTab() {
+    final currentUser = _auth.currentUser;
+    
+    if (currentUser == null) {
+      return _buildNotLoggedInView();
+    }
+
+    return FutureBuilder<List<Reservation>>(
+      future: _reservationService.getUserReservations(currentUser.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppColors.accent,
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red[300],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Erreur de connexion',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red[300],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Text(
+                    'Vérifiez votre connexion internet et réessayez.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {}); // Recharger
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.black,
+                  ),
+                  child: const Text('Réessayer'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final reservations = snapshot.data ?? [];
+        final upcomingReservations = reservations.where((r) => 
+          r.status == ReservationStatus.pending || 
+          r.status == ReservationStatus.confirmed ||
+          r.status == ReservationStatus.inProgress
+        ).toList();
+
+        if (upcomingReservations.isEmpty) {
+          return _buildEmptyUpcomingView();
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: upcomingReservations.length,
+          itemBuilder: (context, index) {
+            final reservation = upcomingReservations[index];
+            return _buildReservationCard(reservation);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildNotLoggedInView() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.person_off,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Connectez-vous pour voir vos réservations',
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.grey[400],
+              fontFamily: 'Poppins',
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyUpcomingView() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
@@ -303,7 +422,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // TODO: Implémenter l'action
+                  Navigator.pushReplacementNamed(context, '/home');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
@@ -323,6 +442,111 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 ),
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReservationCard(Reservation reservation) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.textSecondary.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.directions_car,
+                  color: AppColors.accent,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      reservation.vehicleName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      reservation.statusInFrench,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${reservation.totalPrice.toStringAsFixed(1)} €',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(
+                Icons.location_on,
+                color: AppColors.accent,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${reservation.departure} → ${reservation.destination}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(
+                Icons.schedule,
+                color: AppColors.textSecondary,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
         ],
       ),

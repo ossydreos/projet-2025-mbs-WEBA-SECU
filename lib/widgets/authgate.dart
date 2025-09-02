@@ -17,9 +17,15 @@ class Authgate extends StatelessWidget {
         }
         final user = snapshot.data;
 
+        // Debug pour voir l'état de l'authentification
+        print('AuthGate - User: ${user?.uid ?? "null"}');
+        print('AuthGate - Connection state: ${snapshot.connectionState}');
+
         if (user == null) {
+          print('AuthGate - Redirection vers WelcomeLoginSignup');
           return const WelcomeLoginSignup();
         } else {
+          print('AuthGate - Redirection vers AccueilScreen');
           return const AccueilScreen();
         }
       },
