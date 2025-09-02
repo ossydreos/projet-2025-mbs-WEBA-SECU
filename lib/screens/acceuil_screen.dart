@@ -8,6 +8,8 @@ import 'booking_screen.dart';
 import '../theme/theme_app.dart';
 import '../widgets/widget_navBar.dart';
 import '../widgets/paneau_recherche.dart';
+import '../models/reservation.dart';
+import '../services/reservation_service.dart';
 
 class AccueilScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -20,6 +22,7 @@ class AccueilScreen extends StatefulWidget {
 
 class _AccueilScreenState extends State<AccueilScreen> {
   final MapController _mapController = MapController();
+  final ReservationService _reservationService = ReservationService();
   int _selectedIndex = 0;
 
   String? _selectedDestination;
@@ -261,6 +264,209 @@ class _AccueilScreenState extends State<AccueilScreen> {
     }
   }
 
+  Widget _buildPendingReservationPanel(Reservation reservation) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.textSecondary.withOpacity(0.2),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.background.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // En-tête avec statut
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.schedule,
+                  color: Colors.orange,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Réservation en attente',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'En attente de confirmation du chauffeur',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'En attente',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Détails de la réservation
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.background.withOpacity(0.5),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                // Véhicule et prix
+                Row(
+                  children: [
+                    Icon(
+                      Icons.directions_car,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      reservation.vehicleName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '${reservation.totalPrice.toStringAsFixed(1)} €',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // Itinéraire
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on,
+                      color: AppColors.accent,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${reservation.departure} → ${reservation.destination}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 8),
+                
+                // Date et heure
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule,
+                      color: AppColors.textSecondary,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Message d'information
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: Colors.blue.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: Colors.blue,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Votre réservation est en cours de traitement. Vous ne pouvez pas faire une nouvelle réservation tant qu\'elle n\'est pas confirmée.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -363,14 +569,25 @@ class _AccueilScreenState extends State<AccueilScreen> {
                 ),
               ),
             ),
-          // Panneau bas avec design parfait
+          // Panneau bas - Réservation en attente ou panneau de recherche
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: PaneauRecherche(
-              selectedDestination: _selectedDestination,
-              onTap: _openLocationSearch,
+            child: StreamBuilder<List<Reservation>>(
+              stream: _reservationService.getUserPendingReservationsStream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                  // Afficher les détails de la réservation en attente
+                  return _buildPendingReservationPanel(snapshot.data!.first);
+                } else {
+                  // Afficher le panneau de recherche normal
+                  return PaneauRecherche(
+                    selectedDestination: _selectedDestination,
+                    onTap: _openLocationSearch,
+                  );
+                }
+              },
             ),
           ),
         ],

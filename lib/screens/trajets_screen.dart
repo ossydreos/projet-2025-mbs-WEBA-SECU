@@ -121,6 +121,8 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     );
   }
 
+
+
   Widget _buildUpcomingTab() {
     final currentUser = _auth.currentUser;
     
@@ -128,8 +130,8 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       return _buildNotLoggedInView();
     }
 
-    return FutureBuilder<List<Reservation>>(
-      future: _reservationService.getUserReservations(currentUser.uid),
+    return StreamBuilder<List<Reservation>>(
+      stream: _reservationService.getUserConfirmedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -561,8 +563,8 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       return _buildNotLoggedInView();
     }
 
-    return FutureBuilder<List<Reservation>>(
-      future: _reservationService.getUserReservations(currentUser.uid),
+    return StreamBuilder<List<Reservation>>(
+      stream: _reservationService.getUserCompletedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -743,4 +745,6 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       ),
     );
   }
+
+
 }

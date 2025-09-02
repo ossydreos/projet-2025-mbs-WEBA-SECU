@@ -230,4 +230,70 @@ class ReservationService {
           return reservations;
         });
   }
+
+  // Stream des réservations en attente pour un utilisateur spécifique
+  Stream<List<Reservation>> getUserPendingReservationsStream() {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: currentUser.uid)
+        .where('status', isEqualTo: ReservationStatus.pending.name)
+        .snapshots()
+        .map((snapshot) {
+          final reservations = snapshot.docs
+              .map((doc) => Reservation.fromMap(doc.data()))
+              .toList();
+          // Tri manuel en attendant l'index
+          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          return reservations;
+        });
+  }
+
+  // Stream des réservations confirmées pour un utilisateur spécifique
+  Stream<List<Reservation>> getUserConfirmedReservationsStream() {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: currentUser.uid)
+        .where('status', isEqualTo: ReservationStatus.confirmed.name)
+        .snapshots()
+        .map((snapshot) {
+          final reservations = snapshot.docs
+              .map((doc) => Reservation.fromMap(doc.data()))
+              .toList();
+          // Tri manuel en attendant l'index
+          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          return reservations;
+        });
+  }
+
+  // Stream des réservations terminées pour un utilisateur spécifique
+  Stream<List<Reservation>> getUserCompletedReservationsStream() {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: currentUser.uid)
+        .where('status', isEqualTo: ReservationStatus.completed.name)
+        .snapshots()
+        .map((snapshot) {
+          final reservations = snapshot.docs
+              .map((doc) => Reservation.fromMap(doc.data()))
+              .toList();
+          // Tri manuel en attendant l'index
+          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          return reservations;
+        });
+  }
 }
