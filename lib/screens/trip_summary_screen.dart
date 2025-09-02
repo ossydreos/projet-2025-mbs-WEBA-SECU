@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/theme_app.dart';
 import '../models/reservation.dart';
 import '../services/reservation_service.dart';
@@ -74,10 +75,20 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         userId = 'temp_user_${DateTime.now().millisecondsSinceEpoch}';
       }
       
+      // Obtenir le nom d'utilisateur
+      String? userName;
+      if (_reservationService.isUserLoggedIn()) {
+        final user = FirebaseAuth.instance.currentUser;
+        userName = user?.displayName ?? user?.email?.split('@')[0] ?? 'Utilisateur';
+      } else {
+        userName = 'Invité';
+      }
+      
       // Créer la réservation
       final reservation = Reservation(
         id: '', // Sera généré par le service
         userId: userId,
+        userName: userName,
         vehicleName: widget.vehicleName,
         departure: widget.departure,
         destination: widget.destination,

@@ -3,6 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/screens/acceuil_screen.dart';
 import 'package:my_mobility_services/screens/splash_screen.dart';
 import 'package:my_mobility_services/screens/welcome_login_screen.dart';
+import 'package:my_mobility_services/screens/admin_home_screen.dart';
+import 'package:my_mobility_services/services/user_service.dart';
+import 'package:my_mobility_services/models/user_model.dart';
 
 class Authgate extends StatelessWidget {
   const Authgate({super.key});
@@ -25,8 +28,26 @@ class Authgate extends StatelessWidget {
           print('AuthGate - Redirection vers WelcomeLoginSignup');
           return const WelcomeLoginSignup();
         } else {
-          print('AuthGate - Redirection vers AccueilScreen');
-          return const AccueilScreen();
+          // Vérifier si l'utilisateur est admin
+          return StreamBuilder<UserModel?>(
+            stream: UserService().getCurrentUserStream(),
+            builder: (context, userSnapshot) {
+              if (userSnapshot.connectionState == ConnectionState.waiting) {
+                return SplashScreen();
+              }
+              
+              final userModel = userSnapshot.data;
+              print('AuthGate - UserModel: ${userModel?.role.name ?? "null"}');
+              
+              if (userModel?.isAdmin == true) {
+                print('AuthGate - Redirection vers AdminHomeScreen');
+                return const AdminHomeScreen();
+              } else {
+                print('AuthGate - Redirection vers AccueilScreen');
+                return const AccueilScreen();
+              }
+            },
+          );
         }
       },
     );

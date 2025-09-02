@@ -8,9 +8,28 @@ enum ReservationStatus {
   cancelled,  // Annulée
 }
 
+// Extension pour obtenir le statut en français
+extension ReservationStatusExtension on ReservationStatus {
+  String get statusInFrench {
+    switch (this) {
+      case ReservationStatus.pending:
+        return 'En attente';
+      case ReservationStatus.confirmed:
+        return 'Confirmée';
+      case ReservationStatus.inProgress:
+        return 'En cours';
+      case ReservationStatus.completed:
+        return 'Terminée';
+      case ReservationStatus.cancelled:
+        return 'Annulée';
+    }
+  }
+}
+
 class Reservation {
   final String id;
   final String userId;
+  final String? userName; // Nom de l'utilisateur
   final String vehicleName;
   final String departure;
   final String destination;
@@ -28,6 +47,7 @@ class Reservation {
   Reservation({
     required this.id,
     required this.userId,
+    this.userName,
     required this.vehicleName,
     required this.departure,
     required this.destination,
@@ -48,6 +68,7 @@ class Reservation {
     return {
       'id': id,
       'userId': userId,
+      'userName': userName,
       'vehicleName': vehicleName,
       'departure': departure,
       'destination': destination,
@@ -69,6 +90,7 @@ class Reservation {
     return Reservation(
       id: map['id'] ?? '',
       userId: map['userId'] ?? '',
+      userName: map['userName'],
       vehicleName: map['vehicleName'] ?? '',
       departure: map['departure'] ?? '',
       destination: map['destination'] ?? '',
@@ -94,6 +116,7 @@ class Reservation {
   Reservation copyWith({
     String? id,
     String? userId,
+    String? userName,
     String? vehicleName,
     String? departure,
     String? destination,
@@ -111,6 +134,7 @@ class Reservation {
     return Reservation(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
       vehicleName: vehicleName ?? this.vehicleName,
       departure: departure ?? this.departure,
       destination: destination ?? this.destination,

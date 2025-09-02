@@ -9,6 +9,11 @@ import './screens/profile_screen.dart';
 import './screens/localisation_recherche_screen.dart';
 import './screens/trajets_screen.dart';
 import './screens/acceuil_screen.dart';
+// Import des écrans admin
+import './screens/admin_home_screen.dart';
+import './screens/admin_gestion_screen.dart';
+import './screens/admin_trajets_screen.dart';
+import './screens/admin_profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +43,19 @@ class MyApp extends StatelessWidget {
             break;
           case '/profile':
             page = const ProfileScreen();
+            break;
+          // Routes admin
+          case '/admin/home':
+            page = const AdminHomeScreen();
+            break;
+          case '/admin/trajets':
+            page = const AdminTrajetsScreen();
+            break;
+          case '/admin/gestion':
+            page = const AdminGestionScreen();
+            break;
+          case '/admin/profile':
+            page = const AdminProfileScreen();
             break;
           default:
             page = const AccueilScreen();

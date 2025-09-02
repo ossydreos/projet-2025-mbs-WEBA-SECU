@@ -96,12 +96,15 @@ class ReservationService {
       final querySnapshot = await _firestore
           .collection(_collection)
           .where('status', isEqualTo: ReservationStatus.pending.name)
-          .orderBy('createdAt', descending: false)
           .get();
 
-      return querySnapshot.docs
+      final reservations = querySnapshot.docs
           .map((doc) => Reservation.fromMap(doc.data()))
           .toList();
+      
+      // Tri manuel en attendant l'index
+      reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      return reservations;
     } catch (e) {
       throw Exception('Erreur lors de la récupération des réservations en attente: $e');
     }
@@ -134,10 +137,97 @@ class ReservationService {
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: ReservationStatus.pending.name)
-        .orderBy('createdAt', descending: false)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Reservation.fromMap(doc.data()))
-            .toList());
+        .asyncMap((snapshot) async {
+          final reservations = <Reservation>[];
+          for (var doc in snapshot.docs) {
+            var reservation = Reservation.fromMap(doc.data());
+            // Si le nom d'utilisateur n'est pas défini, essayer de le récupérer
+            if (reservation.userName == null) {
+              try {
+                final userDoc = await _firestore.collection('users').doc(reservation.userId).get();
+                if (userDoc.exists) {
+                  final userData = userDoc.data()!;
+                  reservation = reservation.copyWith(
+                    userName: userData['displayName'] ?? userData['email']?.split('@')[0] ?? 'Utilisateur'
+                  );
+                }
+              } catch (e) {
+                // En cas d'erreur, garder le nom par défaut
+                reservation = reservation.copyWith(userName: 'Utilisateur');
+              }
+            }
+            reservations.add(reservation);
+          }
+          // Tri manuel en attendant l'index
+          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          return reservations;
+        });
+  }
+
+  // Stream des réservations confirmées
+  Stream<List<Reservation>> getConfirmedReservationsStream() {
+    return _firestore
+        .collection(_collection)
+        .where('status', isEqualTo: ReservationStatus.confirmed.name)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          final reservations = <Reservation>[];
+          for (var doc in snapshot.docs) {
+            var reservation = Reservation.fromMap(doc.data());
+            // Si le nom d'utilisateur n'est pas défini, essayer de le récupérer
+            if (reservation.userName == null) {
+              try {
+                final userDoc = await _firestore.collection('users').doc(reservation.userId).get();
+                if (userDoc.exists) {
+                  final userData = userDoc.data()!;
+                  reservation = reservation.copyWith(
+                    userName: userData['displayName'] ?? userData['email']?.split('@')[0] ?? 'Utilisateur'
+                  );
+                }
+              } catch (e) {
+                // En cas d'erreur, garder le nom par défaut
+                reservation = reservation.copyWith(userName: 'Utilisateur');
+              }
+            }
+            reservations.add(reservation);
+          }
+          // Tri manuel en attendant l'index
+          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          return reservations;
+        });
+  }
+
+  // Stream des réservations terminées
+  Stream<List<Reservation>> getCompletedReservationsStream() {
+    return _firestore
+        .collection(_collection)
+        .where('status', isEqualTo: ReservationStatus.completed.name)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          final reservations = <Reservation>[];
+          for (var doc in snapshot.docs) {
+            var reservation = Reservation.fromMap(doc.data());
+            // Si le nom d'utilisateur n'est pas défini, essayer de le récupérer
+            if (reservation.userName == null) {
+              try {
+                final userDoc = await _firestore.collection('users').doc(reservation.userId).get();
+                if (userDoc.exists) {
+                  final userData = userDoc.data()!;
+                  reservation = reservation.copyWith(
+                    userName: userData['displayName'] ?? userData['email']?.split('@')[0] ?? 'Utilisateur'
+                  );
+                }
+              } catch (e) {
+                // En cas d'erreur, garder le nom par défaut
+                reservation = reservation.copyWith(userName: 'Utilisateur');
+              }
+            }
+            reservations.add(reservation);
+          }
+          // Tri manuel en attendant l'index
+          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+          return reservations;
+        });
   }
 }

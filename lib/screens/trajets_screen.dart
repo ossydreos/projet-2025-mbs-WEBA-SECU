@@ -555,19 +555,189 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   Widget _buildCompletedTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.history, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 24),
-          Text(
-            'Aucun trajet terminé',
-            style: TextStyle(
-              fontSize: 20,
-              color: Colors.grey[400],
-              fontFamily: 'Poppins',
+    final currentUser = _auth.currentUser;
+    
+    if (currentUser == null) {
+      return _buildNotLoggedInView();
+    }
+
+    return FutureBuilder<List<Reservation>>(
+      future: _reservationService.getUserReservations(currentUser.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: AppColors.accent,
             ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Erreur: ${snapshot.error}',
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        final reservations = snapshot.data ?? [];
+        final completedReservations = reservations.where((r) => 
+          r.status == ReservationStatus.completed
+        ).toList();
+
+        if (completedReservations.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.history, size: 80, color: Colors.grey[400]),
+                const SizedBox(height: 24),
+                Text(
+                  'Aucun trajet terminé',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.grey[400],
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: completedReservations.length,
+          itemBuilder: (context, index) {
+            final reservation = completedReservations[index];
+            return _buildCompletedReservationCard(reservation);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCompletedReservationCard(Reservation reservation) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: AppColors.textSecondary.withOpacity(0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      reservation.vehicleName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${reservation.totalPrice.toStringAsFixed(1)} €',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Terminée',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(
+                Icons.location_on,
+                color: AppColors.accent,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '${reservation.departure} → ${reservation.destination}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(
+                Icons.schedule,
+                color: AppColors.textSecondary,
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
         ],
       ),
