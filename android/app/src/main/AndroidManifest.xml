@@ -9,6 +9,9 @@
         android:label="my_mobility_services"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyATiODItwM8vfA-hN1hRNkdE4lLDjGySwc" />
         
         <activity
             android:name=".MainActivity"

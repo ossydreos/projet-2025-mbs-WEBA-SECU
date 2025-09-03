@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
+import '../theme/google_map_styles.dart';
 import '../theme/theme_app.dart';
 import '../widgets/widget_navBar.dart';
 import 'scheduling_screen.dart';
@@ -24,7 +25,7 @@ class BookingScreen extends StatefulWidget {
 }
 
 class _BookingScreenState extends State<BookingScreen> with TickerProviderStateMixin {
-  late final MapController _mapController;
+  gmaps.GoogleMapController? _googleMapController;
   String _selectedVehicle = 'Bolt';
   int _selectedIndex = 0;
   late AnimationController _panelController;
@@ -89,7 +90,7 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _mapController = MapController();
+    // Contrôleur Google Maps créé via onMapCreated
     
     // Initialiser l'animation du panneau
     _panelController = AnimationController(
@@ -128,8 +129,17 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
     final centerLng = (departure.longitude + destination.longitude) / 2;
     
     // Calculer le zoom pour que les deux points soient visibles
-    final bounds = LatLngBounds(departure, destination);
-    _mapController.fitCamera(CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)));
+    final bounds = gmaps.LatLngBounds(
+      southwest: gmaps.LatLng(
+        departure.latitude < destination.latitude ? departure.latitude : destination.latitude,
+        departure.longitude < destination.longitude ? departure.longitude : destination.longitude,
+      ),
+      northeast: gmaps.LatLng(
+        departure.latitude > destination.latitude ? departure.latitude : destination.latitude,
+        departure.longitude > destination.longitude ? departure.longitude : destination.longitude,
+      ),
+    );
+    _googleMapController?.animateCamera(gmaps.CameraUpdate.newLatLngBounds(bounds, 50));
   }
 
   void _onItemTapped(int index) {
@@ -235,81 +245,54 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: FlutterMap(
-                        mapController: _mapController,
-                        options: MapOptions(
-                          initialCenter: LatLng(48.8566, 2.3522),
-                          initialZoom: 12.0,
-                          maxZoom: 18.0,
-                          minZoom: 3.0,
+                      child: gmaps.GoogleMap(
+                        initialCameraPosition: const gmaps.CameraPosition(
+                          target: gmaps.LatLng(48.8566, 2.3522),
+                          zoom: 12.0,
                         ),
-                        children: [
-                          TileLayer(
-                            urlTemplate:
-                                'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-                            subdomains: const ['a', 'b', 'c', 'd'],
-                            userAgentPackageName: 'com.example.my_mobility_services',
-                            maxZoom: 19,
+                        onMapCreated: (controller) {
+                          _googleMapController = controller;
+                          controller.setMapStyle(darkMapStyle);
+                          _centerMapOnRoute();
+                        },
+                        markers: {
+                          gmaps.Marker(
+                            markerId: const gmaps.MarkerId('departure'),
+                            position: gmaps.LatLng(
+                              (widget.departureCoordinates ?? const LatLng(48.8566, 2.3522)).latitude,
+                              (widget.departureCoordinates ?? const LatLng(48.8566, 2.3522)).longitude,
+                            ),
+                            icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueAzure),
                           ),
-                          // Tracé de route (ligne bleue)
-                          PolylineLayer(
-                            polylines: [
-                              Polyline(
-                                points: [
-                                  widget.departureCoordinates ?? LatLng(48.8566, 2.3522),
-                                  widget.destinationCoordinates ?? LatLng(48.8584, 2.2945),
-                                ],
-                                strokeWidth: 4.0,
-                                color: Colors.blue,
+                          gmaps.Marker(
+                            markerId: const gmaps.MarkerId('destination'),
+                            position: gmaps.LatLng(
+                              (widget.destinationCoordinates ?? const LatLng(48.8584, 2.2945)).latitude,
+                              (widget.destinationCoordinates ?? const LatLng(48.8584, 2.2945)).longitude,
+                            ),
+                            icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed),
+                          ),
+                        },
+                        polylines: {
+                          gmaps.Polyline(
+                            polylineId: const gmaps.PolylineId('route'),
+                            color: Colors.blue,
+                            width: 4,
+                            points: [
+                              gmaps.LatLng(
+                                (widget.departureCoordinates ?? const LatLng(48.8566, 2.3522)).latitude,
+                                (widget.departureCoordinates ?? const LatLng(48.8566, 2.3522)).longitude,
+                              ),
+                              gmaps.LatLng(
+                                (widget.destinationCoordinates ?? const LatLng(48.8584, 2.2945)).latitude,
+                                (widget.destinationCoordinates ?? const LatLng(48.8584, 2.2945)).longitude,
                               ),
                             ],
                           ),
-                          // Marqueurs de départ et destination
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                point: widget.departureCoordinates ?? LatLng(48.8566, 2.3522),
-                                width: 30,
-                                height: 30,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.accent,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: AppColors.background, width: 2),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.accent.withOpacity(0.4),
-                                        blurRadius: 6,
-                                        spreadRadius: 1,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(Icons.my_location, color: Colors.black, size: 16),
-                                ),
-                              ),
-                              Marker(
-                                point: widget.destinationCoordinates ?? LatLng(48.8584, 2.2945),
-                                width: 30,
-                                height: 30,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: AppColors.background, width: 2),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.red.withOpacity(0.4),
-                                        blurRadius: 6,
-                                        spreadRadius: 1,
-                                      ),
-                                    ],
-                                  ),
-                                  child: const Icon(Icons.location_on, color: Colors.white, size: 16),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                        },
+                        compassEnabled: false,
+                        mapToolbarEnabled: false,
+                        zoomControlsEnabled: false,
                       ),
                     ),
                   ),

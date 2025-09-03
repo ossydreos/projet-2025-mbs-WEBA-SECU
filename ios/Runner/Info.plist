@@ -48,6 +48,10 @@
         <key>UIStatusBarHidden</key>
         <false/>
 
+        <!-- Google Maps API Key -->
+        <key>GMSApiKey</key>
+        <string>AIzaSyAYhn4l640vzEvk1gC1BtfoG--5SMFcZoI</string>
+
         <!-- ✨ NOUVELLES PERMISSIONS AJOUTÉES POUR LA LOCALISATION -->
         <key>NSLocationWhenInUseUsageDescription</key>
         <string>Cette app utilise votre localisation pour vous proposer des services de mobilité adaptés à votre position.</string>
