@@ -103,7 +103,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   child: _buildStatCard(
                     title: 'En attente',
                     count: pendingCount,
-                    color: Colors.orange,
+                    color: Colors.blue,
                     icon: Icons.schedule,
                   ),
                 ),
@@ -451,14 +451,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
+                  color: Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   'En attente',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.orange,
+                    color: Colors.blue,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

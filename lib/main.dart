@@ -9,6 +9,7 @@ import './screens/profile_screen.dart';
 import './screens/localisation_recherche_screen.dart';
 import './screens/trajets_screen.dart';
 import './screens/acceuil_screen.dart';
+import './screens/home_shell.dart';
 // Import des écrans admin
 import './screens/admin_home_screen.dart';
 import './screens/admin_gestion_screen.dart';
@@ -36,13 +37,13 @@ class MyApp extends StatelessWidget {
         Widget page;
         switch (settings.name) {
           case '/home':
-            page = const AccueilScreen();
+            page = const HomeShell(initialIndex: 0);
             break;
           case '/trajets':
-            page = const TrajetsScreen();
+            page = const HomeShell(initialIndex: 1);
             break;
           case '/profile':
-            page = const ProfileScreen();
+            page = const HomeShell(initialIndex: 2);
             break;
           // Routes admin
           case '/admin/home':
@@ -58,7 +59,7 @@ class MyApp extends StatelessWidget {
             page = const AdminProfileScreen();
             break;
           default:
-            page = const AccueilScreen();
+            page = const HomeShell();
         }
 
         return PageRouteBuilder(

@@ -6,14 +6,17 @@ import '../models/reservation.dart';
 import '../services/reservation_service.dart';
 
 class TrajetsScreen extends StatefulWidget {
-  const TrajetsScreen({super.key});
+  final Function(int)? onNavigate;
+  final bool showBottomBar;
+
+  const TrajetsScreen({super.key, this.onNavigate, this.showBottomBar = true});
 
   @override
   State<TrajetsScreen> createState() => _TrajetsScreenState();
 }
 
 class _TrajetsScreenState extends State<TrajetsScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   int _selectedIndex = 1; // Index 1 pour "Trajets" (actif)
   final ReservationService _reservationService = ReservationService();
@@ -40,20 +43,26 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     });
 
     // Navigation vers les autres écrans
-    switch (index) {
-      case 0: // Accueil
-        Navigator.pushReplacementNamed(context, '/home');
-        break;
-      case 1: // Trajets (déjà sur cette page)
-        break;
-      case 2: // Compte
-        Navigator.pushReplacementNamed(context, '/profile');
-        break;
+    if (widget.onNavigate != null) {
+      widget.onNavigate!(index);
+      return;
+    } else {
+      switch (index) {
+        case 0: // Accueil
+          Navigator.pushReplacementNamed(context, '/home');
+          break;
+        case 1: // Trajets (déjà sur cette page)
+          break;
+        case 2: // Compte
+          Navigator.pushReplacementNamed(context, '/profile');
+          break;
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return GlassBackground(
       child: Scaffold(
       backgroundColor: Colors.transparent,
@@ -102,10 +111,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-      ),
+      bottomNavigationBar: widget.showBottomBar
+          ? CustomBottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: _onItemTapped,
+            )
+          : null,
     ));
   }
 
@@ -120,6 +131,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
     return StreamBuilder<List<Reservation>>(
       stream: _reservationService.getUserConfirmedReservationsStream(),
+      initialData: const [],
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -508,6 +520,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
     return StreamBuilder<List<Reservation>>(
       stream: _reservationService.getUserCompletedReservationsStream(),
+      initialData: const [],
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -681,6 +694,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
 
 }

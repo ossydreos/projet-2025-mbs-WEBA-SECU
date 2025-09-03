@@ -14,14 +14,15 @@ import '../services/reservation_service.dart';
 
 class AccueilScreen extends StatefulWidget {
   final Function(int)? onNavigate;
+  final bool showBottomBar;
 
-  const AccueilScreen({super.key, this.onNavigate});
+  const AccueilScreen({super.key, this.onNavigate, this.showBottomBar = true});
 
   @override
   State<AccueilScreen> createState() => _AccueilScreenState();
 }
 
-class _AccueilScreenState extends State<AccueilScreen> {
+class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveClientMixin {
   gmaps.GoogleMapController? _googleMapController;
   final ReservationService _reservationService = ReservationService();
   int _selectedIndex = 0;
@@ -37,8 +38,13 @@ class _AccueilScreenState extends State<AccueilScreen> {
   @override
   void initState() {
     super.initState();
-    _getUserLocation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _getUserLocation();
+    });
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
@@ -243,10 +249,10 @@ class _AccueilScreenState extends State<AccueilScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
+                  color: Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.schedule, color: Colors.orange, size: 20),
+                child: const Icon(Icons.schedule, color: Colors.blue, size: 20),
               ),
               const SizedBox(width: 12),
               const Expanded(
@@ -264,11 +270,11 @@ class _AccueilScreenState extends State<AccueilScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.2),
+                  color: Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text('En attente',
-                    style: TextStyle(fontSize: 12, color: Colors.orange, fontWeight: FontWeight.w600)),
+                    style: TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -336,6 +342,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final bottomSafe = MediaQuery.of(context).padding.bottom;
 
     return GlassBackground(
@@ -453,10 +460,12 @@ class _AccueilScreenState extends State<AccueilScreen> {
         ),
 
         // --- NAVBAR à la bonne position (inchangée partout) ---
-        bottomNavigationBar: CustomBottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-        ),
+        bottomNavigationBar: widget.showBottomBar
+            ? CustomBottomNavigationBar(
+                currentIndex: _selectedIndex,
+                onTap: _onItemTapped,
+              )
+            : null,
       ),
     );
   }

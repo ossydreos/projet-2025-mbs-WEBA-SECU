@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../theme/theme_app.dart';
 import '../models/reservation.dart';
 import '../services/reservation_service.dart';
 import '../ui/glass/glassmorphism_theme.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
-import '../theme/google_map_styles.dart';
 import 'package:latlong2/latlong.dart';
 
 class TripSummaryScreen extends StatefulWidget {
@@ -39,7 +36,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
   String _totalPrice = '28,1 €';
   final ReservationService _reservationService = ReservationService();
   bool _isCreatingReservation = false;
-  gmaps.GoogleMapController? _mapController;
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -118,7 +114,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Réservation créée avec succès ! ID: $reservationId'),
-            backgroundColor: AppColors.accent,
+            backgroundColor: Brand.accent,
           ),
         );
         
@@ -145,8 +141,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final start = widget.departureCoordinates ?? const LatLng(48.8566, 2.3522);
-    final end = widget.destinationCoordinates ?? const LatLng(48.8584, 2.2945);
     return GlassBackground(
       child: Scaffold(
       backgroundColor: Colors.transparent,
@@ -188,70 +182,14 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  height: 220,
-                  child: gmaps.GoogleMap(
-                    initialCameraPosition: gmaps.CameraPosition(
-                      target: gmaps.LatLng(
-                        (start.latitude + end.latitude) / 2,
-                        (start.longitude + end.longitude) / 2,
-                      ),
-                      zoom: 11,
-                    ),
-                    onMapCreated: (c) {
-                      _mapController = c;
-                      c.setMapStyle(darkMapStyle);
-                      final bounds = gmaps.LatLngBounds(
-                        southwest: gmaps.LatLng(
-                          start.latitude < end.latitude ? start.latitude : end.latitude,
-                          start.longitude < end.longitude ? start.longitude : end.longitude,
-                        ),
-                        northeast: gmaps.LatLng(
-                          start.latitude > end.latitude ? start.latitude : end.latitude,
-                          start.longitude > end.longitude ? start.longitude : end.longitude,
-                        ),
-                      );
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        _mapController?.animateCamera(gmaps.CameraUpdate.newLatLngBounds(bounds, 40));
-                      });
-                    },
-                    markers: {
-                      gmaps.Marker(
-                        markerId: const gmaps.MarkerId('start'),
-                        position: gmaps.LatLng(start.latitude, start.longitude),
-                        icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueAzure),
-                      ),
-                      gmaps.Marker(
-                        markerId: const gmaps.MarkerId('end'),
-                        position: gmaps.LatLng(end.latitude, end.longitude),
-                        icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed),
-                      ),
-                    },
-                    polylines: {
-                      gmaps.Polyline(
-                        polylineId: const gmaps.PolylineId('route'),
-                        color: Colors.blue,
-                        width: 4,
-                        points: [
-                          gmaps.LatLng(start.latitude, start.longitude),
-                          gmaps.LatLng(end.latitude, end.longitude),
-                        ],
-                      ),
-                    },
-                    compassEnabled: false,
-                    mapToolbarEnabled: false,
-                    zoomControlsEnabled: false,
-                  ),
-                ),
-              ),
-            ),
-
+            // Contenu scrollable pour éviter les overflows
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.zero,
+                child: Column(
+                  children: [
             // Section Date et heure
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -276,10 +214,10 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: AppColors.accent,
+                            color: Brand.accent,
                             borderRadius: BorderRadius.circular(6),
                           ),
-                                                     child: const Text(
+                          child: const Text(
                              'Modifier',
                              style: TextStyle(
                                fontSize: 14,
@@ -308,7 +246,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
             ),
 
             const SizedBox(height: 24),
-            Divider(color: AppColors.textSecondary.withOpacity(0.3), thickness: 0.5),
+            Divider(color: Brand.textWeak.withOpacity(0.3), thickness: 0.5),
             const SizedBox(height: 24),
 
             // Section Itinéraire
@@ -335,7 +273,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: AppColors.accent,
+                            color: Brand.accent,
                             borderRadius: BorderRadius.circular(6),
                           ),
                                                      child: const Text(
@@ -355,14 +293,16 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                   // Visualisation de l'itinéraire
                   Row(
                     children: [
-                      // Point de départ
-                      Column(
+                      // Point de départ (flexible)
+                      Flexible(
+                        flex: 3,
+                        child: Column(
                         children: [
-                                                     Container(
+                          Container(
                              width: 12,
                              height: 12,
                              decoration: BoxDecoration(
-                               color: AppColors.accent,
+                               color: Brand.accent,
                                shape: BoxShape.circle,
                              ),
                            ),
@@ -371,12 +311,14 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                             'Adresse de prise en charge',
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: Brand.textWeak,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             widget.departure,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -384,7 +326,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                             ),
                           ),
                         ],
-                      ),
+                      )),
                       
                       const SizedBox(width: 16),
                       
@@ -394,7 +336,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                           children: [
                             Container(
                               height: 2,
-                              color: AppColors.textSecondary.withOpacity(0.3),
+                              color: Brand.textWeak.withOpacity(0.3),
                             ),
                             const SizedBox(height: 40),
                           ],
@@ -403,14 +345,16 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                       
                       const SizedBox(width: 16),
                       
-                      // Point d'arrivée
-                      Column(
+                      // Point d'arrivée (flexible)
+                      Flexible(
+                        flex: 3,
+                        child: Column(
                         children: [
-                                                     Container(
+                          Container(
                              width: 12,
                              height: 12,
                              decoration: BoxDecoration(
-                               color: AppColors.surface,
+                               color: Brand.text,
                                shape: BoxShape.circle,
                              ),
                            ),
@@ -419,12 +363,14 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                             'Adresse de destination',
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.textSecondary,
+                              color: Brand.textWeak,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             widget.destination,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -432,7 +378,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                             ),
                           ),
                         ],
-                      ),
+                      )),
                     ],
                   ),
                 ],
@@ -440,7 +386,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
             ),
 
             const SizedBox(height: 24),
-            Divider(color: AppColors.textSecondary.withOpacity(0.3), thickness: 0.5),
+            Divider(color: Brand.textWeak.withOpacity(0.3), thickness: 0.5),
             const SizedBox(height: 24),
 
             // Section Paiement
@@ -467,7 +413,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: AppColors.accent,
+                            color: Brand.accent,
                             borderRadius: BorderRadius.circular(6),
                           ),
                                                      child: const Text(
@@ -491,12 +437,12 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                          width: 40,
                          height: 40,
                          decoration: BoxDecoration(
-                           color: AppColors.accent,
+                           color: Brand.accent,
                            borderRadius: BorderRadius.circular(8),
                          ),
                          child: const Icon(
                            Icons.account_balance_wallet,
-                           color: AppColors.background,
+                           color: Colors.black,
                            size: 24,
                          ),
                        ),
@@ -524,7 +470,13 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
               ),
             ),
 
-            const Spacer(),
+            // fin contenu scrollable
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
 
             // Bouton Confirmer
             Padding(
@@ -536,7 +488,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                     child: ElevatedButton(
                       onPressed: _isCreatingReservation ? null : _createReservation,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
+                        backgroundColor: Brand.accent,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -544,13 +496,13 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                         ),
                         elevation: 0,
                       ),
-                                                                   child: _isCreatingReservation
+                      child: _isCreatingReservation
                           ? const SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Text(
@@ -558,7 +510,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black,
+                                color: Colors.white,
                               ),
                             ),
                     ),

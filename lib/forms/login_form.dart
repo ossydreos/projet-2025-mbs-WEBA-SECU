@@ -11,7 +11,7 @@ import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
 import 'package:my_mobility_services/widgets/waiting_widget.dart';
 import '../theme/theme_app.dart';
-
+import '../ui/glass/glassmorphism_theme.dart' hide GlassSheet;
 class LoginForm extends StatefulWidget {
   const LoginForm({required this.onClose, required this.onSwitch, super.key});
 
@@ -231,7 +231,7 @@ class LoginFormState extends State<LoginForm> {
                   Checkbox(
                     value: _rememberMe,
                     onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                    activeColor: AppColors.accent,
+                    activeColor: Brand.accent,
                     side: const BorderSide(
                       color: Color.fromRGBO(255, 255, 255, 0.6),
                     ),
@@ -243,7 +243,7 @@ class LoginFormState extends State<LoginForm> {
                       // TODO: navigation vers la récupération de mot de passe
                     },
                     style: TextButton.styleFrom(
-                      foregroundColor: AppColors.accent,
+                      foregroundColor: Brand.accent,
                     ),
                     child: const Text('Forgot password?'),
                   ),
@@ -319,7 +319,7 @@ class LoginFormState extends State<LoginForm> {
               children: [
                 TextSpan(
                   style: GoogleFonts.poppins(
-                    color: AppColors.accent,
+                    color: Brand.accent,
                     fontWeight: FontWeight.bold,
                   ),
                   text: 'Sign up',

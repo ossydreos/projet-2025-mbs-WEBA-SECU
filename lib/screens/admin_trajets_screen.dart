@@ -759,7 +759,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
   Color _getStatusColor(ReservationStatus status) {
     switch (status) {
       case ReservationStatus.pending:
-        return Colors.orange;
+        return Colors.blue;
       case ReservationStatus.confirmed:
         return Colors.green;
       case ReservationStatus.inProgress:

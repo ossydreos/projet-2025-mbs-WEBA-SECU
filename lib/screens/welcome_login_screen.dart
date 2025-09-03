@@ -5,6 +5,7 @@ import 'package:my_mobility_services/forms/login_form.dart';
 import 'package:my_mobility_services/forms/signup_form.dart';
 import 'package:my_mobility_services/widgets/glass_sheet.dart';
 import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart' hide GlassSheet;
 
 enum PanelType { none, login, signup }
 
@@ -110,8 +111,8 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                         'assets/images/MBG-Logo.svg',
                         height: 86,
                         semanticsLabel: 'Logo MBG',
-                        colorFilter: const ColorFilter.mode(
-                          AppColors.accent,
+                        colorFilter:  const ColorFilter.mode(
+                          Brand.accent,
                           BlendMode.srcIn,
                         ),
                       ),

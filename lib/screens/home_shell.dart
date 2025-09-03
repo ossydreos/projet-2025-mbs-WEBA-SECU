@@ -1,0 +1,102 @@
+import 'package:flutter/material.dart';
+import 'acceuil_screen.dart';
+import 'trajets_screen.dart';
+import 'profile_screen.dart';
+import '../widgets/widget_navBar.dart';
+import '../ui/glass/glassmorphism_theme.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
+import '../theme/google_map_styles.dart';
+
+class HomeShell extends StatefulWidget {
+  final int initialIndex;
+
+  const HomeShell({super.key, this.initialIndex = 0});
+
+  @override
+  State<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends State<HomeShell> {
+  late int _currentIndex;
+  bool _navLocked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+  void _onTap(int index) {
+    if (_navLocked || index == _currentIndex) return;
+    _navLocked = true;
+    setState(() => _currentIndex = index);
+    Future.delayed(const Duration(milliseconds: 250), () {
+      _navLocked = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        extendBody: true,
+        body: Stack(
+          children: [
+            // Préchargement Google Map invisible (1x1) pour initialiser le moteur dès l'ouverture
+            Positioned(
+              left: 0,
+              top: 0,
+              child: Opacity(
+                opacity: 0.0,
+                child: SizedBox(
+                  width: 1,
+                  height: 1,
+                  child: gmaps.GoogleMap(
+                    initialCameraPosition: const gmaps.CameraPosition(
+                      target: gmaps.LatLng(48.8566, 2.3522),
+                      zoom: 3.0,
+                    ),
+                    onMapCreated: (controller) {
+                      controller.setMapStyle(darkMapStyle);
+                    },
+                    myLocationEnabled: false,
+                    myLocationButtonEnabled: false,
+                    compassEnabled: false,
+                    mapToolbarEnabled: false,
+                    zoomControlsEnabled: false,
+                    liteModeEnabled: false,
+                  ),
+                ),
+              ),
+            ),
+            // Contenu persistant avec IndexedStack
+            IndexedStack(
+              index: _currentIndex,
+              children: [
+                AccueilScreen(
+                  onNavigate: _onTap,
+                  showBottomBar: false,
+                ),
+                const TrajetsScreen(
+                  onNavigate: null,
+                  showBottomBar: false,
+                ),
+                const ProfileScreen(
+                  onNavigate: null,
+                  showBottomBar: false,
+                ),
+              ],
+            ),
+          ],
+        ),
+        bottomNavigationBar: CustomBottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onTap,
+        ),
+      ),
+    );
+  }
+}
+
+

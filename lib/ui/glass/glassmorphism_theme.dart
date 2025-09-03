@@ -216,6 +216,7 @@ class GlassContainer extends StatelessWidget {
         child: Container(
           margin: margin,
           padding: padding,
+          width: double.infinity,
           decoration: BoxDecoration(
             color: Brand.glass,
             borderRadius: borderRadius,

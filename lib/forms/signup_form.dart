@@ -12,6 +12,7 @@ import 'package:my_mobility_services/widgets/sheet_handle.dart';
 import 'package:my_mobility_services/widgets/waiting_widget.dart';
 import 'package:my_mobility_services/screens/welcome_login_screen.dart'
     show PanelType;
+import '../ui/glass/glassmorphism_theme.dart' hide GlassSheet;
 
 class SignupForm extends StatefulWidget {
   const SignupForm({required this.onClose, required this.onSwitch, super.key});
@@ -326,7 +327,7 @@ class SignupFormState extends State<SignupForm> {
                 children: [
                   TextSpan(
                     style: GoogleFonts.poppins(
-                      color: AppColors.accent,
+                      color: Brand.accent,
                       fontWeight: FontWeight.bold,
                     ),
                     text: 'Login',

@@ -25,7 +25,10 @@ class Utilisateur {
 
 /// Écran de profil - Version thématisée sombre
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  final Function(int)? onNavigate;
+  final bool showBottomBar;
+
+  const ProfileScreen({super.key, this.onNavigate, this.showBottomBar = true});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -76,15 +79,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // Contenu principal
               _buildContent(),
               // Barre de navigation en bas
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: CustomBottomNavigationBar(
-                  currentIndex: 2,
-                  onTap: _handleNavigation,
+              if (widget.showBottomBar)
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: CustomBottomNavigationBar(
+                    currentIndex: 2,
+                    onTap: _handleNavigation,
+                  ),
                 ),
-              ),
             ],
           ),
         ),
@@ -97,13 +101,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _handleNavigation(int index) {
     if (index == 2) return; // Déjà sur la page profil
 
-    switch (index) {
-      case 0: // Accueil
-        Navigator.pushReplacementNamed(context, '/home');
-        break;
-      case 1: // Trajets
-        Navigator.pushReplacementNamed(context, '/trajets');
-        break;
+    if (widget.onNavigate != null) {
+      widget.onNavigate!(index);
+      return;
+    } else {
+      switch (index) {
+        case 0: // Accueil
+          Navigator.pushReplacementNamed(context, '/home');
+          break;
+        case 1: // Trajets
+          Navigator.pushReplacementNamed(context, '/trajets');
+          break;
+      }
     }
   }
 
