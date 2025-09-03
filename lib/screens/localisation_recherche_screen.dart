@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import '../theme/theme_app.dart'; // ✅ Import corrigé
+import '../ui/glass/glassmorphism_theme.dart';
 
 class Suggestion {
   final String displayName;
@@ -167,7 +167,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
     try {
       final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=10&countrycodes=fr',
+        'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=10&countrycodes=ch,fr',
       );
 
       final response = await http.get(url);
@@ -318,7 +318,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       if (_isLoadingDeparture) {
         return Center(
           child: CircularProgressIndicator(
-            color: AppColors.accent,
+            color: Brand.accent,
           ),
         );
       }
@@ -328,7 +328,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           child: Text(
             'Aucun résultat trouvé',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: Brand.text,
               fontSize: 16,
             ),
           ),
@@ -340,19 +340,13 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         itemCount: _departureSuggestions.length,
         itemBuilder: (context, index) {
           final suggestion = _departureSuggestions[index];
-          return Container(
+          return GlassContainer(
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.textSecondary.withOpacity(0.1),
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: ListTile(
               leading: Icon(
                 suggestion.icon,
-                color: AppColors.accent,
+                color: Brand.accent,
                 size: 24,
               ),
               title: Text(
@@ -368,7 +362,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       suggestion.address,
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: Brand.text,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -378,7 +372,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 suggestion.distance,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: Brand.text,
                 ),
               ),
               onTap: () => _onDepartureSuggestionTap(suggestion),
@@ -393,7 +387,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       if (_isLoading) {
         return Center(
           child: CircularProgressIndicator(
-            color: AppColors.accent,
+            color: Brand.accent,
           ),
         );
       }
@@ -403,7 +397,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           child: Text(
             'Aucun résultat trouvé',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: Brand.text,
               fontSize: 16,
             ),
           ),
@@ -415,19 +409,13 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         itemCount: _suggestions.length,
         itemBuilder: (context, index) {
           final suggestion = _suggestions[index];
-          return Container(
+          return GlassContainer(
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.textSecondary.withOpacity(0.1),
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 4),
             child: ListTile(
               leading: Icon(
                 suggestion.icon,
-                color: AppColors.accent,
+                color: Brand.accent,
                 size: 24,
               ),
               title: Text(
@@ -443,7 +431,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       suggestion.address,
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: Brand.text,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -453,7 +441,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 suggestion.distance,
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: Brand.text,
                 ),
               ),
               onTap: () => _onDepartureSuggestionTap(suggestion),
@@ -469,27 +457,18 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background, // ✅ Background noir
+    return GlassBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: Column(
         children: [
           // Header avec boutons et titre - THÉMATISÉ
-          Container(
+          GlassContainer(
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).padding.top + 16,
               left: 16,
               right: 16,
               bottom: 16,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.surface, // ✅ Surface sombre
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.accent.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
             ),
             child: Column(
               children: [
@@ -501,7 +480,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       child: Icon(
                         Icons.close,
                         size: 24,
-                        color: AppColors.accent, // ✅ Couleur accent
+                        color: Brand.accent,
                       ),
                     ),
                     Expanded(
@@ -519,7 +498,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     Icon(
                       Icons.sort,
                       size: 24,
-                      color: AppColors.textSecondary, // ✅ Couleur secondaire
+                      color: Brand.text,
                     ),
                   ],
                 ),
@@ -527,15 +506,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 const SizedBox(height: 20),
 
                 // Point de départ (cliquable) - THÉMATISÉ
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.textSecondary.withOpacity(0.3),
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    color: AppColors.background, // ✅ Background noir
-                  ),
+                GlassContainer(
+                  padding: EdgeInsets.zero,
                   child: Row(
                     children: [
                       Padding(
@@ -544,7 +516,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            color: AppColors.accent, // ✅ Point accent
+                            color: Brand.accent,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -561,7 +533,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           decoration: InputDecoration(
                             hintText: _currentPickupLocation,
                             hintStyle: TextStyle(
-                              color: AppColors.textSecondary, // ✅ Hint secondaire
+                              color: Brand.text,
                               fontSize: 16,
                             ),
                             border: InputBorder.none,
@@ -579,7 +551,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Icon(
                               Icons.clear,
-                              color: AppColors.textSecondary, // ✅ Couleur secondaire
+                              color: Brand.text,
                               size: 20,
                             ),
                           ),
@@ -588,7 +560,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Icon(
                           Icons.add,
-                          color: AppColors.textSecondary, // ✅ Icône secondaire
+                          color: Brand.text,
                           size: 20,
                         ),
                       ),
@@ -599,23 +571,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                 const SizedBox(height: 12),
 
                 // Zone de recherche destination - THÉMATISÉE
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: AppColors.accent, // ✅ Bordure accent
-                      width: 2,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    color: AppColors.background, // ✅ Background noir
-                  ),
+                GlassContainer(
+                  padding: EdgeInsets.zero,
                   child: Row(
                     children: [
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Icon(
                           Icons.search,
-                          color:
-                              AppColors.textSecondary, // ✅ Couleur secondaire
+                          color: Brand.text,
                           size: 20,
                         ),
                       ),
@@ -630,8 +594,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           decoration: InputDecoration(
                             hintText: 'Destination',
                             hintStyle: TextStyle(
-                              color:
-                                  AppColors.textSecondary, // ✅ Hint secondaire
+                              color: Brand.text,
                               fontSize: 16,
                             ),
                             border: InputBorder.none,
@@ -649,8 +612,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             child: Icon(
                               Icons.clear,
-                              color: AppColors
-                                  .textSecondary, // ✅ Couleur secondaire
+                              color: Brand.text,
                               size: 20,
                             ),
                           ),
@@ -659,7 +621,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Icon(
                           Icons.location_on,
-                          color: AppColors.accent, // ✅ Couleur accent
+                          color: Brand.accent,
                           size: 20,
                         ),
                       ),
@@ -672,16 +634,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
           // Liste des suggestions - THÉMATISÉE
           Expanded(
-            child: Container(
-              color: AppColors.background, // ✅ Background noir
-              child: _buildSuggestionsList(),
-            ),
+            child: _buildSuggestionsList(),
           ),
 
           // Footer avec bouton suivant - THÉMATISÉ
-          Container(
+          GlassContainer(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-            color: AppColors.surface, // ✅ Surface sombre
             child: SafeArea(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -689,30 +647,13 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   // Bouton suivant
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _canProceed() ? _proceedToBooking : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
-                        foregroundColor: AppColors.background,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        'Suivant',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+                    child: GlassButton(label: 'Suivant', onPressed: _canProceed() ? _proceedToBooking : null),
                   ),
                   const SizedBox(height: 12),
                   Text(
                     'powered by OpenStreetMap',
                     style: TextStyle(
-                      color: AppColors.textSecondary.withOpacity(0.7),
+                      color: Brand.text.withOpacity(0.7),
                       fontSize: 12,
                     ),
                     textAlign: TextAlign.center,
@@ -723,6 +664,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 }

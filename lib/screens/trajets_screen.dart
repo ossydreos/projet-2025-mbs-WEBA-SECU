@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart';
 import '../widgets/widget_navBar.dart';
 import '../models/reservation.dart';
 import '../services/reservation_service.dart';
@@ -54,22 +54,10 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Trajets',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontFamily: 'Poppins',
-          ),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        toolbarHeight: 80,
-      ),
+    return GlassBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: const GlassAppBar(title: 'Trajets'),
       body: SafeArea(
         child: Column(
           children: [
@@ -80,7 +68,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 controller: _tabController,
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.grey[400],
-                indicatorColor: AppColors.accent,
+                indicatorColor: Brand.accent,
                 indicatorSize: TabBarIndicatorSize.label,
                 labelStyle: const TextStyle(
                   fontSize: 16,
@@ -118,7 +106,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-    );
+    ));
   }
 
 
@@ -136,7 +124,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(
-              color: AppColors.accent,
+              color: Brand.accent,
             ),
           );
         }
@@ -174,16 +162,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   ),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {}); // Recharger
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: Colors.black,
-                  ),
-                  child: const Text('Réessayer'),
-                ),
+                GlassButton(label: 'Réessayer', onPressed: () { setState(() {}); }),
               ],
             ),
           );
@@ -303,7 +282,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                                       if (index == 15) {
                                         return Container(
                                           decoration: BoxDecoration(
-                                            color: AppColors.accent,
+                                            color: Brand.accent,
                                             borderRadius: BorderRadius.circular(
                                               2,
                                             ),
@@ -346,11 +325,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: AppColors.accent,
+                              color: Brand.accent,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.accent.withOpacity(0.3),
+                                  color: Brand.accent.withOpacity(0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -397,25 +376,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
                   const SizedBox(height: 24),
 
-                  // Lien "Savoir comment ça fonctionne"
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Implémenter l'action
-                    },
-                    child: Text(
-                      'Savoir comment ça fonctionne',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600,
-                        decoration: TextDecoration.underline,
-                        fontFamily: 'Poppins',
-                      ),
-                    ),
-                  ),
+                  
                 ],
               ),
             ),
+
           ),
 
           // Bouton d'action en bas
@@ -423,26 +388,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             padding: const EdgeInsets.only(bottom: 20),
             child: SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: GlassButton(
                 onPressed: () {
                   Navigator.pushReplacementNamed(context, '/home');
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  'Planifiez un trajet',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
+                label: 'Planifiez un trajet',
               ),
             ),
           ),
@@ -452,16 +402,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   Widget _buildReservationCard(Reservation reservation) {
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.3),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -471,12 +414,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.2),
+                  color: Brand.accent.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.directions_car,
-                  color: AppColors.accent,
+                  color: Brand.accent,
                   size: 20,
                 ),
               ),
@@ -490,14 +433,14 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        color: Brand.textStrong,
                       ),
                     ),
                     Text(
                       reservation.statusInFrench,
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.textSecondary,
+                        color: Brand.text,
                       ),
                     ),
                   ],
@@ -508,7 +451,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: Brand.textStrong,
                 ),
               ),
             ],
@@ -518,7 +461,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             children: [
               Icon(
                 Icons.location_on,
-                color: AppColors.accent,
+                color: Brand.accent,
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -527,7 +470,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   '${reservation.departure} → ${reservation.destination}',
                   style: const TextStyle(
                     fontSize: 14,
-                    color: Colors.white,
+                    color: Brand.textStrong,
                   ),
                 ),
               ),
@@ -538,7 +481,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             children: [
               Icon(
                 Icons.schedule,
-                color: AppColors.textSecondary,
+                color: Brand.text,
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -546,7 +489,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: Brand.text,
                 ),
               ),
             ],
@@ -569,7 +512,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
             child: CircularProgressIndicator(
-              color: AppColors.accent,
+              color: Brand.accent,
             ),
           );
         }
@@ -633,16 +576,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   Widget _buildCompletedReservationCard(Reservation reservation) {
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -679,7 +615,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.accent,
+                        color: Brand.accent,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -708,7 +644,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             children: [
               Icon(
                 Icons.location_on,
-                color: AppColors.accent,
+                color: Brand.accent,
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -728,7 +664,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             children: [
               Icon(
                 Icons.schedule,
-                color: AppColors.textSecondary,
+                color: Brand.text,
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -736,7 +672,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: Brand.text,
                 ),
               ),
             ],

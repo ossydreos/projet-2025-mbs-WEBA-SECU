@@ -5,7 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'localisation_recherche_screen.dart';
 import 'booking_screen.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart';
 import '../widgets/widget_navBar.dart';
 import '../widgets/paneau_recherche.dart';
 import '../models/reservation.dart';
@@ -60,6 +60,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
 
   Future<void> _getUserLocation() async {
     try {
+      if (!mounted) return;
       setState(() {
         _isLoadingLocation = true;
         _locationError = '';
@@ -68,6 +69,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
       // Vérifier si les services de localisation sont activés
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        if (!mounted) return;
         setState(() {
           _locationError = 'Services de localisation désactivés';
           _isLoadingLocation = false;
@@ -81,6 +83,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
+          if (!mounted) return;
           setState(() {
             _locationError = 'Permission de localisation refusée';
             _isLoadingLocation = false;
@@ -91,6 +94,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
       }
 
       if (permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
         setState(() {
           _locationError = 'Permission de localisation refusée définitivement';
           _isLoadingLocation = false;
@@ -105,6 +109,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
         timeLimit: const Duration(seconds: 10),
       );
 
+      if (!mounted) return;
       setState(() {
         _userLocation = LatLng(position.latitude, position.longitude);
         _isLoadingLocation = false;
@@ -115,6 +120,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
       // Centrer la carte sur la position utilisateur
       _mapController.move(_userLocation!, 15.0);
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _locationError = 'Erreur lors de la localisation: ${e.toString()}';
         _isLoadingLocation = false;
@@ -141,12 +147,12 @@ class _AccueilScreenState extends State<AccueilScreen> {
           height: 40,
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.accent,
+              color: Brand.accent,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.background, width: 3),
+              border: Border.all(color: Brand.bg, width: 3),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.accent.withOpacity(0.4),
+                  color: Brand.accent.withOpacity(0.4),
                   blurRadius: 8,
                   spreadRadius: 2,
                 ),
@@ -188,7 +194,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFFF4444),
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.background, width: 3),
+              border: Border.all(color: Brand.bg, width: 3),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFFF4444).withOpacity(0.4),
@@ -265,23 +271,9 @@ class _AccueilScreenState extends State<AccueilScreen> {
   }
 
   Widget _buildPendingReservationPanel(Reservation reservation) {
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.background.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,7 +311,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
                       'En attente de confirmation du chauffeur',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: Brand.text,
                       ),
                     ),
                   ],
@@ -346,12 +338,8 @@ class _AccueilScreenState extends State<AccueilScreen> {
           const SizedBox(height: 16),
           
           // Détails de la réservation
-          Container(
+          GlassContainer(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.background.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(12),
-            ),
             child: Column(
               children: [
                 // Véhicule et prix
@@ -359,7 +347,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
                   children: [
                     Icon(
                       Icons.directions_car,
-                      color: AppColors.accent,
+                      color: Brand.accent,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
@@ -376,7 +364,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 18,
-                        color: AppColors.accent,
+                        color: Brand.accent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -390,7 +378,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
                   children: [
                     Icon(
                       Icons.location_on,
-                      color: AppColors.accent,
+                      color: Brand.accent,
                       size: 16,
                     ),
                     const SizedBox(width: 8),
@@ -413,7 +401,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
                   children: [
                     Icon(
                       Icons.schedule,
-                      color: AppColors.textSecondary,
+                      color: Brand.text,
                       size: 16,
                     ),
                     const SizedBox(width: 8),
@@ -421,7 +409,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
                       '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.textSecondary,
+                        color: Brand.text,
                       ),
                     ),
                   ],
@@ -433,15 +421,8 @@ class _AccueilScreenState extends State<AccueilScreen> {
           const SizedBox(height: 16),
           
           // Message d'information
-          Container(
+          GlassContainer(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Colors.blue.withOpacity(0.3),
-              ),
-            ),
             child: Row(
               children: [
                 Icon(
@@ -469,8 +450,9 @@ class _AccueilScreenState extends State<AccueilScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return GlassBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // CARTE AVEC POSITION UTILISATEUR
@@ -494,7 +476,7 @@ class _AccueilScreenState extends State<AccueilScreen> {
             ],
           ),
 
-          Container(color: AppColors.background.withOpacity(0.1)),
+          Container(color: Colors.transparent),
 
           // BOUTON MA POSITION
           Positioned(
@@ -504,19 +486,13 @@ class _AccueilScreenState extends State<AccueilScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: Brand.glass,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
+                  color: Brand.glassStroke,
                   width: 1,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.background.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: Fx.glow,
               ),
               child: IconButton(
                 icon: _isLoadingLocation
@@ -525,15 +501,15 @@ class _AccueilScreenState extends State<AccueilScreen> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: AppColors.accent,
+                          color: Brand.accent,
                         ),
                       )
                     : Icon(
                         Icons.my_location,
                         size: 24,
                         color: _userLocation != null
-                            ? AppColors.accent
-                            : AppColors.textSecondary,
+                            ? Brand.accent
+                            : Brand.text,
                       ),
                 onPressed: _isLoadingLocation ? null : _centerOnUser,
               ),
@@ -546,12 +522,8 @@ class _AccueilScreenState extends State<AccueilScreen> {
               top: MediaQuery.of(context).padding.top + 80,
               left: 16,
               right: 16,
-              child: Container(
+              child: GlassContainer(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
                 child: Row(
                   children: [
                     const Icon(Icons.warning, color: Colors.white, size: 20),
@@ -581,10 +553,35 @@ class _AccueilScreenState extends State<AccueilScreen> {
                   // Afficher les détails de la réservation en attente
                   return _buildPendingReservationPanel(snapshot.data!.first);
                 } else {
-                  // Afficher le panneau de recherche normal
-                  return PaneauRecherche(
-                    selectedDestination: _selectedDestination,
-                    onTap: _openLocationSearch,
+                  // Version "MAGNIFIQUE" : un seul conteneur verre contenant panneau + nav intégrée
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+                    child: GlassContainer(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(28),
+                        topRight: Radius.circular(28),
+                        bottomLeft: Radius.circular(28),
+                        bottomRight: Radius.circular(28),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          PaneauRecherche(
+                            selectedDestination: _selectedDestination,
+                            onTap: _openLocationSearch,
+                            noWrapper: true,
+                          ),
+                          const SizedBox(height: 10),
+                          CustomBottomNavigationBar(
+                            currentIndex: _selectedIndex,
+                            onTap: _onItemTapped,
+                            noWrapper: true,
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 }
               },
@@ -596,6 +593,6 @@ class _AccueilScreenState extends State<AccueilScreen> {
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
       ),
-    );
+    ));
   }
 }

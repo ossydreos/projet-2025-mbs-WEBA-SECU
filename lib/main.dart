@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:my_mobility_services/screens/welcome_login_screen.dart';
 import 'package:my_mobility_services/widgets/authgate.dart';
 import 'firebase_options.dart';
-import './theme/theme_app.dart';
+import 'ui/glass/glassmorphism_theme.dart';
 // Import des écrans pour les routes
 import './screens/profile_screen.dart';
 import './screens/localisation_recherche_screen.dart';
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'My Mobility Services',
-      theme: AppTheme.dark(),
+      theme: AppTheme.glassDark,
       home: const Authgate(),
       onGenerateRoute: (settings) {
         // Configuration des transitions fluides sans animations

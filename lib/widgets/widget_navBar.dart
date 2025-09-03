@@ -1,30 +1,28 @@
 // lib/widgets/custom_bottom_nav_bar.dart
 import 'package:flutter/material.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final bool noWrapper;
 
   const CustomBottomNavigationBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.noWrapper = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-      ),
-      child: BottomNavigationBar(
+    final bar = BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: onTap,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.accent,
-        unselectedItemColor: AppColors.textSecondary,
+        backgroundColor: Colors.transparent,
+        selectedItemColor: Brand.accent,
+        unselectedItemColor: Brand.text,
         selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontFamily: 'Poppins',
@@ -52,7 +50,13 @@ class CustomBottomNavigationBar extends StatelessWidget {
             label: 'Compte',
           ),
         ],
-      ),
+      );
+
+    if (noWrapper) return bar;
+
+    return GlassContainer(
+      padding: EdgeInsets.zero,
+      child: bar,
     );
   }
 }

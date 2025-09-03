@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart';
 import 'trip_summary_screen.dart';
 
 class SchedulingScreen extends StatefulWidget {
@@ -58,10 +58,10 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.accent,
-              onPrimary: AppColors.background,
-              surface: AppColors.surface,
+            colorScheme: const ColorScheme.dark(
+              primary: Brand.accent,
+              onPrimary: Colors.white,
+              surface: Brand.bgElev,
               onSurface: Colors.white,
             ),
           ),
@@ -85,10 +85,10 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.accent,
-              onPrimary: AppColors.background,
-              surface: AppColors.surface,
+            colorScheme: const ColorScheme.dark(
+              primary: Brand.accent,
+              onPrimary: Colors.white,
+              surface: Brand.bgElev,
               onSurface: Colors.white,
             ),
           ),
@@ -136,8 +136,9 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return GlassBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
           children: [
@@ -177,7 +178,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                     'De 30 minutes à 90 jours à l\'avance',
                     style: TextStyle(
                       fontSize: 16,
-                      color: AppColors.textSecondary,
+                      color: Brand.text,
                     ),
                   ),
                 ],
@@ -203,14 +204,8 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: _selectDate,
-                    child: Container(
-                      width: double.infinity,
+                    child: GlassContainer(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.textSecondary.withOpacity(0.3)),
-                      ),
                       child: Text(
                         _formatDate(_selectedDate),
                         style: const TextStyle(
@@ -243,14 +238,8 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                   const SizedBox(height: 12),
                   GestureDetector(
                     onTap: _selectTime,
-                    child: Container(
-                      width: double.infinity,
+                    child: GlassContainer(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppColors.textSecondary.withOpacity(0.3)),
-                      ),
                       child: Row(
                         children: [
                           Text(
@@ -259,7 +248,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                                 : 'Sélectionner',
                             style: TextStyle(
                               fontSize: 16,
-                              color: _selectedTime != null ? Colors.white : AppColors.accent,
+                              color: _selectedTime != null ? Colors.white : Brand.accent,
                             ),
                           ),
                           const Spacer(),
@@ -268,7 +257,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                               'Sélectionner',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: AppColors.accent,
+                                color: Brand.accent,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -289,7 +278,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                 'Le fuseau horaire est basé sur le lieu de prise en charge',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.textSecondary,
+                  color: Brand.text,
                 ),
               ),
             ),
@@ -314,7 +303,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                     Icon(
                       Icons.info_outline,
                       size: 16,
-                      color: AppColors.textSecondary,
+                      color: Brand.text,
                     ),
                   ],
                 ),
@@ -332,9 +321,8 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: GlassButton(
                   onPressed: _selectedTime != null ? () {
-                    // Naviguer vers la page de résumé
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -349,28 +337,13 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                       ),
                     );
                   } : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.background,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'Continuer',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  label: 'Continuer',
                 ),
               ),
             ),
           ],
         ),
       ),
-    );
+    ));
   }
 }
