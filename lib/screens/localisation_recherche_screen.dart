@@ -124,7 +124,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final _debouncer = _Debouncer(const Duration(milliseconds: 300));
-  final String _placesSessionToken = DateTime.now().microsecondsSinceEpoch.toString();
+  final String _placesSessionToken = DateTime.now().microsecondsSinceEpoch
+      .toString();
 
   List<Suggestion> _suggestions = [];
   List<Suggestion> _departureSuggestions = [];
@@ -154,7 +155,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     // Écouter les changements de texte
     _searchController.addListener(_onTextChanged);
     _departureController.addListener(_onDepartureTextChanged);
-    
+
     // Écouter les changements de focus
     _focusNode.addListener(() {
       setState(() {
@@ -191,25 +192,35 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   Future<void> _fetchSuggestionsPlaces(String query) async {
     if (query.trim().isEmpty) return;
-    setState(() { _isLoading = true; _placesErrorMessage = null; });
+    setState(() {
+      _isLoading = true;
+      _placesErrorMessage = null;
+    });
     try {
       // Utiliser une clé Web (Places Web Service) non restreinte à un bundle/androidId pour les appels REST
       final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
           ? AppConstants.googlePlacesWebKey
-          : (Platform.isIOS ? AppConstants.googleMapsApiKeyIOS : AppConstants.googleMapsApiKeyAndroid);
-      final url = Uri.parse('https://maps.googleapis.com/maps/api/place/autocomplete/json'
-          '?input=${Uri.encodeQueryComponent(query)}'
-          '&language=fr'
-          '&components=country:fr|country:ch'
-          '&sessiontoken=$_placesSessionToken'
-          '&key=$key');
+          : (Platform.isIOS
+                ? AppConstants.googleMapsApiKeyIOS
+                : AppConstants.googleMapsApiKeyAndroid);
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+        '?input=${Uri.encodeQueryComponent(query)}'
+        '&language=fr'
+        '&components=country:fr|country:ch'
+        '&sessiontoken=$_placesSessionToken'
+        '&key=$key',
+      );
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
         final status = (data['status'] ?? '').toString();
         if (status == 'OK') {
-          final preds = (data['predictions'] as List<dynamic>).cast<Map<String, dynamic>>();
-          final suggestions = preds.map((p) => Suggestion.fromPlaces(p)).toList();
+          final preds = (data['predictions'] as List<dynamic>)
+              .cast<Map<String, dynamic>>();
+          final suggestions = preds
+              .map((p) => Suggestion.fromPlaces(p))
+              .toList();
           setState(() {
             _suggestions = suggestions;
             _isLoading = false;
@@ -224,7 +235,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           });
         }
       } else {
-        debugPrint('Places Autocomplete HTTP ${response.statusCode}: ${response.body}');
+        debugPrint(
+          'Places Autocomplete HTTP ${response.statusCode}: ${response.body}',
+        );
         setState(() {
           _isLoading = false;
           _suggestions = [];
@@ -290,23 +303,32 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   Future<void> _fetchDepartureSuggestionsPlaces(String query) async {
     if (query.trim().isEmpty) return;
-    setState(() { _isLoadingDeparture = true; });
+    setState(() {
+      _isLoadingDeparture = true;
+    });
     try {
       final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
           ? AppConstants.googlePlacesWebKey
-          : (Platform.isIOS ? AppConstants.googleMapsApiKeyIOS : AppConstants.googleMapsApiKeyAndroid);
-      final url = Uri.parse('https://maps.googleapis.com/maps/api/place/autocomplete/json'
-          '?input=${Uri.encodeQueryComponent(query)}'
-          '&language=fr'
-          '&components=country:fr|country:ch'
-          '&sessiontoken=$_placesSessionToken'
-          '&key=$key');
+          : (Platform.isIOS
+                ? AppConstants.googleMapsApiKeyIOS
+                : AppConstants.googleMapsApiKeyAndroid);
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+        '?input=${Uri.encodeQueryComponent(query)}'
+        '&language=fr'
+        '&components=country:fr|country:ch'
+        '&sessiontoken=$_placesSessionToken'
+        '&key=$key',
+      );
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
         if ((data['status'] ?? '') == 'OK') {
-          final preds = (data['predictions'] as List<dynamic>).cast<Map<String, dynamic>>();
-          final suggestions = preds.map((p) => Suggestion.fromPlaces(p)).toList();
+          final preds = (data['predictions'] as List<dynamic>)
+              .cast<Map<String, dynamic>>();
+          final suggestions = preds
+              .map((p) => Suggestion.fromPlaces(p))
+              .toList();
           setState(() {
             _departureSuggestions = suggestions;
             _isLoadingDeparture = false;
@@ -386,7 +408,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     try {
       final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
           ? AppConstants.googlePlacesWebKey
-          : (Platform.isIOS ? AppConstants.googleMapsApiKeyIOS : AppConstants.googleMapsApiKeyAndroid);
+          : (Platform.isIOS
+                ? AppConstants.googleMapsApiKeyIOS
+                : AppConstants.googleMapsApiKeyAndroid);
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&key=$key',
       );
@@ -413,29 +437,22 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     print('Destination suggestions count: ${_suggestions.length}');
     print('Loading departure: $_isLoadingDeparture');
     print('Loading destination: $_isLoading');
-    
+
     // Afficher les suggestions selon le champ actuellement FOCUS
     if (_isDepartureActive) {
       if (_isLoadingDeparture) {
-        return Center(
-          child: CircularProgressIndicator(
-            color: Brand.accent,
-          ),
-        );
+        return Center(child: CircularProgressIndicator(color: Brand.accent));
       }
-      
+
       if (_departureSuggestions.isEmpty) {
         return Center(
           child: Text(
             'Aucun résultat trouvé',
-            style: TextStyle(
-              color: Brand.text,
-              fontSize: 16,
-            ),
+            style: TextStyle(color: Brand.text, fontSize: 16),
           ),
         );
       }
-      
+
       return ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         itemCount: _departureSuggestions.length,
@@ -445,11 +462,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: ListTile(
-              leading: Icon(
-                suggestion.icon,
-                color: Brand.accent,
-                size: 24,
-              ),
+              leading: Icon(suggestion.icon, color: Brand.accent, size: 24),
               title: Text(
                 suggestion.shortName,
                 style: const TextStyle(
@@ -461,20 +474,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               subtitle: suggestion.address.isNotEmpty
                   ? Text(
                       suggestion.address,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Brand.text,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Brand.text),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     )
                   : null,
               trailing: Text(
                 suggestion.distance,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Brand.text,
-                ),
+                style: TextStyle(fontSize: 14, color: Brand.text),
               ),
               onTap: () => _onSuggestionTap(suggestion),
             ),
@@ -482,29 +489,22 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         },
       );
     }
-    
+
     // Suggestions destination si le champ destination est en focus
     if (_isDestinationActive) {
       if (_isLoading) {
-        return Center(
-          child: CircularProgressIndicator(
-            color: Brand.accent,
-          ),
-        );
+        return Center(child: CircularProgressIndicator(color: Brand.accent));
       }
-      
+
       if (_suggestions.isEmpty) {
         return Center(
           child: Text(
             'Aucun résultat trouvé',
-            style: TextStyle(
-              color: Brand.text,
-              fontSize: 16,
-            ),
+            style: TextStyle(color: Brand.text, fontSize: 16),
           ),
         );
       }
-      
+
       return ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         itemCount: _suggestions.length,
@@ -514,11 +514,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: ListTile(
-              leading: Icon(
-                suggestion.icon,
-                color: Brand.accent,
-                size: 24,
-              ),
+              leading: Icon(suggestion.icon, color: Brand.accent, size: 24),
               title: Text(
                 suggestion.shortName,
                 style: const TextStyle(
@@ -530,20 +526,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               subtitle: suggestion.address.isNotEmpty
                   ? Text(
                       suggestion.address,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Brand.text,
-                      ),
+                      style: TextStyle(fontSize: 14, color: Brand.text),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     )
                   : null,
               trailing: Text(
                 suggestion.distance,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Brand.text,
-                ),
+                style: TextStyle(fontSize: 14, color: Brand.text),
               ),
               onTap: () => _onSuggestionTap(suggestion),
             ),
@@ -551,7 +541,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         },
       );
     }
-    
+
     // Si aucun champ n'a le focus, message d'erreur API éventuel
     if (_placesErrorMessage != null) {
       return Center(
@@ -569,223 +559,217 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   Widget build(BuildContext context) {
     return GlassBackground(
       child: Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Column(
-        children: [
-          // Header avec boutons et titre - THÉMATISÉ
-          GlassContainer(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + 16,
-              left: 16,
-              right: 16,
-              bottom: 16,
-            ),
-            child: Column(
-              children: [
-                // Barre de titre - THÉMATISÉE
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        size: 24,
-                        color: Brand.accent,
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'Votre itinéraire',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white, // ✅ Texte blanc
-                          ),
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      Icons.sort,
-                      size: 24,
-                      color: Brand.text,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // Point de départ (cliquable) - THÉMATISÉ (sans double contour)
-                GlassContainer(
-                  padding: EdgeInsets.zero,
-                  showBorder: false,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: Brand.accent,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: _departureController,
-                          focusNode: _departureFocusNode,
-                          onChanged: (value) => _onDepartureTextChanged(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white, // ✅ Texte blanc
-                          ),
-                          decoration: InputDecoration(
-                            hintText: _currentPickupLocation,
-                            hintStyle: TextStyle(
-                              color: Brand.text,
-                              fontSize: 16,
-                            ),
-                            filled: false,
-                            fillColor: Colors.transparent,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 0,
-                              vertical: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_departureController.text.isNotEmpty)
-                        GestureDetector(
-                          onTap: _clearDepartureSearch,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Icon(
-                              Icons.clear,
-                              color: Brand.text,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(
-                          Icons.add,
-                          color: Brand.text,
-                          size: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Zone de recherche destination - THÉMATISÉE (sans double contour)
-                GlassContainer(
-                  padding: EdgeInsets.zero,
-                  showBorder: false,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(
-                          Icons.search,
-                          color: Brand.text,
-                          size: 20,
-                        ),
-                      ),
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          focusNode: _focusNode,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white, // ✅ Texte blanc
-                          ),
-                          decoration: InputDecoration(
-                            hintText: 'Destination',
-                            hintStyle: TextStyle(
-                              color: Brand.text,
-                              fontSize: 16,
-                            ),
-                            filled: false,
-                            fillColor: Colors.transparent,
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            disabledBorder: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 0,
-                              vertical: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                      if (_searchController.text.isNotEmpty)
-                        GestureDetector(
-                          onTap: _clearSearch,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            child: Icon(
-                              Icons.clear,
-                              color: Brand.text,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(
-                          Icons.location_on,
-                          color: Brand.accent,
-                          size: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Liste des suggestions - THÉMATISÉE
-          Expanded(
-            child: _buildSuggestionsList(),
-          ),
-
-          // Footer avec bouton suivant - THÉMATISÉ
-          GlassContainer(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-            child: SafeArea(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          children: [
+            // Header avec boutons et titre - THÉMATISÉ
+            GlassContainer(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 16,
+                left: 16,
+                right: 16,
+                bottom: 16,
+              ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Bouton suivant
-                  SizedBox(
-                    width: double.infinity,
-                    child: GlassButton(label: 'Suivant', onPressed: _canProceed() ? _proceedToBooking : null),
+                  // Barre de titre - THÉMATISÉE
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Icon(Icons.close, size: 24, color: Brand.accent),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'Votre itinéraire',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white, // ✅ Texte blanc
+                            ),
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.sort, size: 24, color: Brand.text),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'powered by OpenStreetMap',
-                    style: TextStyle(
-                      color: Brand.text.withOpacity(0.7),
-                      fontSize: 12,
+
+                  const SizedBox(height: 20),
+
+                  // Point de départ (cliquable) - THÉMATISÉ (sans double contour)
+                  GlassContainer(
+                    padding: EdgeInsets.zero,
+                    showBorder: false,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Brand.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _departureController,
+                            focusNode: _departureFocusNode,
+                            onChanged: (value) => _onDepartureTextChanged(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white, // ✅ Texte blanc
+                            ),
+                            decoration: InputDecoration(
+                              hintText: _currentPickupLocation,
+                              hintStyle: TextStyle(
+                                color: Brand.text,
+                                fontSize: 16,
+                              ),
+                              filled: false,
+                              fillColor: Colors.transparent,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 0,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_departureController.text.isNotEmpty)
+                          GestureDetector(
+                            onTap: _clearDepartureSearch,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: Icon(
+                                Icons.clear,
+                                color: Brand.text,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Icon(Icons.add, color: Brand.text, size: 20),
+                        ),
+                      ],
                     ),
-                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Zone de recherche destination - THÉMATISÉE (sans double contour)
+                  GlassContainer(
+                    padding: EdgeInsets.zero,
+                    showBorder: false,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Icon(
+                            Icons.search,
+                            color: Brand.text,
+                            size: 20,
+                          ),
+                        ),
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            focusNode: _focusNode,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white, // ✅ Texte blanc
+                            ),
+                            decoration: InputDecoration(
+                              hintText: 'Destination',
+                              hintStyle: TextStyle(
+                                color: Brand.text,
+                                fontSize: 16,
+                              ),
+                              filled: false,
+                              fillColor: Colors.transparent,
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              disabledBorder: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 0,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (_searchController.text.isNotEmpty)
+                          GestureDetector(
+                            onTap: _clearSearch,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                              ),
+                              child: Icon(
+                                Icons.clear,
+                                color: Brand.text,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Icon(
+                            Icons.location_on,
+                            color: Brand.accent,
+                            size: 20,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+
+            // Liste des suggestions - THÉMATISÉE
+            Expanded(child: _buildSuggestionsList()),
+
+            // Footer avec bouton suivant - THÉMATISÉ
+            GlassContainer(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Bouton suivant
+                    SizedBox(
+                      width: double.infinity,
+                      child: GlassButton(
+                        label: 'Suivant',
+                        onPressed: _canProceed() ? _proceedToBooking : null,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'powered by OpenStreetMap',
+                      style: TextStyle(
+                        color: Brand.text.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-    ));
+    );
   }
 }

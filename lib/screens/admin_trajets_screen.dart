@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart';
 import '../widgets/admin_navbar.dart';
 import '../models/reservation.dart';
 import '../services/reservation_service.dart';
@@ -12,9 +12,11 @@ class AdminTrajetsScreen extends StatefulWidget {
   State<AdminTrajetsScreen> createState() => _AdminTrajetsScreenState();
 }
 
-class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProviderStateMixin {
+class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
+    with TickerProviderStateMixin {
   final ReservationService _reservationService = ReservationService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
   int _selectedIndex = 1;
   late TabController _tabController;
 
@@ -32,106 +34,139 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Trajets',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontFamily: 'Poppins',
-          ),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        toolbarHeight: 80,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.accent),
-            ),
-            child: Text(
-              'ADMIN',
+    return Theme(
+      data: AppTheme.glassDark,
+      child: GlassBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          // Laisse Flutter gérer la hauteur via AppBar + bottom: PreferredSize
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            toolbarHeight: 80,
+            titleSpacing: 16,
+            title: Text(
+              'Trajets',
               style: TextStyle(
-                color: AppColors.accent,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                color: Brand.textStrong,
+                fontFamily: 'Poppins',
+              ),
+            ),
+            actions: [
+              Container(
+                margin: const EdgeInsets.only(right: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Brand.accent.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Brand.accent),
+                ),
+                child: Text(
+                  'ADMIN',
+                  style: TextStyle(
+                    color: Brand.accent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+            // Place proprement le TabBar dans AppBar.bottom
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(56),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Brand.glass,
+                  border: const Border(
+                    top: BorderSide(color: Brand.glassStroke, width: 1),
+                    bottom: BorderSide(color: Brand.glassStroke, width: 1),
+                  ),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Brand.accent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Brand.accent),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicator: BoxDecoration(
+                      color: Brand.accent.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Brand.accent, width: 2),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: Brand.textStrong,
+                    unselectedLabelColor: Brand.textWeak,
+                    dividerColor: Colors.transparent,
+                    overlayColor: MaterialStateProperty.all(Colors.transparent),
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                    tabs: const [
+                      Tab(text: 'À venir'),
+                      Tab(text: 'Terminés'),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.accent,
-          labelColor: Colors.white,
-          unselectedLabelColor: AppColors.textSecondary,
-          labelStyle: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
+
+          // Le contenu occupe l’espace restant, sans Column supplémentaire.
+          body: TabBarView(
+            controller: _tabController,
+            physics: const BouncingScrollPhysics(),
+            children: [_buildUpcomingTab(), _buildCompletedTab()],
           ),
-          tabs: const [
-            Tab(text: 'À venir'),
-            Tab(text: 'Terminés'),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          // Contenu principal
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildUpcomingTab(),
-                _buildCompletedTab(),
-              ],
-            ),
-          ),
-          // Barre de navigation en bas
-          AdminBottomNavigationBar(
+
+          // Bonne pratique: placer la navbar ici
+          bottomNavigationBar: AdminBottomNavigationBar(
             currentIndex: _selectedIndex,
             onTap: _handleNavigation,
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildUpcomingTab() {
+    // On peut ajouter un SafeArea(bottom:false) au besoin, mais ici pas nécessaire
     return StreamBuilder<List<Reservation>>(
       stream: _reservationService.getConfirmedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.accent,
-            ),
-          );
+          return Center(child: CircularProgressIndicator(color: Brand.accent));
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red,
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: GlassContainer(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Brand.hot),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur: ${snapshot.error}',
+                      style: TextStyle(color: Brand.hot),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Erreur: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+              ),
             ),
           );
         }
@@ -139,11 +174,20 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
         final confirmedReservations = snapshot.data ?? [];
 
         if (confirmedReservations.isEmpty) {
-          return _buildEmptyUpcomingView();
+          // Pas de scroll obligatoire: Center suffit
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: _buildEmptyUpcomingView(),
+          );
         }
 
+        // Ajoute un padding bas qui tient compte de la hauteur de la bottomNavigationBar
+        final bottomPad =
+            MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight;
+
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPad),
+          physics: const BouncingScrollPhysics(),
           itemCount: confirmedReservations.length,
           itemBuilder: (context, index) {
             final reservation = confirmedReservations[index];
@@ -159,30 +203,27 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
       stream: _reservationService.getCompletedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.accent,
-            ),
-          );
+          return Center(child: CircularProgressIndicator(color: Brand.accent));
         }
 
         if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red,
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: GlassContainer(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Brand.hot),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur: ${snapshot.error}',
+                      style: TextStyle(color: Brand.hot),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'Erreur: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+              ),
             ),
           );
         }
@@ -190,11 +231,18 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
         final completedReservations = snapshot.data ?? [];
 
         if (completedReservations.isEmpty) {
-          return _buildEmptyCompletedView();
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: _buildEmptyCompletedView(),
+          );
         }
 
+        final bottomPad =
+            MediaQuery.of(context).padding.bottom + kBottomNavigationBarHeight;
+
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPad),
+          physics: const BouncingScrollPhysics(),
           itemCount: completedReservations.length,
           itemBuilder: (context, index) {
             final reservation = completedReservations[index];
@@ -205,113 +253,65 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
     );
   }
 
-  Widget _buildNotLoggedInView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.person_off,
-            size: 64,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Non connecté',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Connectez-vous pour voir vos trajets',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptyUpcomingView() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.schedule,
-            size: 64,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Aucun trajet à venir',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+      child: GlassContainer(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.schedule, size: 64, color: Brand.textWeak),
+            const SizedBox(height: 16),
+            Text(
+              'Aucun trajet à venir',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Brand.textStrong,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Vos prochains trajets apparaîtront ici',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+            const SizedBox(height: 8),
+            Text(
+              'Les prochains trajets apparaîtront ici',
+              style: TextStyle(fontSize: 14, color: Brand.textWeak),
+              textAlign: TextAlign.center,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildEmptyCompletedView() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.history,
-            size: 64,
-            color: AppColors.textSecondary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Aucun trajet terminé',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+      child: GlassContainer(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.history, size: 64, color: Brand.textWeak),
+            const SizedBox(height: 16),
+            Text(
+              'Aucun trajet terminé',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Brand.textStrong,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Vos trajets terminés apparaîtront ici',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+            const SizedBox(height: 8),
+            Text(
+              'Les trajets terminés apparaîtront ici',
+              style: TextStyle(fontSize: 14, color: Brand.textWeak),
+              textAlign: TextAlign.center,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildConfirmedReservationCard(Reservation reservation) {
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -321,12 +321,13 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.2),
+                  color: Brand.accent.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Brand.accent.withOpacity(0.3)),
                 ),
                 child: Icon(
                   Icons.directions_car,
-                  color: AppColors.accent,
+                  color: Brand.accent,
                   size: 20,
                 ),
               ),
@@ -338,26 +339,26 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
                     if (reservation.userName != null)
                       Text(
                         reservation.userName!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: Brand.textStrong,
                         ),
                       ),
                     const SizedBox(height: 4),
                     Text(
                       reservation.vehicleName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: Brand.text,
                       ),
                     ),
                     Text(
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.accent,
+                        color: Brand.accent2,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -369,6 +370,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.withOpacity(0.3)),
                 ),
                 child: Text(
                   'Confirmée',
@@ -384,19 +386,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(
-                Icons.location_on,
-                color: AppColors.accent,
-                size: 16,
-              ),
+              Icon(Icons.location_on, color: Brand.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Brand.text),
                 ),
               ),
             ],
@@ -404,18 +399,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.schedule,
-                color: AppColors.textSecondary,
-                size: 16,
-              ),
+              Icon(Icons.schedule, color: Brand.textWeak, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: Brand.textWeak),
               ),
             ],
           ),
@@ -425,31 +413,31 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () => _completeReservation(reservation),
-                  icon: Icon(Icons.visibility, size: 18),
-                  label: Text('Terminée'),
+                  icon: const Icon(Icons.check_circle, size: 18),
+                  label: const Text('Terminée'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
+                    backgroundColor: Brand.accent,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _cancelConfirmedReservation(reservation),
-                  icon: Icon(Icons.close, size: 18),
-                  label: Text('Annulée'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                child: OutlinedButton.icon(
+                  onPressed: () => _showCancelDialog(reservation),
+                  icon: const Icon(Icons.close, size: 18),
+                  label: const Text('Annuler'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Brand.hot,
+                    side: BorderSide(color: Brand.hot),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
               ),
@@ -461,16 +449,8 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
   }
 
   Widget _buildCompletedReservationCard(Reservation reservation) {
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -482,8 +462,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.withOpacity(0.3)),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.check_circle,
                   color: Colors.green,
                   size: 20,
@@ -497,26 +478,26 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
                     if (reservation.userName != null)
                       Text(
                         reservation.userName!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: Brand.textStrong,
                         ),
                       ),
                     const SizedBox(height: 4),
                     Text(
                       reservation.vehicleName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: Brand.text,
                       ),
                     ),
                     Text(
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 14,
-                        color: AppColors.accent,
+                        color: Brand.accent2,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -528,6 +509,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
                 decoration: BoxDecoration(
                   color: Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.withOpacity(0.3)),
                 ),
                 child: Text(
                   'Terminée',
@@ -543,19 +525,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(
-                Icons.location_on,
-                color: AppColors.accent,
-                size: 16,
-              ),
+              Icon(Icons.location_on, color: Brand.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Brand.text),
                 ),
               ),
             ],
@@ -563,18 +538,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.schedule,
-                color: AppColors.textSecondary,
-                size: 16,
-              ),
+              Icon(Icons.schedule, color: Brand.textWeak, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: Brand.textWeak),
               ),
             ],
           ),
@@ -583,211 +551,123 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen> with TickerProv
     );
   }
 
-  Widget _buildReservationCard(Reservation reservation) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.directions_car,
-                  color: AppColors.accent,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (reservation.userName != null)
-                      Text(
-                        reservation.userName!,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    const SizedBox(height: 4),
-                    Text(
-                      reservation.vehicleName,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      '${reservation.totalPrice.toStringAsFixed(1)} €',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(reservation.status).withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  reservation.status.statusInFrench,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _getStatusColor(reservation.status),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+  void _showCancelDialog(Reservation reservation) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Brand.glass,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Brand.glassStroke),
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(
-                Icons.location_on,
-                color: AppColors.accent,
-                size: 16,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
+          title: Text(
+            'Annuler la réservation',
+            style: TextStyle(color: Brand.textStrong),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                Icons.schedule,
-                color: AppColors.textSecondary,
-                size: 16,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+          content: Text(
+            'Êtes-vous sûr de vouloir annuler cette réservation ?',
+            style: TextStyle(color: Brand.text),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(foregroundColor: Brand.textWeak),
+              child: const Text('Non'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _cancelConfirmedReservation(reservation);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Brand.hot,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Oui, annuler'),
+            ),
+          ],
+        );
+      },
     );
-  }
-
-  void _completeReservation(Reservation reservation) async {
-    try {
-      final updatedReservation = reservation.copyWith(
-        status: ReservationStatus.completed,
-        updatedAt: DateTime.now(),
-      );
-
-      await _reservationService.updateReservation(updatedReservation);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Course marquée comme terminée !'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _cancelConfirmedReservation(Reservation reservation) async {
-    try {
-      final updatedReservation = reservation.copyWith(
-        status: ReservationStatus.cancelled,
-        updatedAt: DateTime.now(),
-      );
-
-      await _reservationService.updateReservation(updatedReservation);
-      
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Course annulée !'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   Color _getStatusColor(ReservationStatus status) {
     switch (status) {
       case ReservationStatus.pending:
-        return Colors.blue;
+        return Colors.orange;
       case ReservationStatus.confirmed:
         return Colors.green;
       case ReservationStatus.inProgress:
-        return Colors.blue;
+        return Brand.accent;
       case ReservationStatus.completed:
         return Colors.green;
       case ReservationStatus.cancelled:
-        return Colors.red;
+        return Brand.hot;
+    }
+  }
+
+  Future<void> _completeReservation(Reservation reservation) async {
+    try {
+      final updatedReservation = reservation.copyWith(
+        status: ReservationStatus.completed,
+        updatedAt: DateTime.now(),
+      );
+      await _reservationService.updateReservation(updatedReservation);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Course marquée comme terminée !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Brand.hot),
+        );
+      }
+    }
+  }
+
+  Future<void> _cancelConfirmedReservation(Reservation reservation) async {
+    try {
+      final updatedReservation = reservation.copyWith(
+        status: ReservationStatus.cancelled,
+        updatedAt: DateTime.now(),
+      );
+      await _reservationService.updateReservation(updatedReservation);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Course annulée !'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Brand.hot),
+        );
+      }
     }
   }
 
   void _handleNavigation(int index) {
     if (index == _selectedIndex) return;
-
-    setState(() {
-      _selectedIndex = index;
-    });
-
+    setState(() => _selectedIndex = index);
     switch (index) {
-      case 0: // Accueil
+      case 0:
         Navigator.pushReplacementNamed(context, '/admin/home');
         break;
-      case 1: // Trajets (déjà sur cette page)
+      case 1:
         break;
-      case 2: // Gestion
+      case 2:
         Navigator.pushReplacementNamed(context, '/admin/gestion');
         break;
-      case 3: // Compte
+      case 3:
         Navigator.pushReplacementNamed(context, '/admin/profile');
         break;
     }

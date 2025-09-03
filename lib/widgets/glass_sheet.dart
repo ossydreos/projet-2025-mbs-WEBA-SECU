@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../constants.dart';
 
-
 class GlassSheet extends StatelessWidget {
   const GlassSheet({
     super.key,
     required this.child,
     this.onVerticalDragUpdate,
     this.onVerticalDragEnd,
+    required bool isSelected,
   });
 
   final Widget child;

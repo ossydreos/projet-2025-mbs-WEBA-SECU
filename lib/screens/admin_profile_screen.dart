@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart'; // Import du nouveau thème
 import '../widgets/admin_navbar.dart';
 import '../widgets/authgate.dart';
 
@@ -21,11 +21,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       stream: _auth.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            backgroundColor: AppColors.background,
-            body: Center(
-              child: CircularProgressIndicator(
-                color: AppColors.accent,
+          return GlassBackground(
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Center(
+                child: CircularProgressIndicator(color: Brand.accent),
               ),
             ),
           );
@@ -36,53 +36,43 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           return const Authgate();
         }
 
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            title: Text(
-              'Compte',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            backgroundColor: AppColors.background,
-            elevation: 0,
-            toolbarHeight: 80,
-            actions: [
-              Container(
-                margin: const EdgeInsets.only(right: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.accent),
-                ),
-                child: Text(
-                  'ADMIN',
-                  style: TextStyle(
-                    color: AppColors.accent,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+        return GlassBackground(
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: GlassAppBar(
+              title: 'Compte',
+              actions: [
+                Container(
+                  margin: const EdgeInsets.only(right: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Brand.accent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Brand.accent),
+                  ),
+                  child: Text(
+                    'ADMIN',
+                    style: TextStyle(
+                      color: Brand.accent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          body: Column(
-            children: [
-              // Contenu principal
-              Expanded(
-                child: _buildContent(user),
-              ),
-              // Barre de navigation en bas
-              AdminBottomNavigationBar(
-                currentIndex: _selectedIndex,
-                onTap: _handleNavigation,
-              ),
-            ],
+              ],
+            ),
+            body: Column(
+              children: [
+                Expanded(child: _buildContent(user)),
+                AdminBottomNavigationBar(
+                  currentIndex: _selectedIndex,
+                  onTap: _handleNavigation,
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -110,87 +100,69 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }
 
   Widget _buildHeader(User user) {
-    return Container(
+    return SizedBox(
+      // Correction ligne 111: Remplacer width par SizedBox
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: AppColors.accent.withOpacity(0.2),
-            child: Icon(
-              Icons.admin_panel_settings,
-              size: 50,
-              color: AppColors.accent,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            user.displayName ?? user.email?.split('@')[0] ?? 'Administrateur',
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            user.email ?? 'admin@example.com',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.accent),
-            ),
-            child: Text(
-              'ADMINISTRATEUR',
-              style: TextStyle(
-                color: AppColors.accent,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+      child: GlassContainer(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: Brand.accent.withOpacity(0.2),
+              child: Icon(
+                Icons.admin_panel_settings,
+                size: 50,
+                color: Brand.accent,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Text(
+              user.displayName ?? user.email?.split('@')[0] ?? 'Administrateur',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Brand.textStrong,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              user.email ?? 'admin@example.com',
+              style: TextStyle(fontSize: 16, color: Brand.text),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Brand.accent.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Brand.accent),
+              ),
+              child: Text(
+                'ADMINISTRATEUR',
+                style: TextStyle(
+                  color: Brand.accent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildUpdateAccountCard() {
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.edit,
-                color: AppColors.accent,
-                size: 24,
-              ),
+              Icon(Icons.edit, color: Brand.accent, size: 24),
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
@@ -198,7 +170,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: Brand.textStrong,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -208,31 +180,21 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           const SizedBox(height: 16),
           Text(
             'Gérez vos informations personnelles et vos préférences de compte.',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 14, color: Brand.textWeak),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
+          GlassButton(
+            label: 'Modifier le profil',
+            icon: Icons.edit,
             onPressed: () {
-              // TODO: Implémenter la modification du profil
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Fonctionnalité à implémenter'),
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: Brand.accent,
                 ),
               );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Modifier le profil'),
+            primary: true,
           ),
         ],
       ),
@@ -240,26 +202,15 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }
 
   Widget _buildAdminFeaturesCard() {
-    return Container(
+    return GlassContainer(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.admin_panel_settings,
-                color: AppColors.accent,
-                size: 24,
-              ),
+              Icon(Icons.admin_panel_settings, color: Brand.accent, size: 24),
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
@@ -267,7 +218,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: Brand.textStrong,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -279,7 +230,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             icon: Icons.directions_car,
             title: 'Gestion de la flotte',
             subtitle: 'Gérer les véhicules disponibles',
-            onTap: () => Navigator.pushReplacementNamed(context, '/admin/gestion'),
+            onTap: () =>
+                Navigator.pushReplacementNamed(context, '/admin/gestion'),
           ),
           const SizedBox(height: 12),
           _buildAdminFeatureItem(
@@ -293,7 +245,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             icon: Icons.local_offer,
             title: 'Codes promotionnels',
             subtitle: 'Créer et gérer les offres',
-            onTap: () => Navigator.pushReplacementNamed(context, '/admin/gestion'),
+            onTap: () =>
+                Navigator.pushReplacementNamed(context, '/admin/gestion'),
           ),
         ],
       ),
@@ -308,12 +261,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.background.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.white.withOpacity(0.03),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Brand.glassStroke, width: 0.5),
         ),
         child: Row(
           children: [
@@ -321,14 +275,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.2),
+                color: Brand.accent.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: AppColors.accent,
-                size: 20,
-              ),
+              child: Icon(icon, color: Brand.accent, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -337,27 +287,20 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: Brand.textStrong,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Brand.textWeak),
                   ),
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: AppColors.textSecondary,
-            ),
+            Icon(Icons.arrow_forward_ios, size: 16, color: Brand.textWeak),
           ],
         ),
       ),
@@ -365,25 +308,33 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }
 
   Widget _buildLogoutCard() {
+    // Correction ligne 331: Utilisation d'un Container séparé avec decoration personnalisée
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.red.withOpacity(0.3),
-        ),
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Brand.hot.withOpacity(0.3)),
+        // Ajout de l'effet glassmorphism manuel
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -1),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.logout,
-                color: Colors.red,
-                size: 24,
-              ),
+              Icon(Icons.logout, color: Brand.hot, size: 24),
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
@@ -391,7 +342,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: Brand.textStrong,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -401,16 +352,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           const SizedBox(height: 16),
           Text(
             'Se déconnecter de votre compte administrateur.',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 14, color: Brand.textWeak),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _performLogout,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: Brand.hot,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
@@ -428,7 +376,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     try {
       await _auth.signOut();
       print('Déconnexion admin réussie');
-      
+
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -442,7 +390,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la déconnexion: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: Brand.hot,
           ),
         );
       }
@@ -457,16 +405,16 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     });
 
     switch (index) {
-      case 0: // Accueil
+      case 0:
         Navigator.pushReplacementNamed(context, '/admin/home');
         break;
-      case 1: // Trajets
+      case 1:
         Navigator.pushReplacementNamed(context, '/admin/trajets');
         break;
-      case 2: // Gestion
+      case 2:
         Navigator.pushReplacementNamed(context, '/admin/gestion');
         break;
-      case 3: // Compte (déjà sur cette page)
+      case 3:
         break;
     }
   }

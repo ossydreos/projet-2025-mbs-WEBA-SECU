@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_mobility_services/widgets/glassmorphic.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart';
 import '../modele/vehicule_type.dart';
 
 class VehiculeOptionCard extends StatelessWidget {
@@ -20,103 +19,124 @@ class VehiculeOptionCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      child: GlassmorphicCard(
-        isSelected: isSelected,
-        child: Row(
-          children: [
-            // Icône véhicule
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.accent : const Color(0xFF0E1117),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.accent.withOpacity(0.4),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
-                        ),
-                      ]
-                    : null,
+      child: GlassContainer(
+        padding: const EdgeInsets.all(16),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected
+                ? Brand.accent.withOpacity(0.15)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: isSelected
+                ? Border.all(color: Brand.accent.withOpacity(0.6), width: 2)
+                : null,
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Brand.accent.withOpacity(0.3),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Icône véhicule
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: isSelected ? Brand.accent : Brand.bgElev,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: Brand.accent.withOpacity(0.4),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Icon(
+                  vehicle.icon,
+                  color: isSelected ? Colors.white : Brand.textStrong,
+                  size: 26,
+                ),
               ),
-              child: Icon(
-                vehicle.icon,
-                color: isSelected ? AppColors.background : Colors.white,
-                size: 26,
-              ),
-            ),
-            const SizedBox(width: 14),
+              const SizedBox(width: 14),
 
-            // Infos
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              // Infos
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      vehicle.name,
+                      style: TextStyle(
+                        color: Brand.textStrong,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(Icons.event_seat, size: 16, color: Brand.textWeak),
+                        const SizedBox(width: 6),
+                        Text(
+                          vehicle.capacity,
+                          style: TextStyle(
+                            color: Brand.textWeak,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Icon(
+                          Icons.work_outline,
+                          size: 16,
+                          color: Brand.textWeak,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          vehicle.luggage,
+                          style: TextStyle(
+                            color: Brand.textWeak,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Prix
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    vehicle.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
+                    vehicle.price,
+                    style: TextStyle(
+                      color: Brand.textStrong,
                       fontWeight: FontWeight.w800,
+                      fontSize: 18,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.event_seat,
-                        size: 16,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        vehicle.capacity,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Icon(
-                        Icons.work_outline,
-                        size: 16,
-                        color: AppColors.textSecondary,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        vehicle.luggage,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    'estimated',
+                    style: TextStyle(color: Brand.textWeak, fontSize: 11),
                   ),
                 ],
               ),
-            ),
-
-            // Prix
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  vehicle.price,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Text(
-                  'estimated',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

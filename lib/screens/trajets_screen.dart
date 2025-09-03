@@ -65,66 +65,65 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     super.build(context);
     return GlassBackground(
       child: Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: const GlassAppBar(title: 'Trajets'),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Onglets
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              child: TabBar(
-                controller: _tabController,
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.grey[400],
-                indicatorColor: Brand.accent,
-                indicatorSize: TabBarIndicatorSize.label,
-                labelStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Poppins',
+        backgroundColor: Colors.transparent,
+        appBar: const GlassAppBar(title: 'Trajets'),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Onglets
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.grey[400],
+                  indicatorColor: Brand.accent,
+                  indicatorSize: TabBarIndicatorSize.label,
+                  labelStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins',
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    fontFamily: 'Poppins',
+                  ),
+                  tabs: const [
+                    Tab(text: 'À venir'),
+                    Tab(text: 'Terminés'),
+                  ],
                 ),
-                unselectedLabelStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  fontFamily: 'Poppins',
-                ),
-                tabs: const [
-                  Tab(text: 'À venir'),
-                  Tab(text: 'Terminés'),
-                ],
               ),
-            ),
 
-            // Contenu principal
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Onglet "À venir"
-                  _buildUpcomingTab(),
-                  // Onglet "Terminés"
-                  _buildCompletedTab(),
-                ],
+              // Contenu principal
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Onglet "À venir"
+                    _buildUpcomingTab(),
+                    // Onglet "Terminés"
+                    _buildCompletedTab(),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        bottomNavigationBar: widget.showBottomBar
+            ? CustomBottomNavigationBar(
+                currentIndex: _selectedIndex,
+                onTap: _onItemTapped,
+              )
+            : null,
       ),
-      bottomNavigationBar: widget.showBottomBar
-          ? CustomBottomNavigationBar(
-              currentIndex: _selectedIndex,
-              onTap: _onItemTapped,
-            )
-          : null,
-    ));
+    );
   }
-
-
 
   Widget _buildUpcomingTab() {
     final currentUser = _auth.currentUser;
-    
+
     if (currentUser == null) {
       return _buildNotLoggedInView();
     }
@@ -135,9 +134,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: Brand.accent,
-            ),
+            child: CircularProgressIndicator(color: Brand.accent),
           );
         }
 
@@ -147,11 +144,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red[300],
-                ),
+                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
                 const SizedBox(height: 16),
                 Text(
                   'Erreur de connexion',
@@ -167,25 +160,30 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   child: Text(
                     'Erreur: ${snapshot.error}',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.red[300],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.red[300]),
                   ),
                 ),
                 const SizedBox(height: 24),
-                GlassButton(label: 'Réessayer', onPressed: () { setState(() {}); }),
+                GlassButton(
+                  label: 'Réessayer',
+                  onPressed: () {
+                    setState(() {});
+                  },
+                ),
               ],
             ),
           );
         }
 
         final reservations = snapshot.data ?? [];
-        final upcomingReservations = reservations.where((r) => 
-          r.status == ReservationStatus.pending || 
-          r.status == ReservationStatus.confirmed ||
-          r.status == ReservationStatus.inProgress
-        ).toList();
+        final upcomingReservations = reservations
+            .where(
+              (r) =>
+                  r.status == ReservationStatus.pending ||
+                  r.status == ReservationStatus.confirmed ||
+                  r.status == ReservationStatus.inProgress,
+            )
+            .toList();
 
         if (upcomingReservations.isEmpty) {
           return _buildEmptyUpcomingView();
@@ -209,11 +207,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.person_off,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.person_off, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 24),
           Text(
             'Connectez-vous pour voir vos réservations',
@@ -387,12 +381,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   ),
 
                   const SizedBox(height: 24),
-
-                  
                 ],
               ),
             ),
-
           ),
 
           // Bouton d'action en bas
@@ -450,10 +441,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                     ),
                     Text(
                       reservation.statusInFrench,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Brand.text,
-                      ),
+                      style: TextStyle(fontSize: 12, color: Brand.text),
                     ),
                   ],
                 ),
@@ -471,19 +459,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(
-                Icons.location_on,
-                color: Brand.accent,
-                size: 16,
-              ),
+              Icon(Icons.location_on, color: Brand.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Brand.textStrong,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Brand.textStrong),
                 ),
               ),
             ],
@@ -491,18 +472,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.schedule,
-                color: Brand.text,
-                size: 16,
-              ),
+              Icon(Icons.schedule, color: Brand.text, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Brand.text,
-                ),
+                style: TextStyle(fontSize: 14, color: Brand.text),
               ),
             ],
           ),
@@ -513,7 +487,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
   Widget _buildCompletedTab() {
     final currentUser = _auth.currentUser;
-    
+
     if (currentUser == null) {
       return _buildNotLoggedInView();
     }
@@ -524,9 +498,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: Brand.accent,
-            ),
+            child: CircularProgressIndicator(color: Brand.accent),
           );
         }
 
@@ -535,11 +507,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: Colors.red,
-                ),
+                Icon(Icons.error_outline, size: 64, color: Colors.red),
                 const SizedBox(height: 16),
                 Text(
                   'Erreur: ${snapshot.error}',
@@ -552,9 +520,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         }
 
         final reservations = snapshot.data ?? [];
-        final completedReservations = reservations.where((r) => 
-          r.status == ReservationStatus.completed
-        ).toList();
+        final completedReservations = reservations
+            .where((r) => r.status == ReservationStatus.completed)
+            .toList();
 
         if (completedReservations.isEmpty) {
           return Center(
@@ -604,11 +572,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   color: Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 20,
-                ),
+                child: Icon(Icons.check_circle, color: Colors.green, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -655,19 +619,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(
-                Icons.location_on,
-                color: Brand.accent,
-                size: 16,
-              ),
+              Icon(Icons.location_on, color: Brand.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.white),
                 ),
               ),
             ],
@@ -675,18 +632,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.schedule,
-                color: Brand.text,
-                size: 16,
-              ),
+              Icon(Icons.schedule, color: Brand.text, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Brand.text,
-                ),
+                style: TextStyle(fontSize: 14, color: Brand.text),
               ),
             ],
           ),
@@ -697,6 +647,4 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
   @override
   bool get wantKeepAlive => true;
-
-
 }

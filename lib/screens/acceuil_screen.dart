@@ -22,7 +22,8 @@ class AccueilScreen extends StatefulWidget {
   State<AccueilScreen> createState() => _AccueilScreenState();
 }
 
-class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveClientMixin {
+class _AccueilScreenState extends State<AccueilScreen>
+    with AutomaticKeepAliveClientMixin {
   gmaps.GoogleMapController? _googleMapController;
   final ReservationService _reservationService = ReservationService();
   int _selectedIndex = 0;
@@ -140,7 +141,9 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
     final marker = gmaps.Marker(
       markerId: const gmaps.MarkerId('user'),
       position: gmaps.LatLng(userLocation.latitude, userLocation.longitude),
-      icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueAzure),
+      icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+        gmaps.BitmapDescriptor.hueAzure,
+      ),
     );
     setState(() {
       _gmMarkers.removeWhere((m) => m.markerId == const gmaps.MarkerId('user'));
@@ -159,10 +162,14 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
     final marker = gmaps.Marker(
       markerId: const gmaps.MarkerId('destination'),
       position: gmaps.LatLng(destination.latitude, destination.longitude),
-      icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed),
+      icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+        gmaps.BitmapDescriptor.hueRed,
+      ),
     );
     setState(() {
-      _gmMarkers.removeWhere((m) => m.markerId == const gmaps.MarkerId('destination'));
+      _gmMarkers.removeWhere(
+        (m) => m.markerId == const gmaps.MarkerId('destination'),
+      );
       _gmMarkers.add(marker);
     });
     _fitMapToShowBothMarkers(destination);
@@ -172,12 +179,20 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
     final user = _userLocation ?? LatLng(48.8566, 2.3522);
     final bounds = gmaps.LatLngBounds(
       southwest: gmaps.LatLng(
-        user.latitude < destination.latitude ? user.latitude : destination.latitude,
-        user.longitude < destination.longitude ? user.longitude : destination.longitude,
+        user.latitude < destination.latitude
+            ? user.latitude
+            : destination.latitude,
+        user.longitude < destination.longitude
+            ? user.longitude
+            : destination.longitude,
       ),
       northeast: gmaps.LatLng(
-        user.latitude > destination.latitude ? user.latitude : destination.latitude,
-        user.longitude > destination.longitude ? user.longitude : destination.longitude,
+        user.latitude > destination.latitude
+            ? user.latitude
+            : destination.latitude,
+        user.longitude > destination.longitude
+            ? user.longitude
+            : destination.longitude,
       ),
     );
     _googleMapController?.animateCamera(
@@ -204,7 +219,8 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
             LocationSearchScreen(currentDestination: _selectedDestination),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) => child,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            child,
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
       ),
@@ -252,29 +268,50 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
                   color: Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.schedule, color: Colors.blue, size: 20),
+                child: const Icon(
+                  Icons.schedule,
+                  color: Colors.orange,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Réservation en attente',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
+                    Text(
+                      'Réservation en attente',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                     SizedBox(height: 2),
-                    Text('En attente de confirmation du chauffeur',
-                        style: TextStyle(fontSize: 14, color: Colors.white70)),
+                    Text(
+                      'En attente de confirmation du chauffeur',
+                      style: TextStyle(fontSize: 14, color: Colors.white70),
+                    ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text('En attente',
-                    style: TextStyle(fontSize: 12, color: Colors.blue, fontWeight: FontWeight.w600)),
+                child: const Text(
+                  'En attente',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.orange,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ],
           ),
@@ -287,11 +324,23 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
                   children: [
                     Icon(Icons.directions_car, color: Brand.accent, size: 20),
                     const SizedBox(width: 8),
-                    Text(reservation.vehicleName,
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white)),
+                    Text(
+                      reservation.vehicleName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                     const Spacer(),
-                    Text('${reservation.totalPrice.toStringAsFixed(1)} €',
-                        style: TextStyle(fontSize: 18, color: Brand.accent, fontWeight: FontWeight.w700)),
+                    Text(
+                      '${reservation.totalPrice.toStringAsFixed(1)} €',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Brand.accent,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -300,8 +349,13 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
                     Icon(Icons.location_on, color: Brand.accent, size: 16),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text('${reservation.departure} → ${reservation.destination}',
-                          style: const TextStyle(fontSize: 14, color: Colors.white)),
+                      child: Text(
+                        '${reservation.departure} → ${reservation.destination}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -312,7 +366,10 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
                     const SizedBox(width: 8),
                     Text(
                       '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                      style: const TextStyle(fontSize: 14, color: Colors.white70),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white70,
+                      ),
                     ),
                   ],
                 ),
@@ -391,10 +448,18 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Brand.accent),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Brand.accent,
+                          ),
                         )
-                      : Icon(Icons.my_location,
-                          size: 24, color: _userLocation != null ? Brand.accent : Brand.text),
+                      : Icon(
+                          Icons.my_location,
+                          size: 24,
+                          color: _userLocation != null
+                              ? Brand.accent
+                              : Brand.text,
+                        ),
                   onPressed: _isLoadingLocation ? null : _centerOnUser,
                 ),
               ),
@@ -413,8 +478,13 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
                       const Icon(Icons.warning, color: Colors.white, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: Text(_locationError,
-                            style: const TextStyle(color: Colors.white, fontSize: 12)),
+                        child: Text(
+                          _locationError,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -429,7 +499,8 @@ class _AccueilScreenState extends State<AccueilScreen> with AutomaticKeepAliveCl
               child: StreamBuilder<List<Reservation>>(
                 stream: _reservationService.getUserPendingReservationsStream(),
                 builder: (context, snapshot) {
-                  final hasPending = snapshot.hasData && snapshot.data!.isNotEmpty;
+                  final hasPending =
+                      snapshot.hasData && snapshot.data!.isNotEmpty;
 
                   return GlassContainer(
                     // arrondis seulement en haut pour coller au bas de l'écran

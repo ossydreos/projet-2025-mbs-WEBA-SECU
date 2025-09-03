@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart'; // Import du nouveau thème
 import '../widgets/admin_navbar.dart';
 import '../models/reservation.dart';
 import '../services/reservation_service.dart';
@@ -19,53 +19,45 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Tableau de bord',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontFamily: 'Poppins',
-          ),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        toolbarHeight: 80,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.accent),
-            ),
-            child: Text(
-              'ADMIN',
-              style: TextStyle(
-                color: AppColors.accent,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+    return GlassBackground(
+      // Nouveau fond glassmorphism
+      child: Scaffold(
+        backgroundColor:
+            Colors.transparent, // Transparent pour laisser apparaître le fond
+        appBar: GlassAppBar(
+          // Nouvelle AppBar glassmorphism
+          title: 'Tableau de bord',
+          actions: [
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Brand.accent.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Brand.accent),
+              ),
+              child: Text(
+                'ADMIN',
+                style: TextStyle(
+                  color: Brand.accent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Contenu principal
-          Expanded(
-            child: _buildContent(),
-          ),
-          // Barre de navigation en bas
-          AdminBottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _handleNavigation,
-          ),
-        ],
+          ],
+        ),
+        body: Column(
+          children: [
+            // Contenu principal
+            Expanded(child: _buildContent()),
+            // Barre de navigation en bas
+            AdminBottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: _handleNavigation,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -91,12 +83,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       stream: _reservationService.getPendingReservationsStream(),
       builder: (context, snapshot) {
         final pendingCount = snapshot.data?.length ?? 0;
-        
+
         return StreamBuilder<List<Reservation>>(
           stream: _reservationService.getConfirmedReservationsStream(),
           builder: (context, confirmedSnapshot) {
             final confirmedCount = confirmedSnapshot.data?.length ?? 0;
-            
+
             return Row(
               children: [
                 Expanded(
@@ -130,29 +122,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     required Color color,
     required IconData icon,
   }) {
-    return Container(
+    return GlassContainer(
+      // Remplacement par GlassContainer
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            color: color,
-            size: 32,
-          ),
+          Icon(icon, color: color, size: 32),
           const SizedBox(height: 8),
           Text(
             count.toString(),
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color:
+                  Brand.textStrong, // Utilisation des couleurs du nouveau thème
             ),
           ),
           const SizedBox(height: 4),
@@ -160,7 +143,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             title,
             style: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: Brand.textWeak, // Couleur texte secondaire
             ),
             textAlign: TextAlign.center,
           ),
@@ -174,9 +157,9 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       stream: _reservationService.getPendingReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
+          return Center(
             child: CircularProgressIndicator(
-              color: AppColors.accent,
+              color: Brand.accent, // Couleur d'accent du nouveau thème
             ),
           );
         }
@@ -187,22 +170,22 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               children: [
                 Icon(
                   Icons.error_outline,
-                  color: Colors.red,
+                  color: Brand.hot, // Couleur pour les erreurs
                   size: 48,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Erreur: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red),
+                  style: TextStyle(color: Brand.hot),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
+                GlassButton(
+                  // Nouveau bouton glassmorphism
+                  label: 'Réessayer',
                   onPressed: () {
-                    // Force refresh
                     setState(() {});
                   },
-                  child: Text('Réessayer'),
                 ),
               ],
             ),
@@ -225,7 +208,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Brand.textStrong, // Couleur principale du texte
                 ),
               ),
             ),
@@ -247,50 +230,34 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Container(
+    return GlassContainer(
+      // Remplacement par GlassContainer
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
       child: Column(
         children: [
-          Icon(
-            Icons.inbox,
-            size: 64,
-            color: AppColors.textSecondary,
-          ),
+          Icon(Icons.inbox, size: 64, color: Brand.textWeak),
           const SizedBox(height: 16),
           Text(
             'Aucune réservation en attente',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: Brand.textStrong,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Les nouvelles réservations apparaîtront ici',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 14, color: Brand.textWeak),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
+          GlassButton(
+            // Nouveau bouton glassmorphism
+            label: 'Créer une réservation de test',
             onPressed: _createTestReservation,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: Text('Créer une réservation de test'),
+            primary: true,
           ),
         ],
       ),
@@ -308,8 +275,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         departure: 'Place de la République, Paris',
         destination: 'Gare du Nord, Paris',
         selectedDate: DateTime.now().add(Duration(days: 1)),
-        selectedTime: '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-        estimatedArrival: '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 13).toString().padLeft(2, '0')}',
+        selectedTime:
+            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+        estimatedArrival:
+            '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 13).toString().padLeft(2, '0')}',
         paymentMethod: 'Espèces',
         totalPrice: 15.50,
         status: ReservationStatus.pending,
@@ -317,7 +286,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       );
 
       await _reservationService.createReservation(testReservation);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Réservation de test créée avec succès !'),
@@ -326,10 +295,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur: $e'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: Brand.hot),
       );
     }
   }
@@ -342,7 +308,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       );
 
       await _reservationService.updateReservation(updatedReservation);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Réservation confirmée !'),
@@ -353,7 +319,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la confirmation: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: Brand.hot,
         ),
       );
     }
@@ -367,7 +333,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       );
 
       await _reservationService.updateReservation(updatedReservation);
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Réservation annulée !'),
@@ -378,23 +344,17 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de l\'annulation: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: Brand.hot,
         ),
       );
     }
   }
 
   Widget _buildReservationCard(Reservation reservation) {
-    return Container(
+    return GlassContainer(
+      // Remplacement par GlassContainer
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.textSecondary.withOpacity(0.2),
-        ),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -404,50 +364,50 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.2),
+                  color: Brand.accent.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.directions_car,
-                  color: AppColors.accent,
+                  color: Brand.accent,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 12),
-                          Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (reservation.userName != null)
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (reservation.userName != null)
+                      Text(
+                        reservation.userName!,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Brand.textStrong,
+                        ),
+                      ),
+                    const SizedBox(height: 4),
                     Text(
-                      reservation.userName!,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                      reservation.vehicleName,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Brand.text,
                       ),
                     ),
-                  const SizedBox(height: 4),
-                  Text(
-                    reservation.vehicleName,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                    const SizedBox(height: 4),
+                    Text(
+                      '${reservation.totalPrice.toStringAsFixed(1)} €',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Brand.accent,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${reservation.totalPrice.toStringAsFixed(1)} €',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -468,19 +428,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(
-                Icons.location_on,
-                color: AppColors.accent,
-                size: 16,
-              ),
+              Icon(Icons.location_on, color: Brand.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Brand.text),
                 ),
               ),
             ],
@@ -488,18 +441,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.schedule,
-                color: AppColors.textSecondary,
-                size: 16,
-              ),
+              Icon(Icons.schedule, color: Brand.textWeak, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 14, color: Brand.textWeak),
               ),
             ],
           ),
@@ -541,8 +487,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       ),
     );
   }
-
-
 
   void _handleNavigation(int index) {
     if (index == _selectedIndex) return;

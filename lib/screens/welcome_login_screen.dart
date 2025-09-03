@@ -207,6 +207,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                 child: GlassSheet(
                   onVerticalDragUpdate: _onVerticalDragUpdate,
                   onVerticalDragEnd: _onVerticalDragEnd,
+                  isSelected: false,
                   child: SafeArea(
                     top: false,
                     child: Padding(

@@ -36,10 +36,10 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+
   // Obtenir les données utilisateur depuis Firebase Auth
   User? get _currentUser => _auth.currentUser;
-  
+
   // Données utilisateur avec Firebase Auth
   Utilisateur get _utilisateur {
     if (_currentUser != null) {
@@ -47,7 +47,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print('ProfileScreen - DisplayName: ${_currentUser!.displayName}');
       return Utilisateur(
         uid: _currentUser!.uid,
-        nom: _currentUser!.displayName ?? _currentUser!.email?.split('@')[0] ?? 'Utilisateur',
+        nom:
+            _currentUser!.displayName ??
+            _currentUser!.email?.split('@')[0] ??
+            'Utilisateur',
         email: _currentUser!.email ?? 'email@example.com',
         telephone: _currentUser!.phoneNumber ?? '+33 0 00 00 00 00',
         dateCreation: _currentUser!.metadata.creationTime ?? DateTime.now(),
@@ -72,26 +75,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, snapshot) {
         return GlassBackground(
           child: Scaffold(
-          backgroundColor: Colors.transparent,
-          appBar: const GlassAppBar(title: 'Profil'),
-          body: Stack(
-            children: [
-              // Contenu principal
-              _buildContent(),
-              // Barre de navigation en bas
-              if (widget.showBottomBar)
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: CustomBottomNavigationBar(
-                    currentIndex: 2,
-                    onTap: _handleNavigation,
+            backgroundColor: Colors.transparent,
+            appBar: const GlassAppBar(title: 'Profil'),
+            body: Stack(
+              children: [
+                // Contenu principal
+                _buildContent(),
+                // Barre de navigation en bas
+                if (widget.showBottomBar)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: CustomBottomNavigationBar(
+                      currentIndex: 2,
+                      onTap: _handleNavigation,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
         );
       },
     );
@@ -145,11 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           CircleAvatar(
             radius: 50,
             backgroundColor: Brand.accent.withOpacity(0.2),
-            child: Icon(
-              Icons.person,
-              size: 60,
-              color: Brand.accent,
-            ),
+            child: Icon(Icons.person, size: 60, color: Brand.accent),
           ),
           const SizedBox(height: 15),
           // Nom en blanc (thème appliqué automatiquement)
@@ -158,10 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Email avec couleur secondaire
           Text(
             _utilisateur.email,
-            style: TextStyle(
-              fontSize: 16,
-              color: Brand.text,
-            ),
+            style: TextStyle(fontSize: 16, color: Brand.text),
           ),
         ],
       ),
@@ -183,11 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
             ),
           ),
-          Icon(
-            Icons.arrow_forward_ios,
-            size: 16,
-            color: Brand.text,
-          ),
+          Icon(Icons.arrow_forward_ios, size: 16, color: Brand.text),
         ],
       ),
     );
@@ -307,10 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Text(
                   'Membre depuis le ${DateFormat('dd/MM/yyyy').format(_utilisateur.dateCreation)}',
-                  style: TextStyle(
-                    color: Brand.text,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Brand.text, fontSize: 14),
                 ),
                 const SizedBox(height: 5),
                 Text(
@@ -365,20 +354,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Annuler',
-                style: TextStyle(color: Brand.text),
-              ),
+              child: Text('Annuler', style: TextStyle(color: Brand.text)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
                 _performLogout();
               },
-              child: Text(
-                'Déconnexion',
-                style: TextStyle(color: Brand.accent),
-              ),
+              child: Text('Déconnexion', style: TextStyle(color: Brand.accent)),
             ),
           ],
         );
@@ -401,10 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                'OK',
-                style: TextStyle(color: Brand.accent),
-              ),
+              child: Text('OK', style: TextStyle(color: Brand.accent)),
             ),
           ],
         );
@@ -418,7 +398,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print('ProfileScreen - Début de la déconnexion');
       await _auth.signOut();
       print('ProfileScreen - signOut() terminé');
-      
+
       // Forcer la navigation vers l'écran de connexion
       if (mounted) {
         print('ProfileScreen - Navigation vers AuthGate');
@@ -428,7 +408,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           MaterialPageRoute(builder: (context) => const Authgate()),
           (route) => false,
         );
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Déconnexion réussie'),

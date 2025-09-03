@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart';
 import '../widgets/admin_navbar.dart';
 
 class AdminGestionScreen extends StatefulWidget {
@@ -14,53 +14,42 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Gestion',
-          style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontFamily: 'Poppins',
-          ),
-        ),
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        toolbarHeight: 80,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.accent),
-            ),
-            child: Text(
-              'ADMIN',
-              style: TextStyle(
-                color: AppColors.accent,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+    return GlassBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: GlassAppBar(
+          title: 'Gestion',
+          actions: [
+            Container(
+              margin: const EdgeInsets.only(right: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Brand.accent.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Brand.accent),
+              ),
+              child: Text(
+                'ADMIN',
+                style: TextStyle(
+                  color: Brand.accent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Contenu principal
-          Expanded(
-            child: _buildContent(),
-          ),
-          // Barre de navigation en bas
-          AdminBottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _handleNavigation,
-          ),
-        ],
+          ],
+        ),
+        body: Column(
+          children: [
+            // Contenu principal
+            Expanded(child: _buildContent()),
+            // Barre de navigation en bas
+            AdminBottomNavigationBar(
+              currentIndex: _selectedIndex,
+              onTap: _handleNavigation,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -140,6 +129,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 100), // Espace pour la navbar
           ],
         ),
       ),
@@ -156,35 +146,48 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(
-                icon,
-                color: AppColors.accent,
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+          // Titre de section avec effet glass
+          GlassContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: const EdgeInsets.only(bottom: 16),
+            borderRadius: BorderRadius.circular(16),
+            child: Row(
+              children: [
+                Icon(icon, color: Brand.accent, size: 24),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Brand.textStrong,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.textSecondary.withOpacity(0.2),
-              ),
+              ],
             ),
+          ),
+
+          // Container principal des éléments
+          GlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(20),
             child: Column(
-              children: children,
+              children: children.asMap().entries.map((entry) {
+                int index = entry.key;
+                Widget child = entry.value;
+
+                return Column(
+                  children: [
+                    child,
+                    if (index < children.length - 1)
+                      Divider(
+                        color: Brand.glassStroke,
+                        thickness: 1,
+                        height: 1,
+                      ),
+                  ],
+                );
+              }).toList(),
             ),
           ),
         ],
@@ -198,66 +201,99 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return ListTile(
-      leading: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.accent.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          icon,
-          color: AppColors.accent,
-          size: 20,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Icône avec container glass
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Brand.accent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Brand.accent.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(icon, color: Brand.accent, size: 22),
+              ),
+              const SizedBox(width: 16),
+
+              // Textes
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Brand.textStrong,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 13, color: Brand.textWeak),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Flèche
+              Icon(Icons.arrow_forward_ios, size: 16, color: Brand.textWeak),
+            ],
+          ),
         ),
       ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-      ),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(
-          fontSize: 14,
-          color: AppColors.textSecondary,
-        ),
-      ),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-        color: AppColors.textSecondary,
-      ),
-      onTap: onTap,
     );
   }
 
   void _showAddVehicleDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text(
-          'Ajouter un véhicule',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          'Fonctionnalité à implémenter',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'OK',
-              style: TextStyle(color: AppColors.accent),
-            ),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassContainer(
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Ajouter un véhicule',
+                style: TextStyle(
+                  color: Brand.textStrong,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Fonctionnalité à implémenter',
+                style: TextStyle(color: Brand.textWeak),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GlassButton(
+                    label: 'OK',
+                    onPressed: () => Navigator.pop(context),
+                    primary: true,
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -293,25 +329,41 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
   void _showFeatureDialog(String feature) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text(
-          feature,
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          'Cette fonctionnalité sera bientôt disponible.',
-          style: TextStyle(color: AppColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'OK',
-              style: TextStyle(color: AppColors.accent),
-            ),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassContainer(
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                feature,
+                style: TextStyle(
+                  color: Brand.textStrong,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Cette fonctionnalité sera bientôt disponible.',
+                style: TextStyle(color: Brand.textWeak),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GlassButton(
+                    label: 'OK',
+                    onPressed: () => Navigator.pop(context),
+                    primary: true,
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
