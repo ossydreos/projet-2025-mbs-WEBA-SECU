@@ -3,6 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/theme_app.dart';
 import '../models/reservation.dart';
 import '../services/reservation_service.dart';
+import '../ui/glass/glassmorphism_theme.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
+import '../theme/google_map_styles.dart';
+import 'package:latlong2/latlong.dart';
 
 class TripSummaryScreen extends StatefulWidget {
   final String vehicleName;
@@ -11,6 +15,8 @@ class TripSummaryScreen extends StatefulWidget {
   final DateTime selectedDate;
   final TimeOfDay selectedTime;
   final String estimatedArrival;
+  final LatLng? departureCoordinates;
+  final LatLng? destinationCoordinates;
 
   const TripSummaryScreen({
     super.key,
@@ -20,6 +26,8 @@ class TripSummaryScreen extends StatefulWidget {
     required this.selectedDate,
     required this.selectedTime,
     required this.estimatedArrival,
+    this.departureCoordinates,
+    this.destinationCoordinates,
   });
 
   @override
@@ -31,6 +39,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
   String _totalPrice = '28,1 €';
   final ReservationService _reservationService = ReservationService();
   bool _isCreatingReservation = false;
+  gmaps.GoogleMapController? _mapController;
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -136,8 +145,11 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    final start = widget.departureCoordinates ?? const LatLng(48.8566, 2.3522);
+    final end = widget.destinationCoordinates ?? const LatLng(48.8584, 2.2945);
+    return GlassBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
           children: [
@@ -177,6 +189,68 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
             ),
 
             const SizedBox(height: 32),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  height: 220,
+                  child: gmaps.GoogleMap(
+                    initialCameraPosition: gmaps.CameraPosition(
+                      target: gmaps.LatLng(
+                        (start.latitude + end.latitude) / 2,
+                        (start.longitude + end.longitude) / 2,
+                      ),
+                      zoom: 11,
+                    ),
+                    onMapCreated: (c) {
+                      _mapController = c;
+                      c.setMapStyle(darkMapStyle);
+                      final bounds = gmaps.LatLngBounds(
+                        southwest: gmaps.LatLng(
+                          start.latitude < end.latitude ? start.latitude : end.latitude,
+                          start.longitude < end.longitude ? start.longitude : end.longitude,
+                        ),
+                        northeast: gmaps.LatLng(
+                          start.latitude > end.latitude ? start.latitude : end.latitude,
+                          start.longitude > end.longitude ? start.longitude : end.longitude,
+                        ),
+                      );
+                      Future.delayed(const Duration(milliseconds: 300), () {
+                        _mapController?.animateCamera(gmaps.CameraUpdate.newLatLngBounds(bounds, 40));
+                      });
+                    },
+                    markers: {
+                      gmaps.Marker(
+                        markerId: const gmaps.MarkerId('start'),
+                        position: gmaps.LatLng(start.latitude, start.longitude),
+                        icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueAzure),
+                      ),
+                      gmaps.Marker(
+                        markerId: const gmaps.MarkerId('end'),
+                        position: gmaps.LatLng(end.latitude, end.longitude),
+                        icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(gmaps.BitmapDescriptor.hueRed),
+                      ),
+                    },
+                    polylines: {
+                      gmaps.Polyline(
+                        polylineId: const gmaps.PolylineId('route'),
+                        color: Colors.blue,
+                        width: 4,
+                        points: [
+                          gmaps.LatLng(start.latitude, start.longitude),
+                          gmaps.LatLng(end.latitude, end.longitude),
+                        ],
+                      ),
+                    },
+                    compassEnabled: false,
+                    mapToolbarEnabled: false,
+                    zoomControlsEnabled: false,
+                  ),
+                ),
+              ),
+            ),
 
             // Section Date et heure
             Padding(

@@ -1,17 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../ui/glass/glassmorphism_theme.dart';
+import '../constants.dart';
 
 class Suggestion {
   final String displayName;
   final String shortName;
   final String address;
-  final LatLng coordinates;
+  final LatLng? coordinates;
   final IconData icon;
   final String distance;
+  final String? placeId;
 
   Suggestion({
     required this.displayName,
@@ -20,6 +23,7 @@ class Suggestion {
     required this.coordinates,
     required this.icon,
     required this.distance,
+    this.placeId,
   });
 
   factory Suggestion.fromJson(Map<String, dynamic> json) {
@@ -62,6 +66,26 @@ class Suggestion {
       ),
       icon: iconData,
       distance: _calculateDistance(json),
+      placeId: null,
+    );
+  }
+
+  // Google Places prediction → Suggestion (sans coordonnées, récupérées via Place Details)
+  factory Suggestion.fromPlaces(Map<String, dynamic> json) {
+    final structured = json['structured_formatting'] ?? {};
+    final shortName = (structured['main_text'] ?? '').toString();
+    final secondary = (structured['secondary_text'] ?? '').toString();
+    final display = json['description']?.toString() ?? shortName;
+    final placeId = json['place_id']?.toString();
+
+    return Suggestion(
+      displayName: display,
+      shortName: shortName.isNotEmpty ? shortName : display,
+      address: secondary,
+      coordinates: null,
+      icon: Icons.location_on,
+      distance: '',
+      placeId: placeId,
     );
   }
 
@@ -100,14 +124,18 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final _debouncer = _Debouncer(const Duration(milliseconds: 300));
+  final String _placesSessionToken = DateTime.now().microsecondsSinceEpoch.toString();
 
   List<Suggestion> _suggestions = [];
   List<Suggestion> _departureSuggestions = [];
   bool _isLoading = false;
   bool _isLoadingDeparture = false;
   String _currentPickupLocation = "Ma position actuelle";
+  String? _placesErrorMessage;
   final TextEditingController _departureController = TextEditingController();
   final FocusNode _departureFocusNode = FocusNode();
+  bool _isDestinationActive = false;
+  bool _isDepartureActive = false;
 
   @override
   void initState() {
@@ -127,9 +155,17 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     _searchController.addListener(_onTextChanged);
     _departureController.addListener(_onDepartureTextChanged);
     
-    // Écouter les changements de focus (désactivé temporairement)
-    // _focusNode.addListener(_onDestinationFocusChanged);
-    // _departureFocusNode.addListener(_onDepartureFocusChanged);
+    // Écouter les changements de focus
+    _focusNode.addListener(() {
+      setState(() {
+        _isDestinationActive = _focusNode.hasFocus;
+      });
+    });
+    _departureFocusNode.addListener(() {
+      setState(() {
+        _isDepartureActive = _departureFocusNode.hasFocus;
+      });
+    });
   }
 
   @override
@@ -147,58 +183,89 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   void _onTextChanged() {
     final query = _searchController.text;
     if (query.isEmpty) {
-      setState(() {
-        _suggestions = [];
-      });
+      setState(() => _suggestions = []);
       return;
     }
-
-    _debouncer(() {
-      _fetchSuggestions(query);
-    });
+    _debouncer(() => _fetchSuggestionsPlaces(query));
   }
 
-  Future<void> _fetchSuggestions(String query) async {
+  Future<void> _fetchSuggestionsPlaces(String query) async {
     if (query.trim().isEmpty) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() { _isLoading = true; _placesErrorMessage = null; });
     try {
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=10&countrycodes=ch,fr',
-      );
-
+      // Utiliser une clé Web (Places Web Service) non restreinte à un bundle/androidId pour les appels REST
+      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
+          ? AppConstants.googlePlacesWebKey
+          : (Platform.isIOS ? AppConstants.googleMapsApiKeyIOS : AppConstants.googleMapsApiKeyAndroid);
+      final url = Uri.parse('https://maps.googleapis.com/maps/api/place/autocomplete/json'
+          '?input=${Uri.encodeQueryComponent(query)}'
+          '&language=fr'
+          '&components=country:fr|country:ch'
+          '&sessiontoken=$_placesSessionToken'
+          '&key=$key');
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final suggestions = data
-            .map((item) => Suggestion.fromJson(item))
-            .toList();
-
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final status = (data['status'] ?? '').toString();
+        if (status == 'OK') {
+          final preds = (data['predictions'] as List<dynamic>).cast<Map<String, dynamic>>();
+          final suggestions = preds.map((p) => Suggestion.fromPlaces(p)).toList();
+          setState(() {
+            _suggestions = suggestions;
+            _isLoading = false;
+          });
+        } else {
+          final err = (data['error_message'] ?? status).toString();
+          debugPrint('Places Autocomplete error: $status - $err');
+          setState(() {
+            _isLoading = false;
+            _suggestions = [];
+            _placesErrorMessage = err;
+          });
+        }
+      } else {
+        debugPrint('Places Autocomplete HTTP ${response.statusCode}: ${response.body}');
         setState(() {
-          _suggestions = suggestions;
           _isLoading = false;
+          _suggestions = [];
+          _placesErrorMessage = 'Erreur réseau (${response.statusCode})';
         });
       }
     } catch (e) {
+      debugPrint('Places Autocomplete exception: $e');
       setState(() {
         _isLoading = false;
         _suggestions = [];
+        _placesErrorMessage = 'Erreur: $e';
       });
     }
   }
 
-  void _onSuggestionTap(Suggestion suggestion) {
-    // Si on est en train de rechercher pour la destination
-    if (_focusNode.hasFocus) {
+  Future<void> _onSuggestionTap(Suggestion suggestion) async {
+    LatLng? coords = suggestion.coordinates;
+    if (coords == null && suggestion.placeId != null) {
+      coords = await _fetchPlaceDetailsLatLng(suggestion.placeId!);
+    }
+    if (_isDestinationActive) {
+      setState(() {
+        _searchController.text = suggestion.shortName;
+        _suggestions = [];
+      });
+    } else if (_isDepartureActive) {
+      setState(() {
+        _currentPickupLocation = suggestion.shortName;
+        _departureController.clear();
+        _departureSuggestions = [];
+      });
+    } else {
+      // Par défaut, cible la destination
       setState(() {
         _searchController.text = suggestion.shortName;
         _suggestions = [];
       });
     }
+    // Fermer le clavier pour éviter les confusions
+    FocusScope.of(context).unfocus();
   }
 
   void _clearSearch() {
@@ -218,34 +285,42 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       return;
     }
 
-    // Appel direct sans debouncer pour tester
-    _fetchDepartureSuggestions(query);
+    _debouncer(() => _fetchDepartureSuggestionsPlaces(query));
   }
 
-  Future<void> _fetchDepartureSuggestions(String query) async {
+  Future<void> _fetchDepartureSuggestionsPlaces(String query) async {
     if (query.trim().isEmpty) return;
-    print('Fetching departure suggestions for: "$query"');
-
-    setState(() {
-      _isLoadingDeparture = true;
-    });
-
+    setState(() { _isLoadingDeparture = true; });
     try {
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?format=json&q=$query&limit=10&countrycodes=fr',
-      );
-
+      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
+          ? AppConstants.googlePlacesWebKey
+          : (Platform.isIOS ? AppConstants.googleMapsApiKeyIOS : AppConstants.googleMapsApiKeyAndroid);
+      final url = Uri.parse('https://maps.googleapis.com/maps/api/place/autocomplete/json'
+          '?input=${Uri.encodeQueryComponent(query)}'
+          '&language=fr'
+          '&components=country:fr|country:ch'
+          '&sessiontoken=$_placesSessionToken'
+          '&key=$key');
       final response = await http.get(url);
-
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final suggestions = data
-            .map((item) => Suggestion.fromJson(item))
-            .toList();
-
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        if ((data['status'] ?? '') == 'OK') {
+          final preds = (data['predictions'] as List<dynamic>).cast<Map<String, dynamic>>();
+          final suggestions = preds.map((p) => Suggestion.fromPlaces(p)).toList();
+          setState(() {
+            _departureSuggestions = suggestions;
+            _isLoadingDeparture = false;
+          });
+        } else {
+          setState(() {
+            _isLoadingDeparture = false;
+            _departureSuggestions = [];
+          });
+        }
+      } else {
         setState(() {
-          _departureSuggestions = suggestions;
           _isLoadingDeparture = false;
+          _departureSuggestions = [];
         });
       }
     } catch (e) {
@@ -256,7 +331,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     }
   }
 
-  void _onDepartureSuggestionTap(Suggestion suggestion) {
+  Future<void> _onDepartureSuggestionTap(Suggestion suggestion) async {
+    LatLng? coords = suggestion.coordinates;
+    if (coords == null && suggestion.placeId != null) {
+      coords = await _fetchPlaceDetailsLatLng(suggestion.placeId!);
+    }
     setState(() {
       _currentPickupLocation = suggestion.shortName;
       _departureController.clear();
@@ -303,6 +382,28 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     });
   }
 
+  Future<LatLng?> _fetchPlaceDetailsLatLng(String placeId) async {
+    try {
+      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
+          ? AppConstants.googlePlacesWebKey
+          : (Platform.isIOS ? AppConstants.googleMapsApiKeyIOS : AppConstants.googleMapsApiKeyAndroid);
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&key=$key',
+      );
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final loc = data['result']?['geometry']?['location'];
+        if (loc != null) {
+          final lat = (loc['lat'] as num).toDouble();
+          final lng = (loc['lng'] as num).toDouble();
+          return LatLng(lat, lng);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Widget _buildSuggestionsList() {
     // Debug: Afficher l'état actuel
     print('Debug suggestions:');
@@ -313,8 +414,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     print('Loading departure: $_isLoadingDeparture');
     print('Loading destination: $_isLoading');
     
-    // Si on recherche pour le départ
-    if (_departureController.text.isNotEmpty) {
+    // Afficher les suggestions selon le champ actuellement FOCUS
+    if (_isDepartureActive) {
       if (_isLoadingDeparture) {
         return Center(
           child: CircularProgressIndicator(
@@ -375,15 +476,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   color: Brand.text,
                 ),
               ),
-              onTap: () => _onDepartureSuggestionTap(suggestion),
+              onTap: () => _onSuggestionTap(suggestion),
             ),
           );
         },
       );
     }
     
-    // Si on recherche pour la destination
-    if (_searchController.text.isNotEmpty) {
+    // Suggestions destination si le champ destination est en focus
+    if (_isDestinationActive) {
       if (_isLoading) {
         return Center(
           child: CircularProgressIndicator(
@@ -444,14 +545,23 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   color: Brand.text,
                 ),
               ),
-              onTap: () => _onDepartureSuggestionTap(suggestion),
+              onTap: () => _onSuggestionTap(suggestion),
             ),
           );
         },
       );
     }
     
-    // Si aucun champ n'a le focus, ne rien afficher
+    // Si aucun champ n'a le focus, message d'erreur API éventuel
+    if (_placesErrorMessage != null) {
+      return Center(
+        child: Text(
+          _placesErrorMessage!,
+          style: TextStyle(color: Brand.text, fontSize: 14),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
     return Container();
   }
 
@@ -505,9 +615,10 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
                 const SizedBox(height: 20),
 
-                // Point de départ (cliquable) - THÉMATISÉ
+                // Point de départ (cliquable) - THÉMATISÉ (sans double contour)
                 GlassContainer(
                   padding: EdgeInsets.zero,
+                  showBorder: false,
                   child: Row(
                     children: [
                       Padding(
@@ -536,7 +647,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               color: Brand.text,
                               fontSize: 16,
                             ),
+                            filled: false,
+                            fillColor: Colors.transparent,
                             border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 0,
                               vertical: 12,
@@ -570,9 +686,10 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
                 const SizedBox(height: 12),
 
-                // Zone de recherche destination - THÉMATISÉE
+                // Zone de recherche destination - THÉMATISÉE (sans double contour)
                 GlassContainer(
                   padding: EdgeInsets.zero,
+                  showBorder: false,
                   child: Row(
                     children: [
                       Padding(
@@ -597,7 +714,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               color: Brand.text,
                               fontSize: 16,
                             ),
+                            filled: false,
+                            fillColor: Colors.transparent,
                             border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 0,
                               vertical: 12,

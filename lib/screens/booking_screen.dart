@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 import '../theme/google_map_styles.dart';
 import '../theme/theme_app.dart';
+import '../ui/glass/glassmorphism_theme.dart';
 import '../widgets/widget_navBar.dart';
 import 'scheduling_screen.dart';
 
@@ -187,8 +188,9 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
       _currentPanelHeight = panelExpandedHeight;
     }
     
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return GlassBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           // Carte en arrière-plan
@@ -320,21 +322,11 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                 duration: const Duration(milliseconds: 200),
                 curve: Curves.easeOut,
                 height: _isPanelExpanded ? panelExpandedHeight : panelCollapsedHeight,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, -5),
-                    ),
-                  ],
-                ),
-                child: Column(
+                decoration: const BoxDecoration(color: Colors.transparent),
+                child: GlassContainer(
+                  borderRadius: const BorderRadius.only(topLeft: Fx.radiusM, topRight: Fx.radiusM),
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(
                   children: [
                     // Handle pour glisser
                     GestureDetector(
@@ -368,7 +360,7 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.accent,
+                                color: Brand.accent,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -376,7 +368,7 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.background,
+                                  color: Brand.bg,
                                 ),
                               ),
                             ),
@@ -398,10 +390,10 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                             return Container(
                               margin: const EdgeInsets.only(bottom: 8),
                               decoration: BoxDecoration(
-                                color: isSelected ? AppColors.accent.withOpacity(0.1) : AppColors.background,
+                                color: isSelected ? Brand.accent.withOpacity(0.1) : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: isSelected ? AppColors.accent : AppColors.textSecondary.withOpacity(0.3),
+                                  color: isSelected ? Brand.accent : Brand.glassStroke,
                                   width: isSelected ? 2 : 1,
                                 ),
                               ),
@@ -428,7 +420,7 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
-                                        color: isSelected ? AppColors.accent : Colors.white,
+                                        color: isSelected ? Brand.accent : Colors.white,
                                       ),
                                     ),
                                     if (vehicle['recommended']) ...[
@@ -436,7 +428,7 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: AppColors.accent,
+                                          color: Brand.accent,
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
@@ -444,7 +436,7 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                                           style: TextStyle(
                                             fontSize: 9,
                                             fontWeight: FontWeight.w600,
-                                            color: AppColors.background,
+                                            color: Brand.bg,
                                           ),
                                         ),
                                       ),
@@ -453,23 +445,23 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                                 ),
                                 subtitle: Row(
                                   children: [
-                                    Icon(Icons.access_time, size: 14, color: AppColors.textSecondary),
+                                    Icon(Icons.access_time, size: 14, color: Brand.text),
                                     const SizedBox(width: 4),
                                     Text(
                                       vehicle['time'],
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textSecondary,
+                                        color: Brand.text,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    Icon(Icons.person, size: 14, color: AppColors.textSecondary),
+                                    Icon(Icons.person, size: 14, color: Brand.text),
                                     const SizedBox(width: 4),
                                     Text(
                                       vehicle['passengers'],
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: AppColors.textSecondary,
+                                        color: Brand.text,
                                       ),
                                     ),
                                   ],
@@ -479,7 +471,7 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: isSelected ? AppColors.accent : Colors.white,
+                                    color: isSelected ? Brand.accent : Colors.white,
                                   ),
                                 ),
                               ),
@@ -546,13 +538,6 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                     // Footer avec bouton de réservation - STYLE BOLT EXACT
                     Container(
                       padding: EdgeInsets.fromLTRB(16, 8, 16, 8 + safeAreaBottom),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -563,12 +548,12 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                                 width: 32,
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  color: AppColors.accent,
+                                  color: Brand.accent,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   Icons.account_balance_wallet,
-                                  color: AppColors.background,
+                                  color: Brand.bg,
                                   size: 16,
                                 ),
                               ),
@@ -583,7 +568,7 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                               const Spacer(),
                               Icon(
                                 Icons.keyboard_arrow_down,
-                                color: AppColors.textSecondary,
+                                color: Brand.text,
                                 size: 20,
                               ),
                             ],
@@ -602,13 +587,15 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
                                       vehicleName: _selectedVehicle,
                                       departure: widget.departure,
                                       destination: widget.destination,
+                                      departureCoordinates: widget.departureCoordinates,
+                                      destinationCoordinates: widget.destinationCoordinates,
                                     ),
                                   ),
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accent,
-                                foregroundColor: AppColors.background,
+                                backgroundColor: Brand.accent,
+                                foregroundColor: Brand.bg,
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -635,6 +622,6 @@ class _BookingScreenState extends State<BookingScreen> with TickerProviderStateM
         ],
       ),
       // Pas de bottomNavigationBar - le bouton "Sélectionner" la remplace
-    );
+    ));
   }
 }

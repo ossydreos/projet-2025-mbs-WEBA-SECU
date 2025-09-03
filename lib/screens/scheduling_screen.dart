@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../ui/glass/glassmorphism_theme.dart';
+import 'package:latlong2/latlong.dart';
 import 'trip_summary_screen.dart';
 
 class SchedulingScreen extends StatefulWidget {
   final String vehicleName;
   final String departure;
   final String destination;
+  final LatLng? departureCoordinates;
+  final LatLng? destinationCoordinates;
 
   const SchedulingScreen({
     super.key,
     required this.vehicleName,
     required this.departure,
     required this.destination,
+    this.departureCoordinates,
+    this.destinationCoordinates,
   });
 
   @override
@@ -333,6 +338,8 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                           selectedDate: _selectedDate,
                           selectedTime: _selectedTime!,
                           estimatedArrival: _estimatedArrival ?? '',
+                          departureCoordinates: widget.departureCoordinates,
+                          destinationCoordinates: widget.destinationCoordinates,
                         ),
                       ),
                     );
