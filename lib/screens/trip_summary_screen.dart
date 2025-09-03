@@ -571,7 +571,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   void _showPaymentMethodDialog() {
