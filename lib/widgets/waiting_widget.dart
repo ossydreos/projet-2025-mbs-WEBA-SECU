@@ -1,14 +1,14 @@
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:my_mobility_services/theme/theme_app.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:path_drawing/path_drawing.dart';
 
 class LoadingMBS extends StatefulWidget {
   const LoadingMBS({
     super.key,
     this.size = 180,
-    this.color = AppColors.accent,
+    this.color = Brand.accent,
     this.letterDuration = const Duration(milliseconds: 800),
     this.gap = const Duration(milliseconds: 180),
     this.mOffset = Offset.zero,

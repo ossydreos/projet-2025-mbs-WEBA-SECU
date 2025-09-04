@@ -5,15 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_mobility_services/theme/theme_app.dart' show AppColors;
 import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
 import 'package:my_mobility_services/widgets/waiting_widget.dart';
 import 'package:my_mobility_services/screens/log_screen/welcome_login_screen.dart'
     show PanelType;
-import 'package:my_mobility_services/theme/glassmorphism_theme.dart'
-    hide GlassSheet;
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart' hide GlassSheet;
 
 class SignupForm extends StatefulWidget {
   const SignupForm({required this.onClose, required this.onSwitch, super.key});

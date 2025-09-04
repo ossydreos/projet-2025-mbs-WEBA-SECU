@@ -10,7 +10,6 @@ import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
 import 'package:my_mobility_services/widgets/waiting_widget.dart';
-import 'package:my_mobility_services/theme/theme_app.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart' hide GlassSheet;
 class LoginForm extends StatefulWidget {
   const LoginForm({required this.onClose, required this.onSwitch, super.key});
@@ -213,10 +212,7 @@ class LoginFormState extends State<LoginForm> {
                   suffixIcon: IconButton(
                     onPressed: () => setState(() => _obscure = !_obscure),
                     tooltip: _obscure ? 'Show password' : 'Hide password',
-                    icon: Icon(
-                      _obscure ? Icons.visibility : Icons.visibility_off,
-                      color: AppColors.textSecondary,
-                    ),
+                    icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off, color: Brand.text),
                   ),
                 ),
                 validator: (v) =>

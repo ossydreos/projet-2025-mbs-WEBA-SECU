@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 import 'package:my_mobility_services/theme/google_map_styles.dart';
-import 'package:my_mobility_services/theme/theme_app.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_screen.dart';
@@ -46,7 +45,7 @@ class _BookingScreenState extends State<BookingScreen>
       'price': '16,8 €',
       'description': 'Voitures de taille standard',
       'recommended': true,
-      'color': AppColors.accent,
+      'color': Brand.accent,
     },
     {
       'name': 'Comfort',
@@ -370,7 +369,7 @@ class _BookingScreenState extends State<BookingScreen>
                             height: 4,
                             margin: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: AppColors.textSecondary,
+                              color: Brand.text,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -592,10 +591,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         _vehicles.firstWhere(
                                           (v) => v['name'] == _selectedVehicle,
                                         )['description'],
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.textSecondary,
-                                        ),
+                                        style: TextStyle(fontSize: 12, color: Brand.text),
                                       ),
                                     ],
                                   ),
