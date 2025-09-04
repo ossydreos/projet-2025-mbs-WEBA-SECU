@@ -84,13 +84,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   horizontal: 16,
                   vertical: 8,
                 ),
-                decoration: BoxDecoration(
-                  color: AppColors.glass,
-                  border: const Border(
-                    top: BorderSide(color: AppColors.glassStroke, width: 1),
-                    bottom: BorderSide(color: AppColors.glassStroke, width: 1),
-                  ),
-                ),
                 child: Container(
                   decoration: BoxDecoration(
                     color: AppColors.accent.withOpacity(0.2),
@@ -146,7 +139,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       stream: _reservationService.getConfirmedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: AppColors.accent));
+          return Center(
+            child: CircularProgressIndicator(color: AppColors.accent),
+          );
         }
 
         if (snapshot.hasError) {
@@ -203,7 +198,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       stream: _reservationService.getCompletedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: AppColors.accent));
+          return Center(
+            child: CircularProgressIndicator(color: AppColors.accent),
+          );
         }
 
         if (snapshot.hasError) {
@@ -556,7 +553,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.glass,
+          backgroundColor: const Color.fromARGB(158, 11, 14, 19),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(color: AppColors.glassStroke),
@@ -642,7 +639,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Course annulée !'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AppColors.hot,
           ),
         );
       }

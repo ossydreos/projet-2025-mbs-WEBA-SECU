@@ -90,7 +90,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             const SizedBox(height: 20),
             _buildUpdateAccountCard(),
             const SizedBox(height: 20),
-            const SizedBox(height: 20),
             _buildLogoutCard(),
           ],
         ),
@@ -154,7 +153,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   Widget _buildUpdateAccountCard() {
     return GlassContainer(
-      margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,14 +199,12 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }
 
   Widget _buildLogoutCard() {
-    // Correction ligne 331: Utilisation d'un Container séparé avec decoration personnalisée
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.hot.withOpacity(0.3)),
-        // Ajout de l'effet glassmorphism manuel
         boxShadow: [
           BoxShadow(
             color: Colors.white.withOpacity(0.1),
@@ -225,30 +221,34 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.logout, color: AppColors.hot, size: 24),
-              const SizedBox(width: 12),
-              ElevatedButton(
-                onPressed: _performLogout,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.hot,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text('Déconnexion'),
+          ElevatedButton(
+            onPressed: _performLogout,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.hot,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
+              minimumSize: const Size(0, 44), // hauteur mini
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min, // s’adapte au contenu
+              children: const [
+                Icon(Icons.logout, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Déconnexion',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
           Text(
             'Se déconnecter de votre compte administrateur.',
             style: TextStyle(fontSize: 14, color: AppColors.textWeak),
           ),
-          const SizedBox(height: 16),
         ],
       ),
     );

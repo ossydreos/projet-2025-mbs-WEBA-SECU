@@ -134,7 +134,8 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors.textStrong, // Utilisation des couleurs du nouveau thème
+              color: AppColors
+                  .textStrong, // Utilisation des couleurs du nouveau thème
             ),
           ),
           const SizedBox(height: 4),
@@ -335,14 +336,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Réservation annulée !'),
-          backgroundColor: Colors.orange,
+          content: Text('Réservation refusée !'),
+          backgroundColor: Colors.red,
         ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors de l\'annulation: $e'),
+          content: Text('Erreur lors du refus: $e'),
           backgroundColor: AppColors.hot,
         ),
       );
