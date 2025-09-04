@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/reservation.dart';
-import '../services/reservation_service.dart';
-import '../ui/glass/glassmorphism_theme.dart';
+import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:latlong2/latlong.dart';
 
 class TripSummaryScreen extends StatefulWidget {

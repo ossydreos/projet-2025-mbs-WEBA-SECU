@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../ui/glass/glassmorphism_theme.dart'; // Import du nouveau thème
-import '../widgets/admin_navbar.dart';
-import '../widgets/authgate.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart'; // Import du nouveau thème
+import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
+import 'package:my_mobility_services/widgets/authgate.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});

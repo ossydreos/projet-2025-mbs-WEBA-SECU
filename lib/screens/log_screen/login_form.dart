@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:my_mobility_services/screens/welcome_login_screen.dart';
+import 'package:my_mobility_services/screens/log_screen/welcome_login_screen.dart' show PanelType;
 import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
 import 'package:my_mobility_services/widgets/waiting_widget.dart';
-import '../theme/theme_app.dart';
-import '../ui/glass/glassmorphism_theme.dart' hide GlassSheet;
+import 'package:my_mobility_services/theme/theme_app.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart' hide GlassSheet;
 class LoginForm extends StatefulWidget {
   const LoginForm({required this.onClose, required this.onSwitch, super.key});
 

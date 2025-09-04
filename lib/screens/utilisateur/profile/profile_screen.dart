@@ -2,9 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../widgets/widget_navBar.dart';
-import '../widgets/authgate.dart';
-import '../ui/glass/glassmorphism_theme.dart';
+import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
+import 'package:my_mobility_services/widgets/authgate.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 
 /// Modèle utilisateur (temporaire - sans Firebase)
 class Utilisateur {

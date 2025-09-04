@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../ui/glass/glassmorphism_theme.dart';
-import '../widgets/widget_navBar.dart';
-import '../models/reservation.dart';
-import '../services/reservation_service.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
+import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/data/services/reservation_service.dart';
 
 class TrajetsScreen extends StatefulWidget {
   final Function(int)? onNavigate;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../ui/glass/glassmorphism_theme.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:latlong2/latlong.dart';
-import 'trip_summary_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/trip_summary_screen.dart';
 
 class SchedulingScreen extends StatefulWidget {
   final String vehicleName;

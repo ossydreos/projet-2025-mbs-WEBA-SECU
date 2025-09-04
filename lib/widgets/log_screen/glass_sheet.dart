@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import '../constants.dart';
+import 'package:my_mobility_services/constants.dart';
 
 class GlassSheet extends StatelessWidget {
   const GlassSheet({

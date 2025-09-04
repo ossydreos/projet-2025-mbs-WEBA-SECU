@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/theme_app.dart';
+import 'package:my_mobility_services/theme/theme_app.dart';
 
 class BookingConfirmationDialog extends StatefulWidget {
   const BookingConfirmationDialog({super.key});

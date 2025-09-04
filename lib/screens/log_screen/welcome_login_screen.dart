@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:my_mobility_services/constants.dart';
-import 'package:my_mobility_services/forms/login_form.dart';
-import 'package:my_mobility_services/forms/signup_form.dart';
-import 'package:my_mobility_services/widgets/glass_sheet.dart';
-import '../theme/theme_app.dart';
-import '../ui/glass/glassmorphism_theme.dart' hide GlassSheet;
+import 'package:my_mobility_services/screens/log_screen/login_form.dart';
+import 'package:my_mobility_services/screens/log_screen/signup_form.dart';
+import 'package:my_mobility_services/widgets/log_screen/glass_sheet.dart';
+import 'package:my_mobility_services/theme/theme_app.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart' hide GlassSheet;
 
 enum PanelType { none, login, signup }
 

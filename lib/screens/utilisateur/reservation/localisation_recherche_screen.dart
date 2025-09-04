@@ -4,8 +4,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import '../ui/glass/glassmorphism_theme.dart';
-import '../constants.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/constants.dart';
 
 class Suggestion {
   final String displayName;

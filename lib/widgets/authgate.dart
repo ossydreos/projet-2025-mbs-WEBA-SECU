@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:my_mobility_services/screens/acceuil_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/acceuil_res_screen.dart';
 import 'package:my_mobility_services/screens/splash_screen.dart';
-import 'package:my_mobility_services/screens/welcome_login_screen.dart';
-import 'package:my_mobility_services/screens/admin_home_screen.dart';
-import 'package:my_mobility_services/services/user_service.dart';
-import 'package:my_mobility_services/models/user_model.dart';
-import 'package:my_mobility_services/screens/home_shell.dart';
+import 'package:my_mobility_services/screens/log_screen/welcome_login_screen.dart';
+import 'package:my_mobility_services/screens/admin/acceuil/admin_home_screen.dart';
+import 'package:my_mobility_services/data/services/user_service.dart';
+import 'package:my_mobility_services/data/models/user_model.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.dart';
 
 class Authgate extends StatelessWidget {
   const Authgate({super.key});

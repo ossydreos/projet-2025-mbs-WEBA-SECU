@@ -1,6 +1,6 @@
 // lib/widgets/custom_bottom_nav_bar.dart
 import 'package:flutter/material.dart';
-import '../ui/glass/glassmorphism_theme.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'acceuil_screen.dart';
-import 'trajets_screen.dart';
-import 'profile_screen.dart';
-import '../widgets/widget_navBar.dart';
-import '../ui/glass/glassmorphism_theme.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/acceuil_res_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/trajets/trajets_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/profile/profile_screen.dart';
+import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
-import '../theme/google_map_styles.dart';
+import 'package:my_mobility_services/theme/google_map_styles.dart';
 
 class HomeShell extends StatefulWidget {
   final int initialIndex;

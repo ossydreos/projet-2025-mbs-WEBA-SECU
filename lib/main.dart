@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:my_mobility_services/screens/welcome_login_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.dart';
+
 import 'package:my_mobility_services/widgets/authgate.dart';
-import 'firebase_options.dart';
-import 'ui/glass/glassmorphism_theme.dart';
+import 'firebase/firebase_options.dart';
+import 'theme/glassmorphism_theme.dart';
 // Import des écrans pour les routes
-import './screens/profile_screen.dart';
-import './screens/localisation_recherche_screen.dart';
-import './screens/trajets_screen.dart';
-import './screens/acceuil_screen.dart';
-import './screens/home_shell.dart';
+import 'screens/utilisateur/profile/profile_screen.dart';
+import 'screens/utilisateur/reservation/localisation_recherche_screen.dart';
+import 'screens/utilisateur/trajets/trajets_screen.dart';
+import 'screens/utilisateur/reservation/acceuil_res_screen.dart';
 // Import des écrans admin
-import './screens/admin_home_screen.dart';
-import './screens/admin_gestion_screen.dart';
-import './screens/admin_trajets_screen.dart';
-import './screens/admin_profile_screen.dart';
+import 'screens/admin/acceuil/admin_home_screen.dart';
+import 'screens/admin/gestion/admin_gestion_screen.dart';
+import 'screens/admin/trajets/admin_trajets_screen.dart';
+import 'screens/admin/profile/admin_profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../ui/glass/glassmorphism_theme.dart';
-import '../widgets/admin_navbar.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 
 class AdminGestionScreen extends StatefulWidget {
   const AdminGestionScreen({super.key});

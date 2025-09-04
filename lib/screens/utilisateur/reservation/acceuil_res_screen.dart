@@ -3,14 +3,14 @@ import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'localisation_recherche_screen.dart';
-import 'booking_screen.dart';
-import '../ui/glass/glassmorphism_theme.dart';
-import '../theme/google_map_styles.dart';
-import '../widgets/widget_navBar.dart';
-import '../widgets/paneau_recherche.dart';
-import '../models/reservation.dart';
-import '../services/reservation_service.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/localisation_recherche_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/theme/google_map_styles.dart';
+import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
+import 'package:my_mobility_services/widgets/utilisateur/paneau_recherche.dart';
+import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/data/services/reservation_service.dart';
 
 class AccueilScreen extends StatefulWidget {
   final Function(int)? onNavigate;

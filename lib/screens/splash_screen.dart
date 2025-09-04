@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import '../ui/glass/glassmorphism_theme.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
