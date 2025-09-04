@@ -77,7 +77,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   controller: _tabController,
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey[400],
-                  indicatorColor: Brand.accent,
+                  indicatorColor: AppColors.accent,
                   indicatorSize: TabBarIndicatorSize.label,
                   labelStyle: const TextStyle(
                     fontSize: 16,
@@ -134,7 +134,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(color: Brand.accent),
+            child: CircularProgressIndicator(color: AppColors.accent),
           );
         }
 
@@ -288,7 +288,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                                       if (index == 15) {
                                         return Container(
                                           decoration: BoxDecoration(
-                                            color: Brand.accent,
+                                            color: AppColors.accent,
                                             borderRadius: BorderRadius.circular(
                                               2,
                                             ),
@@ -331,11 +331,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                             width: 50,
                             height: 50,
                             decoration: BoxDecoration(
-                              color: Brand.accent,
+                              color: AppColors.accent,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Brand.accent.withOpacity(0.3),
+                                  color: AppColors.accent.withOpacity(0.3),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -417,12 +417,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Brand.accent.withOpacity(0.2),
+                  color: AppColors.accent.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.directions_car,
-                  color: Brand.accent,
+                  color: AppColors.accent,
                   size: 20,
                 ),
               ),
@@ -436,12 +436,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Brand.textStrong,
+                        color: AppColors.textStrong,
                       ),
                     ),
                     Text(
                       reservation.statusInFrench,
-                      style: TextStyle(fontSize: 12, color: Brand.text),
+                      style: TextStyle(fontSize: 12, color: AppColors.text),
                     ),
                   ],
                 ),
@@ -451,7 +451,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Brand.textStrong,
+                  color: AppColors.textStrong,
                 ),
               ),
             ],
@@ -459,12 +459,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.location_on, color: Brand.accent, size: 16),
+              Icon(Icons.location_on, color: AppColors.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(fontSize: 14, color: Brand.textStrong),
+                  style: const TextStyle(fontSize: 14, color: AppColors.textStrong),
                 ),
               ),
             ],
@@ -472,11 +472,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.schedule, color: Brand.text, size: 16),
+              Icon(Icons.schedule, color: AppColors.text, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(fontSize: 14, color: Brand.text),
+                style: TextStyle(fontSize: 14, color: AppColors.text),
               ),
             ],
           ),
@@ -498,7 +498,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(color: Brand.accent),
+            child: CircularProgressIndicator(color: AppColors.accent),
           );
         }
 
@@ -592,7 +592,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Brand.accent,
+                        color: AppColors.accent,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -619,7 +619,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.location_on, color: Brand.accent, size: 16),
+              Icon(Icons.location_on, color: AppColors.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -632,11 +632,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.schedule, color: Brand.text, size: 16),
+              Icon(Icons.schedule, color: AppColors.text, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(fontSize: 14, color: Brand.text),
+                style: TextStyle(fontSize: 14, color: AppColors.text),
               ),
             ],
           ),

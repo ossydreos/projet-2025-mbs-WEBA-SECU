@@ -46,7 +46,7 @@ class _BookingConfirmationDialogState extends State<BookingConfirmationDialog>
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Brand.glass,
+              color: AppColors.glass,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.white.withOpacity(0.1)),
               boxShadow: [
@@ -60,7 +60,7 @@ class _BookingConfirmationDialogState extends State<BookingConfirmationDialog>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: const [
-                Icon(Icons.check_circle_rounded, color: Brand.accent, size: 60),
+                Icon(Icons.check_circle_rounded, color: AppColors.accent, size: 60),
                 SizedBox(height: 12),
                 Text(
                   'Perfect!',
@@ -74,7 +74,7 @@ class _BookingConfirmationDialogState extends State<BookingConfirmationDialog>
                 Text(
                   'Your booking has been confirmed.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Brand.text, fontSize: 14),
+                  style: TextStyle(color: AppColors.text, fontSize: 14),
                 ),
               ],
             ),

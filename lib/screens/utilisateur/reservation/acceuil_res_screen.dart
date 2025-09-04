@@ -322,7 +322,7 @@ class _AccueilScreenState extends State<AccueilScreen>
               children: [
                 Row(
                   children: [
-                    Icon(Icons.directions_car, color: Brand.accent, size: 20),
+                    Icon(Icons.directions_car, color: AppColors.accent, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       reservation.vehicleName,
@@ -337,7 +337,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 18,
-                        color: Brand.accent,
+                        color: AppColors.accent,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -346,7 +346,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.location_on, color: Brand.accent, size: 16),
+                    Icon(Icons.location_on, color: AppColors.accent, size: 16),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -438,9 +438,9 @@ class _AccueilScreenState extends State<AccueilScreen>
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Brand.glass,
+                  color: AppColors.glass,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Brand.glassStroke, width: 1),
+                  border: Border.all(color: AppColors.glassStroke, width: 1),
                   boxShadow: Fx.glow,
                 ),
                 child: IconButton(
@@ -450,15 +450,15 @@ class _AccueilScreenState extends State<AccueilScreen>
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Brand.accent,
+                            color: AppColors.accent,
                           ),
                         )
                       : Icon(
                           Icons.my_location,
                           size: 24,
                           color: _userLocation != null
-                              ? Brand.accent
-                              : Brand.text,
+                              ? AppColors.accent
+                              : AppColors.text,
                         ),
                   onPressed: _isLoadingLocation ? null : _centerOnUser,
                 ),

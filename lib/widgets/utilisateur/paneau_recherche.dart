@@ -26,7 +26,7 @@ class PaneauRecherche extends StatelessWidget {
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              shadows: [Shadow(color: Brand.accent.withOpacity(0.25), blurRadius: 2, offset: const Offset(0, 1))],
+              shadows: [Shadow(color: AppColors.accent.withOpacity(0.25), blurRadius: 2, offset: const Offset(0, 1))],
             ),
           ),
           const SizedBox(height: 16),
@@ -41,7 +41,7 @@ class PaneauRecherche extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.search,
-                    color: Brand.text,
+                    color: AppColors.text,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
@@ -49,7 +49,7 @@ class PaneauRecherche extends StatelessWidget {
                     child: Text(
                       selectedDestination ?? 'Où allez-vous ?',
                       style: TextStyle(
-                        color: selectedDestination != null ? Colors.white : Brand.text,
+                        color: selectedDestination != null ? Colors.white : AppColors.text,
                         fontSize: 16,
                         fontWeight: FontWeight.w400,
                       ),

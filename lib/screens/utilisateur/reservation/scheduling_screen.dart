@@ -64,9 +64,9 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Brand.accent,
+              primary: AppColors.accent,
               onPrimary: Colors.white,
-              surface: Brand.bgElev,
+              surface: AppColors.bgElev,
               onSurface: Colors.white,
             ),
           ),
@@ -91,9 +91,9 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.dark(
-              primary: Brand.accent,
+              primary: AppColors.accent,
               onPrimary: Colors.white,
-              surface: Brand.bgElev,
+              surface: AppColors.bgElev,
               onSurface: Colors.white,
             ),
           ),
@@ -215,7 +215,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'De 30 minutes à 90 jours à l\'avance',
-                      style: TextStyle(fontSize: 16, color: Brand.text),
+                      style: TextStyle(fontSize: 16, color: AppColors.text),
                     ),
                   ],
                 ),
@@ -292,7 +292,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                                 fontSize: 16,
                                 color: _selectedTime != null
                                     ? Colors.white
-                                    : Brand.accent,
+                                    : AppColors.accent,
                               ),
                             ),
                             const Spacer(),
@@ -301,7 +301,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                                 'Sélectionner',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: Brand.accent,
+                                  color: AppColors.accent,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -320,7 +320,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Text(
                   'Le fuseau horaire est basé sur le lieu de prise en charge',
-                  style: TextStyle(fontSize: 14, color: Brand.text),
+                  style: TextStyle(fontSize: 14, color: AppColors.text),
                 ),
               ),
 
@@ -341,7 +341,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Icon(Icons.info_outline, size: 16, color: Brand.text),
+                      Icon(Icons.info_outline, size: 16, color: AppColors.text),
                     ],
                   ),
                 ),

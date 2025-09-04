@@ -8,7 +8,7 @@ class LoadingMBS extends StatefulWidget {
   const LoadingMBS({
     super.key,
     this.size = 180,
-    this.color = Brand.accent,
+    this.color = AppColors.accent,
     this.letterDuration = const Duration(milliseconds: 800),
     this.gap = const Duration(milliseconds: 180),
     this.mOffset = Offset.zero,

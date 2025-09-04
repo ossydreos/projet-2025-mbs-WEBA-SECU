@@ -326,7 +326,7 @@ class SignupFormState extends State<SignupForm> {
                 children: [
                   TextSpan(
                     style: GoogleFonts.poppins(
-                      color: Brand.accent,
+                      color: AppColors.accent,
                       fontWeight: FontWeight.bold,
                     ),
                     text: 'Login',

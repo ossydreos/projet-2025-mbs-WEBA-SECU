@@ -147,8 +147,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Photo de profil avec couleur accent
           CircleAvatar(
             radius: 50,
-            backgroundColor: Brand.accent.withOpacity(0.2),
-            child: Icon(Icons.person, size: 60, color: Brand.accent),
+            backgroundColor: AppColors.accent.withOpacity(0.2),
+            child: Icon(Icons.person, size: 60, color: AppColors.accent),
           ),
           const SizedBox(height: 15),
           // Nom en blanc (thème appliqué automatiquement)
@@ -157,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Email avec couleur secondaire
           Text(
             _utilisateur.email,
-            style: TextStyle(fontSize: 16, color: Brand.text),
+            style: TextStyle(fontSize: 16, color: AppColors.text),
           ),
         ],
       ),
@@ -171,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: Brand.accent),
+          Icon(Icons.info_outline, color: AppColors.accent),
           const SizedBox(width: 15),
           Expanded(
             child: Text(
@@ -179,7 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
             ),
           ),
-          Icon(Icons.arrow_forward_ios, size: 16, color: Brand.text),
+          Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.text),
         ],
       ),
     );
@@ -299,13 +299,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Text(
                   'Membre depuis le ${DateFormat('dd/MM/yyyy').format(_utilisateur.dateCreation)}',
-                  style: TextStyle(color: Brand.text, fontSize: 14),
+                  style: TextStyle(color: AppColors.text, fontSize: 14),
                 ),
                 const SizedBox(height: 5),
                 Text(
                   'ID: ${_utilisateur.uid}',
                   style: TextStyle(
-                    color: Brand.text.withOpacity(0.7),
+                    color: AppColors.text.withOpacity(0.7),
                     fontSize: 12,
                   ),
                 ),
@@ -320,7 +320,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Item de menu réutilisable - THÉMATISÉ
   Widget _buildMenuItem(IconData icon, String title) {
     return ListTile(
-      leading: Icon(icon, color: Brand.text),
+      leading: Icon(icon, color: AppColors.text),
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
@@ -328,7 +328,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       trailing: Icon(
         Icons.arrow_forward_ios,
         size: 16,
-        color: Brand.text.withOpacity(0.6),
+        color: AppColors.text.withOpacity(0.6),
       ),
       onTap: () {
         _showFeatureDialog(title);
@@ -342,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Brand.glass,
+          backgroundColor: AppColors.glass,
           title: Text(
             'Déconnexion',
             style: Theme.of(context).textTheme.titleLarge,
@@ -354,14 +354,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Annuler', style: TextStyle(color: Brand.text)),
+              child: Text('Annuler', style: TextStyle(color: AppColors.text)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
                 _performLogout();
               },
-              child: Text('Déconnexion', style: TextStyle(color: Brand.accent)),
+              child: Text('Déconnexion', style: TextStyle(color: AppColors.accent)),
             ),
           ],
         );
@@ -375,7 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Brand.glass,
+          backgroundColor: AppColors.glass,
           title: Text(feature, style: Theme.of(context).textTheme.titleLarge),
           content: Text(
             'Cette fonctionnalité sera bientôt disponible.',
@@ -384,7 +384,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('OK', style: TextStyle(color: Brand.accent)),
+              child: Text('OK', style: TextStyle(color: AppColors.accent)),
             ),
           ],
         );
@@ -412,7 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Déconnexion réussie'),
-            backgroundColor: Brand.accent,
+            backgroundColor: AppColors.accent,
           ),
         );
       }

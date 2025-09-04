@@ -45,7 +45,7 @@ class _BookingScreenState extends State<BookingScreen>
       'price': '16,8 €',
       'description': 'Voitures de taille standard',
       'recommended': true,
-      'color': Brand.accent,
+      'color': AppColors.accent,
     },
     {
       'name': 'Comfort',
@@ -369,7 +369,7 @@ class _BookingScreenState extends State<BookingScreen>
                             height: 4,
                             margin: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: Brand.text,
+                              color: AppColors.text,
                               borderRadius: BorderRadius.circular(2),
                             ),
                           ),
@@ -396,7 +396,7 @@ class _BookingScreenState extends State<BookingScreen>
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Brand.accent,
+                                    color: AppColors.accent,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
@@ -404,7 +404,7 @@ class _BookingScreenState extends State<BookingScreen>
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: Brand.bg,
+                                      color: AppColors.bg,
                                     ),
                                   ),
                                 ),
@@ -428,13 +428,13 @@ class _BookingScreenState extends State<BookingScreen>
                                   margin: const EdgeInsets.only(bottom: 8),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? Brand.accent.withOpacity(0.1)
+                                        ? AppColors.accent.withOpacity(0.1)
                                         : Colors.transparent,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: isSelected
-                                          ? Brand.accent
-                                          : Brand.glassStroke,
+                                          ? AppColors.accent
+                                          : AppColors.glassStroke,
                                       width: isSelected ? 2 : 1,
                                     ),
                                   ),
@@ -468,7 +468,7 @@ class _BookingScreenState extends State<BookingScreen>
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                             color: isSelected
-                                                ? Brand.accent
+                                                ? AppColors.accent
                                                 : Colors.white,
                                           ),
                                         ),
@@ -480,7 +480,7 @@ class _BookingScreenState extends State<BookingScreen>
                                               vertical: 2,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: Brand.accent,
+                                              color: AppColors.accent,
                                               borderRadius:
                                                   BorderRadius.circular(6),
                                             ),
@@ -489,7 +489,7 @@ class _BookingScreenState extends State<BookingScreen>
                                               style: TextStyle(
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.w600,
-                                                color: Brand.bg,
+                                                color: AppColors.bg,
                                               ),
                                             ),
                                           ),
@@ -501,28 +501,28 @@ class _BookingScreenState extends State<BookingScreen>
                                         Icon(
                                           Icons.access_time,
                                           size: 14,
-                                          color: Brand.text,
+                                          color: AppColors.text,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           vehicle['time'],
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: Brand.text,
+                                            color: AppColors.text,
                                           ),
                                         ),
                                         const SizedBox(width: 12),
                                         Icon(
                                           Icons.person,
                                           size: 14,
-                                          color: Brand.text,
+                                          color: AppColors.text,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
                                           vehicle['passengers'],
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: Brand.text,
+                                            color: AppColors.text,
                                           ),
                                         ),
                                       ],
@@ -533,7 +533,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
                                         color: isSelected
-                                            ? Brand.accent
+                                            ? AppColors.accent
                                             : Colors.white,
                                       ),
                                     ),
@@ -591,7 +591,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         _vehicles.firstWhere(
                                           (v) => v['name'] == _selectedVehicle,
                                         )['description'],
-                                        style: TextStyle(fontSize: 12, color: Brand.text),
+                                        style: TextStyle(fontSize: 12, color: AppColors.text),
                                       ),
                                     ],
                                   ),
@@ -629,12 +629,12 @@ class _BookingScreenState extends State<BookingScreen>
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
-                                      color: Brand.accent,
+                                      color: AppColors.accent,
                                       shape: BoxShape.circle,
                                     ),
                                     child: Icon(
                                       Icons.account_balance_wallet,
-                                      color: Brand.bg,
+                                      color: AppColors.bg,
                                       size: 16,
                                     ),
                                   ),
@@ -649,7 +649,7 @@ class _BookingScreenState extends State<BookingScreen>
                                   const Spacer(),
                                   Icon(
                                     Icons.keyboard_arrow_down,
-                                    color: Brand.text,
+                                    color: AppColors.text,
                                     size: 20,
                                   ),
                                 ],
@@ -677,8 +677,8 @@ class _BookingScreenState extends State<BookingScreen>
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Brand.accent,
-                                    foregroundColor: Brand.bg,
+                                    backgroundColor: AppColors.accent,
+                                    foregroundColor: AppColors.bg,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 14,
                                     ),

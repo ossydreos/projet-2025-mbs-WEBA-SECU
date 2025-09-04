@@ -441,14 +441,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     // Afficher les suggestions selon le champ actuellement FOCUS
     if (_isDepartureActive) {
       if (_isLoadingDeparture) {
-        return Center(child: CircularProgressIndicator(color: Brand.accent));
+        return Center(child: CircularProgressIndicator(color: AppColors.accent));
       }
 
       if (_departureSuggestions.isEmpty) {
         return Center(
           child: Text(
             'Aucun résultat trouvé',
-            style: TextStyle(color: Brand.text, fontSize: 16),
+            style: TextStyle(color: AppColors.text, fontSize: 16),
           ),
         );
       }
@@ -462,7 +462,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: ListTile(
-              leading: Icon(suggestion.icon, color: Brand.accent, size: 24),
+              leading: Icon(suggestion.icon, color: AppColors.accent, size: 24),
               title: Text(
                 suggestion.shortName,
                 style: const TextStyle(
@@ -474,14 +474,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               subtitle: suggestion.address.isNotEmpty
                   ? Text(
                       suggestion.address,
-                      style: TextStyle(fontSize: 14, color: Brand.text),
+                      style: TextStyle(fontSize: 14, color: AppColors.text),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     )
                   : null,
               trailing: Text(
                 suggestion.distance,
-                style: TextStyle(fontSize: 14, color: Brand.text),
+                style: TextStyle(fontSize: 14, color: AppColors.text),
               ),
               onTap: () => _onSuggestionTap(suggestion),
             ),
@@ -493,14 +493,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     // Suggestions destination si le champ destination est en focus
     if (_isDestinationActive) {
       if (_isLoading) {
-        return Center(child: CircularProgressIndicator(color: Brand.accent));
+        return Center(child: CircularProgressIndicator(color: AppColors.accent));
       }
 
       if (_suggestions.isEmpty) {
         return Center(
           child: Text(
             'Aucun résultat trouvé',
-            style: TextStyle(color: Brand.text, fontSize: 16),
+            style: TextStyle(color: AppColors.text, fontSize: 16),
           ),
         );
       }
@@ -514,7 +514,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: ListTile(
-              leading: Icon(suggestion.icon, color: Brand.accent, size: 24),
+              leading: Icon(suggestion.icon, color: AppColors.accent, size: 24),
               title: Text(
                 suggestion.shortName,
                 style: const TextStyle(
@@ -526,14 +526,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               subtitle: suggestion.address.isNotEmpty
                   ? Text(
                       suggestion.address,
-                      style: TextStyle(fontSize: 14, color: Brand.text),
+                      style: TextStyle(fontSize: 14, color: AppColors.text),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     )
                   : null,
               trailing: Text(
                 suggestion.distance,
-                style: TextStyle(fontSize: 14, color: Brand.text),
+                style: TextStyle(fontSize: 14, color: AppColors.text),
               ),
               onTap: () => _onSuggestionTap(suggestion),
             ),
@@ -547,7 +547,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       return Center(
         child: Text(
           _placesErrorMessage!,
-          style: TextStyle(color: Brand.text, fontSize: 14),
+          style: TextStyle(color: AppColors.text, fontSize: 14),
           textAlign: TextAlign.center,
         ),
       );
@@ -577,7 +577,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: Icon(Icons.close, size: 24, color: Brand.accent),
+                        child: Icon(Icons.close, size: 24, color: AppColors.accent),
                       ),
                       Expanded(
                         child: Center(
@@ -591,7 +591,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           ),
                         ),
                       ),
-                      Icon(Icons.sort, size: 24, color: Brand.text),
+                      Icon(Icons.sort, size: 24, color: AppColors.text),
                     ],
                   ),
 
@@ -609,7 +609,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: Brand.accent,
+                              color: AppColors.accent,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -626,7 +626,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                             decoration: InputDecoration(
                               hintText: _currentPickupLocation,
                               hintStyle: TextStyle(
-                                color: Brand.text,
+                                color: AppColors.text,
                                 fontSize: 16,
                               ),
                               filled: false,
@@ -651,14 +651,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               ),
                               child: Icon(
                                 Icons.clear,
-                                color: Brand.text,
+                                color: AppColors.text,
                                 size: 20,
                               ),
                             ),
                           ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Icon(Icons.add, color: Brand.text, size: 20),
+                          child: Icon(Icons.add, color: AppColors.text, size: 20),
                         ),
                       ],
                     ),
@@ -676,7 +676,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Icon(
                             Icons.search,
-                            color: Brand.text,
+                            color: AppColors.text,
                             size: 20,
                           ),
                         ),
@@ -691,7 +691,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                             decoration: InputDecoration(
                               hintText: 'Destination',
                               hintStyle: TextStyle(
-                                color: Brand.text,
+                                color: AppColors.text,
                                 fontSize: 16,
                               ),
                               filled: false,
@@ -716,7 +716,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               ),
                               child: Icon(
                                 Icons.clear,
-                                color: Brand.text,
+                                color: AppColors.text,
                                 size: 20,
                               ),
                             ),
@@ -725,7 +725,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Icon(
                             Icons.location_on,
-                            color: Brand.accent,
+                            color: AppColors.accent,
                             size: 20,
                           ),
                         ),
@@ -758,7 +758,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     Text(
                       'powered by OpenStreetMap',
                       style: TextStyle(
-                        color: Brand.text.withOpacity(0.7),
+                        color: AppColors.text.withOpacity(0.7),
                         fontSize: 12,
                       ),
                       textAlign: TextAlign.center,

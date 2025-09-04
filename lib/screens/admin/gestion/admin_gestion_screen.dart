@@ -24,14 +24,14 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Brand.accent.withOpacity(0.2),
+                color: AppColors.accent.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Brand.accent),
+                border: Border.all(color: AppColors.accent),
               ),
               child: Text(
                 'ADMIN',
                 style: TextStyle(
-                  color: Brand.accent,
+                  color: AppColors.accent,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -153,14 +153,14 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
             borderRadius: BorderRadius.circular(16),
             child: Row(
               children: [
-                Icon(icon, color: Brand.accent, size: 24),
+                Icon(icon, color: AppColors.accent, size: 24),
                 const SizedBox(width: 12),
                 Text(
                   title,
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Brand.textStrong,
+                    color: AppColors.textStrong,
                   ),
                 ),
               ],
@@ -181,7 +181,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                     child,
                     if (index < children.length - 1)
                       Divider(
-                        color: Brand.glassStroke,
+                        color: AppColors.glassStroke,
                         thickness: 1,
                         height: 1,
                       ),
@@ -215,14 +215,14 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Brand.accent.withOpacity(0.15),
+                  color: AppColors.accent.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: Brand.accent.withOpacity(0.3),
+                    color: AppColors.accent.withOpacity(0.3),
                     width: 1,
                   ),
                 ),
-                child: Icon(icon, color: Brand.accent, size: 22),
+                child: Icon(icon, color: AppColors.accent, size: 22),
               ),
               const SizedBox(width: 16),
 
@@ -236,20 +236,20 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Brand.textStrong,
+                        color: AppColors.textStrong,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(fontSize: 13, color: Brand.textWeak),
+                      style: TextStyle(fontSize: 13, color: AppColors.textWeak),
                     ),
                   ],
                 ),
               ),
 
               // Flèche
-              Icon(Icons.arrow_forward_ios, size: 16, color: Brand.textWeak),
+              Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textWeak),
             ],
           ),
         ),
@@ -270,7 +270,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               Text(
                 'Ajouter un véhicule',
                 style: TextStyle(
-                  color: Brand.textStrong,
+                  color: AppColors.textStrong,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -278,7 +278,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               const SizedBox(height: 16),
               Text(
                 'Fonctionnalité à implémenter',
-                style: TextStyle(color: Brand.textWeak),
+                style: TextStyle(color: AppColors.textWeak),
               ),
               const SizedBox(height: 24),
               Row(
@@ -339,7 +339,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               Text(
                 feature,
                 style: TextStyle(
-                  color: Brand.textStrong,
+                  color: AppColors.textStrong,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -347,7 +347,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               const SizedBox(height: 16),
               Text(
                 'Cette fonctionnalité sera bientôt disponible.',
-                style: TextStyle(color: Brand.textWeak),
+                style: TextStyle(color: AppColors.textWeak),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),

@@ -151,7 +151,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Réservation créée avec succès ! ID: $reservationId'),
-            backgroundColor: Brand.accent,
+            backgroundColor: AppColors.accent,
           ),
         );
 
@@ -254,7 +254,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Brand.accent,
+                                      color: AppColors.accent,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: const Text(
@@ -287,7 +287,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
                       const SizedBox(height: 24),
                       Divider(
-                        color: Brand.textWeak.withOpacity(0.3),
+                        color: AppColors.textWeak.withOpacity(0.3),
                         thickness: 0.5,
                       ),
                       const SizedBox(height: 24),
@@ -319,7 +319,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Brand.accent,
+                                      color: AppColors.accent,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: const Text(
@@ -348,7 +348,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                         width: 12,
                                         height: 12,
                                         decoration: BoxDecoration(
-                                          color: Brand.accent,
+                                          color: AppColors.accent,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -357,7 +357,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                         'Adresse de prise en charge',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Brand.textWeak,
+                                          color: AppColors.textWeak,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -383,7 +383,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                     children: [
                                       Container(
                                         height: 2,
-                                        color: Brand.textWeak.withOpacity(0.3),
+                                        color: AppColors.textWeak.withOpacity(0.3),
                                       ),
                                       const SizedBox(height: 40),
                                     ],
@@ -401,7 +401,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                         width: 12,
                                         height: 12,
                                         decoration: BoxDecoration(
-                                          color: Brand.text,
+                                          color: AppColors.text,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -410,7 +410,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                         'Adresse de destination',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: Brand.textWeak,
+                                          color: AppColors.textWeak,
                                         ),
                                       ),
                                       const SizedBox(height: 4),
@@ -435,7 +435,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
                       const SizedBox(height: 24),
                       Divider(
-                        color: Brand.textWeak.withOpacity(0.3),
+                        color: AppColors.textWeak.withOpacity(0.3),
                         thickness: 0.5,
                       ),
                       const SizedBox(height: 24),
@@ -467,7 +467,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Brand.accent,
+                                      color: AppColors.accent,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
                                     child: const Text(
@@ -491,7 +491,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                   width: 40,
                                   height: 40,
                                   decoration: BoxDecoration(
-                                    color: Brand.accent,
+                                    color: AppColors.accent,
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: const Icon(
@@ -544,7 +544,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                             ? null
                             : _createReservation,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Brand.accent,
+                          backgroundColor: AppColors.accent,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(

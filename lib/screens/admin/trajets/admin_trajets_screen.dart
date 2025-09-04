@@ -50,7 +50,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Brand.textStrong,
+                color: AppColors.textStrong,
                 fontFamily: 'Poppins',
               ),
             ),
@@ -62,14 +62,14 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Brand.accent.withOpacity(0.2),
+                  color: AppColors.accent.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Brand.accent),
+                  border: Border.all(color: AppColors.accent),
                 ),
                 child: Text(
                   'ADMIN',
                   style: TextStyle(
-                    color: Brand.accent,
+                    color: AppColors.accent,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -85,28 +85,28 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: Brand.glass,
+                  color: AppColors.glass,
                   border: const Border(
-                    top: BorderSide(color: Brand.glassStroke, width: 1),
-                    bottom: BorderSide(color: Brand.glassStroke, width: 1),
+                    top: BorderSide(color: AppColors.glassStroke, width: 1),
+                    bottom: BorderSide(color: AppColors.glassStroke, width: 1),
                   ),
                 ),
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Brand.accent.withOpacity(0.2),
+                    color: AppColors.accent.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Brand.accent),
+                    border: Border.all(color: AppColors.accent),
                   ),
                   child: TabBar(
                     controller: _tabController,
                     indicator: BoxDecoration(
-                      color: Brand.accent.withOpacity(0.3),
+                      color: AppColors.accent.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Brand.accent, width: 2),
+                      border: Border.all(color: AppColors.accent, width: 2),
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Brand.textStrong,
-                    unselectedLabelColor: Brand.textWeak,
+                    labelColor: AppColors.textStrong,
+                    unselectedLabelColor: AppColors.textWeak,
                     dividerColor: Colors.transparent,
                     overlayColor: MaterialStateProperty.all(Colors.transparent),
                     labelStyle: const TextStyle(
@@ -146,7 +146,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       stream: _reservationService.getConfirmedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: Brand.accent));
+          return Center(child: CircularProgressIndicator(color: AppColors.accent));
         }
 
         if (snapshot.hasError) {
@@ -157,11 +157,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: Brand.hot),
+                    Icon(Icons.error_outline, size: 64, color: AppColors.hot),
                     const SizedBox(height: 16),
                     Text(
                       'Erreur: ${snapshot.error}',
-                      style: TextStyle(color: Brand.hot),
+                      style: TextStyle(color: AppColors.hot),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -203,7 +203,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       stream: _reservationService.getCompletedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(color: Brand.accent));
+          return Center(child: CircularProgressIndicator(color: AppColors.accent));
         }
 
         if (snapshot.hasError) {
@@ -214,11 +214,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: Brand.hot),
+                    Icon(Icons.error_outline, size: 64, color: AppColors.hot),
                     const SizedBox(height: 16),
                     Text(
                       'Erreur: ${snapshot.error}',
-                      style: TextStyle(color: Brand.hot),
+                      style: TextStyle(color: AppColors.hot),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -259,20 +259,20 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.schedule, size: 64, color: Brand.textWeak),
+            Icon(Icons.schedule, size: 64, color: AppColors.textWeak),
             const SizedBox(height: 16),
             Text(
               'Aucun trajet à venir',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Brand.textStrong,
+                color: AppColors.textStrong,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Les prochains trajets apparaîtront ici',
-              style: TextStyle(fontSize: 14, color: Brand.textWeak),
+              style: TextStyle(fontSize: 14, color: AppColors.textWeak),
               textAlign: TextAlign.center,
             ),
           ],
@@ -287,20 +287,20 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.history, size: 64, color: Brand.textWeak),
+            Icon(Icons.history, size: 64, color: AppColors.textWeak),
             const SizedBox(height: 16),
             Text(
               'Aucun trajet terminé',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Brand.textStrong,
+                color: AppColors.textStrong,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Les trajets terminés apparaîtront ici',
-              style: TextStyle(fontSize: 14, color: Brand.textWeak),
+              style: TextStyle(fontSize: 14, color: AppColors.textWeak),
               textAlign: TextAlign.center,
             ),
           ],
@@ -321,13 +321,13 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Brand.accent.withOpacity(0.2),
+                  color: AppColors.accent.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Brand.accent.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.accent.withOpacity(0.3)),
                 ),
                 child: Icon(
                   Icons.directions_car,
-                  color: Brand.accent,
+                  color: AppColors.accent,
                   size: 20,
                 ),
               ),
@@ -342,7 +342,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Brand.textStrong,
+                          color: AppColors.textStrong,
                         ),
                       ),
                     const SizedBox(height: 4),
@@ -351,14 +351,14 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Brand.text,
+                        color: AppColors.text,
                       ),
                     ),
                     Text(
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Brand.accent2,
+                        color: AppColors.accent2,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -386,12 +386,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.location_on, color: Brand.accent, size: 16),
+              Icon(Icons.location_on, color: AppColors.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: TextStyle(fontSize: 14, color: Brand.text),
+                  style: TextStyle(fontSize: 14, color: AppColors.text),
                 ),
               ),
             ],
@@ -399,11 +399,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.schedule, color: Brand.textWeak, size: 16),
+              Icon(Icons.schedule, color: AppColors.textWeak, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(fontSize: 14, color: Brand.textWeak),
+                style: TextStyle(fontSize: 14, color: AppColors.textWeak),
               ),
             ],
           ),
@@ -416,7 +416,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   icon: const Icon(Icons.check_circle, size: 18),
                   label: const Text('Terminée'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Brand.accent,
+                    backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -432,8 +432,8 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   icon: const Icon(Icons.close, size: 18),
                   label: const Text('Annuler'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Brand.hot,
-                    side: BorderSide(color: Brand.hot),
+                    foregroundColor: AppColors.hot,
+                    side: BorderSide(color: AppColors.hot),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -481,7 +481,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Brand.textStrong,
+                          color: AppColors.textStrong,
                         ),
                       ),
                     const SizedBox(height: 4),
@@ -490,14 +490,14 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Brand.text,
+                        color: AppColors.text,
                       ),
                     ),
                     Text(
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Brand.accent2,
+                        color: AppColors.accent2,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -525,12 +525,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.location_on, color: Brand.accent, size: 16),
+              Icon(Icons.location_on, color: AppColors.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: TextStyle(fontSize: 14, color: Brand.text),
+                  style: TextStyle(fontSize: 14, color: AppColors.text),
                 ),
               ),
             ],
@@ -538,11 +538,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.schedule, color: Brand.textWeak, size: 16),
+              Icon(Icons.schedule, color: AppColors.textWeak, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(fontSize: 14, color: Brand.textWeak),
+                style: TextStyle(fontSize: 14, color: AppColors.textWeak),
               ),
             ],
           ),
@@ -556,23 +556,23 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: Brand.glass,
+          backgroundColor: AppColors.glass,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: Brand.glassStroke),
+            side: BorderSide(color: AppColors.glassStroke),
           ),
           title: Text(
             'Annuler la réservation',
-            style: TextStyle(color: Brand.textStrong),
+            style: TextStyle(color: AppColors.textStrong),
           ),
           content: Text(
             'Êtes-vous sûr de vouloir annuler cette réservation ?',
-            style: TextStyle(color: Brand.text),
+            style: TextStyle(color: AppColors.text),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(foregroundColor: Brand.textWeak),
+              style: TextButton.styleFrom(foregroundColor: AppColors.textWeak),
               child: const Text('Non'),
             ),
             ElevatedButton(
@@ -581,7 +581,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 _cancelConfirmedReservation(reservation);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Brand.hot,
+                backgroundColor: AppColors.hot,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Oui, annuler'),
@@ -599,11 +599,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       case ReservationStatus.confirmed:
         return Colors.green;
       case ReservationStatus.inProgress:
-        return Brand.accent;
+        return AppColors.accent;
       case ReservationStatus.completed:
         return Colors.green;
       case ReservationStatus.cancelled:
-        return Brand.hot;
+        return AppColors.hot;
     }
   }
 
@@ -625,7 +625,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Brand.hot),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.hot),
         );
       }
     }
@@ -649,7 +649,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Brand.hot),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.hot),
         );
       }
     }

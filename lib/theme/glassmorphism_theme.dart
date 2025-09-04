@@ -7,7 +7,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// Palette — glass sur fond sombre (couleurs explicites)
-class Brand {
+class AppColors {
   // Base (dark)
   static const Color bg = Color(0xFF0B0E13);   // near-black blue
   static const Color bgElev = Color(0xFF0F141B);
@@ -48,13 +48,13 @@ class Fx {
 class AppTheme {
   static ThemeData get glassDark {
     final scheme = const ColorScheme.dark(
-      background: Brand.bg,
-      surface: Brand.bgElev,
-      primary: Brand.accent,
-      secondary: Brand.accent2,
-      tertiary: Brand.hot,
-      onBackground: Brand.text,
-      onSurface: Brand.text,
+      background: AppColors.bg,
+      surface: AppColors.bgElev,
+      primary: AppColors.accent,
+      secondary: AppColors.accent2,
+      tertiary: AppColors.hot,
+      onBackground: AppColors.text,
+      onSurface: AppColors.text,
       onPrimary: Colors.white,   // lisible sur periwinkle
       onSecondary: Colors.black,
     );
@@ -67,18 +67,18 @@ class AppTheme {
       inputDecorationTheme: _inputTheme(scheme),
       elevatedButtonTheme: _buttonTheme(scheme),
       cardTheme: CardThemeData(
-        color: Brand.glass,
+        color: AppColors.glass,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: const BorderSide(color: Brand.glassStroke),
+          side: const BorderSide(color: AppColors.glassStroke),
         ),
       ),
       appBarTheme: const AppBarTheme(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        foregroundColor: Brand.textStrong,
+        foregroundColor: AppColors.textStrong,
         centerTitle: true,
         scrolledUnderElevation: 0,
       ),
@@ -105,11 +105,11 @@ class AppTheme {
 
     return InputDecorationTheme(
       filled: true,
-      fillColor: Brand.glass,
+      fillColor: AppColors.glass,
       hintStyle: TextStyle(color: scheme.onSurface.withOpacity(0.55)),
       labelStyle: TextStyle(color: scheme.onSurface.withOpacity(0.85)),
-      border: border(Brand.glassStroke),
-      enabledBorder: border(Brand.glassStroke),
+      border: border(AppColors.glassStroke),
+      enabledBorder: border(AppColors.glassStroke),
       focusedBorder: border(scheme.primary.withOpacity(0.70)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
@@ -156,12 +156,12 @@ class GlassBackground extends StatelessWidget {
           Positioned(
             top: -120,
             right: -60,
-            child: _RadialGlow(color: Brand.accent.withOpacity(0.18), size: 320),
+            child: _RadialGlow(color: AppColors.accent.withOpacity(0.18), size: 320),
           ),
           Positioned(
             left: -80,
             bottom: -100,
-            child: _RadialGlow(color: Brand.accent2.withOpacity(0.16), size: 380),
+            child: _RadialGlow(color: AppColors.accent2.withOpacity(0.16), size: 380),
           ),
           if (child != null) child!,
         ],
@@ -218,9 +218,9 @@ class GlassContainer extends StatelessWidget {
           padding: padding,
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Brand.glass,
+            color: AppColors.glass,
             borderRadius: borderRadius,
-            border: showBorder ? const Border.fromBorderSide(BorderSide(color: Brand.glassStroke)) : null,
+            border: showBorder ? const Border.fromBorderSide(BorderSide(color: AppColors.glassStroke)) : null,
             boxShadow: Fx.glow,
           ),
           child: child,
@@ -246,7 +246,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
           actions: actions,
           backgroundColor: Colors.white.withOpacity(0.04),
           surfaceTintColor: Colors.transparent,
-          foregroundColor: Brand.textStrong,
+          foregroundColor: AppColors.textStrong,
         ),
       ),
     );
@@ -278,7 +278,7 @@ class GlassButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Brand.glassStroke),
+        border: Border.all(color: AppColors.glassStroke),
       ),
       child: InkWell(
         onTap: onPressed,
@@ -288,8 +288,8 @@ class GlassButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[Icon(icon, size: 18, color: Brand.textStrong), const SizedBox(width: 8)],
-              Text(label, style: theme.textTheme.labelLarge?.copyWith(color: Brand.textStrong)),
+              if (icon != null) ...[Icon(icon, size: 18, color: AppColors.textStrong), const SizedBox(width: 8)],
+              Text(label, style: theme.textTheme.labelLarge?.copyWith(color: AppColors.textStrong)),
             ],
           ),
         ),
@@ -354,9 +354,9 @@ class GlassSheet extends StatelessWidget {
               maxHeight: screenHeight * 0.7,
             ),
             decoration: const BoxDecoration(
-              color: Brand.glass,
+              color: AppColors.glass,
               border: Border(
-                top: BorderSide(color: Brand.glassStroke),
+                top: BorderSide(color: AppColors.glassStroke),
               ),
             ),
             child: SingleChildScrollView(

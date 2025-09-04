@@ -15,7 +15,7 @@ class SplashScreen extends StatelessWidget {
             'assets/images/MBG-Logo.svg',
             height: 86,
             semanticsLabel: 'Logo MBG',
-            colorFilter: const ColorFilter.mode(Brand.accent, BlendMode.srcIn),
+            colorFilter: const ColorFilter.mode(AppColors.accent, BlendMode.srcIn),
           ),
         ),
       ),

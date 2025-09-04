@@ -32,14 +32,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Brand.accent.withOpacity(0.2),
+                color: AppColors.accent.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Brand.accent),
+                border: Border.all(color: AppColors.accent),
               ),
               child: Text(
                 'ADMIN',
                 style: TextStyle(
-                  color: Brand.accent,
+                  color: AppColors.accent,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -134,8 +134,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color:
-                  Brand.textStrong, // Utilisation des couleurs du nouveau thème
+              color: AppColors.textStrong, // Utilisation des couleurs du nouveau thème
             ),
           ),
           const SizedBox(height: 4),
@@ -143,7 +142,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             title,
             style: TextStyle(
               fontSize: 12,
-              color: Brand.textWeak, // Couleur texte secondaire
+              color: AppColors.textWeak, // Couleur texte secondaire
             ),
             textAlign: TextAlign.center,
           ),
@@ -159,7 +158,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
             child: CircularProgressIndicator(
-              color: Brand.accent, // Couleur d'accent du nouveau thème
+              color: AppColors.accent, // Couleur d'accent du nouveau thème
             ),
           );
         }
@@ -170,13 +169,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               children: [
                 Icon(
                   Icons.error_outline,
-                  color: Brand.hot, // Couleur pour les erreurs
+                  color: AppColors.hot, // Couleur pour les erreurs
                   size: 48,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Erreur: ${snapshot.error}',
-                  style: TextStyle(color: Brand.hot),
+                  style: TextStyle(color: AppColors.hot),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -208,7 +207,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Brand.textStrong, // Couleur principale du texte
+                  color: AppColors.textStrong, // Couleur principale du texte
                 ),
               ),
             ),
@@ -236,20 +235,20 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       padding: const EdgeInsets.all(32),
       child: Column(
         children: [
-          Icon(Icons.inbox, size: 64, color: Brand.textWeak),
+          Icon(Icons.inbox, size: 64, color: AppColors.textWeak),
           const SizedBox(height: 16),
           Text(
             'Aucune réservation en attente',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Brand.textStrong,
+              color: AppColors.textStrong,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Les nouvelles réservations apparaîtront ici',
-            style: TextStyle(fontSize: 14, color: Brand.textWeak),
+            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -295,7 +294,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: Brand.hot),
+        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.hot),
       );
     }
   }
@@ -319,7 +318,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la confirmation: $e'),
-          backgroundColor: Brand.hot,
+          backgroundColor: AppColors.hot,
         ),
       );
     }
@@ -344,7 +343,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de l\'annulation: $e'),
-          backgroundColor: Brand.hot,
+          backgroundColor: AppColors.hot,
         ),
       );
     }
@@ -364,12 +363,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Brand.accent.withOpacity(0.2),
+                  color: AppColors.accent.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   Icons.directions_car,
-                  color: Brand.accent,
+                  color: AppColors.accent,
                   size: 20,
                 ),
               ),
@@ -384,7 +383,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: Brand.textStrong,
+                          color: AppColors.textStrong,
                         ),
                       ),
                     const SizedBox(height: 4),
@@ -393,7 +392,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Brand.text,
+                        color: AppColors.text,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -401,7 +400,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       '${reservation.totalPrice.toStringAsFixed(1)} €',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Brand.accent,
+                        color: AppColors.accent,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -428,12 +427,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.location_on, color: Brand.accent, size: 16),
+              Icon(Icons.location_on, color: AppColors.accent, size: 16),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: TextStyle(fontSize: 14, color: Brand.text),
+                  style: TextStyle(fontSize: 14, color: AppColors.text),
                 ),
               ),
             ],
@@ -441,11 +440,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(Icons.schedule, color: Brand.textWeak, size: 16),
+              Icon(Icons.schedule, color: AppColors.textWeak, size: 16),
               const SizedBox(width: 8),
               Text(
                 '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(fontSize: 14, color: Brand.textWeak),
+                style: TextStyle(fontSize: 14, color: AppColors.textWeak),
               ),
             ],
           ),

@@ -21,8 +21,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
         onTap: onTap,
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.transparent,
-        selectedItemColor: Brand.accent,
-        unselectedItemColor: Brand.text,
+        selectedItemColor: AppColors.accent,
+        unselectedItemColor: AppColors.text,
         selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontFamily: 'Poppins',

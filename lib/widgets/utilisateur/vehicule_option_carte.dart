@@ -25,16 +25,16 @@ class VehiculeOptionCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: isSelected
-                ? Brand.accent.withOpacity(0.15)
+                ? AppColors.accent.withOpacity(0.15)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
             border: isSelected
-                ? Border.all(color: Brand.accent.withOpacity(0.6), width: 2)
+                ? Border.all(color: AppColors.accent.withOpacity(0.6), width: 2)
                 : null,
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Brand.accent.withOpacity(0.3),
+                      color: AppColors.accent.withOpacity(0.3),
                       blurRadius: 16,
                       spreadRadius: 2,
                       offset: const Offset(0, 4),
@@ -50,12 +50,12 @@ class VehiculeOptionCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: isSelected ? Brand.accent : Brand.bgElev,
+                  color: isSelected ? AppColors.accent : AppColors.bgElev,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: Brand.accent.withOpacity(0.4),
+                            color: AppColors.accent.withOpacity(0.4),
                             blurRadius: 18,
                             offset: const Offset(0, 6),
                           ),
@@ -64,7 +64,7 @@ class VehiculeOptionCard extends StatelessWidget {
                 ),
                 child: Icon(
                   vehicle.icon,
-                  color: isSelected ? Colors.white : Brand.textStrong,
+                  color: isSelected ? Colors.white : AppColors.textStrong,
                   size: 26,
                 ),
               ),
@@ -78,7 +78,7 @@ class VehiculeOptionCard extends StatelessWidget {
                     Text(
                       vehicle.name,
                       style: TextStyle(
-                        color: Brand.textStrong,
+                        color: AppColors.textStrong,
                         fontWeight: FontWeight.w800,
                         fontSize: 16,
                       ),
@@ -86,12 +86,12 @@ class VehiculeOptionCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.event_seat, size: 16, color: Brand.textWeak),
+                        Icon(Icons.event_seat, size: 16, color: AppColors.textWeak),
                         const SizedBox(width: 6),
                         Text(
                           vehicle.capacity,
                           style: TextStyle(
-                            color: Brand.textWeak,
+                            color: AppColors.textWeak,
                             fontWeight: FontWeight.w500,
                             fontSize: 12,
                           ),
@@ -100,13 +100,13 @@ class VehiculeOptionCard extends StatelessWidget {
                         Icon(
                           Icons.work_outline,
                           size: 16,
-                          color: Brand.textWeak,
+                          color: AppColors.textWeak,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           vehicle.luggage,
                           style: TextStyle(
-                            color: Brand.textWeak,
+                            color: AppColors.textWeak,
                             fontWeight: FontWeight.w500,
                             fontSize: 12,
                           ),
@@ -124,14 +124,14 @@ class VehiculeOptionCard extends StatelessWidget {
                   Text(
                     vehicle.price,
                     style: TextStyle(
-                      color: Brand.textStrong,
+                      color: AppColors.textStrong,
                       fontWeight: FontWeight.w800,
                       fontSize: 18,
                     ),
                   ),
                   Text(
                     'estimated',
-                    style: TextStyle(color: Brand.textWeak, fontSize: 11),
+                    style: TextStyle(color: AppColors.textWeak, fontSize: 11),
                   ),
                 ],
               ),

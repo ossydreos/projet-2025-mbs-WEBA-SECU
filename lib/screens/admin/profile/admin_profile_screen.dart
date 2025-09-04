@@ -25,7 +25,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             child: Scaffold(
               backgroundColor: Colors.transparent,
               body: Center(
-                child: CircularProgressIndicator(color: Brand.accent),
+                child: CircularProgressIndicator(color: AppColors.accent),
               ),
             ),
           );
@@ -49,14 +49,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Brand.accent.withOpacity(0.2),
+                    color: AppColors.accent.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Brand.accent),
+                    border: Border.all(color: AppColors.accent),
                   ),
                   child: Text(
                     'ADMIN',
                     style: TextStyle(
-                      color: Brand.accent,
+                      color: AppColors.accent,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -109,11 +109,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           children: [
             CircleAvatar(
               radius: 50,
-              backgroundColor: Brand.accent.withOpacity(0.2),
+              backgroundColor: AppColors.accent.withOpacity(0.2),
               child: Icon(
                 Icons.admin_panel_settings,
                 size: 50,
-                color: Brand.accent,
+                color: AppColors.accent,
               ),
             ),
             const SizedBox(height: 16),
@@ -122,26 +122,26 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Brand.textStrong,
+                color: AppColors.textStrong,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               user.email ?? 'admin@example.com',
-              style: TextStyle(fontSize: 16, color: Brand.text),
+              style: TextStyle(fontSize: 16, color: AppColors.text),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Brand.accent.withOpacity(0.2),
+                color: AppColors.accent.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Brand.accent),
+                border: Border.all(color: AppColors.accent),
               ),
               child: Text(
                 'ADMINISTRATEUR',
                 style: TextStyle(
-                  color: Brand.accent,
+                  color: AppColors.accent,
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
                 ),
@@ -162,7 +162,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.edit, color: Brand.accent, size: 24),
+              Icon(Icons.edit, color: AppColors.accent, size: 24),
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
@@ -170,7 +170,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Brand.textStrong,
+                    color: AppColors.textStrong,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -180,7 +180,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           const SizedBox(height: 16),
           Text(
             'Gérez vos informations personnelles et vos préférences de compte.',
-            style: TextStyle(fontSize: 14, color: Brand.textWeak),
+            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
           ),
           const SizedBox(height: 16),
           GlassButton(
@@ -190,7 +190,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Fonctionnalité à implémenter'),
-                  backgroundColor: Brand.accent,
+                  backgroundColor: AppColors.accent,
                 ),
               );
             },
@@ -210,7 +210,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.admin_panel_settings, color: Brand.accent, size: 24),
+              Icon(Icons.admin_panel_settings, color: AppColors.accent, size: 24),
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
@@ -218,7 +218,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Brand.textStrong,
+                    color: AppColors.textStrong,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -267,7 +267,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.03),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Brand.glassStroke, width: 0.5),
+          border: Border.all(color: AppColors.glassStroke, width: 0.5),
         ),
         child: Row(
           children: [
@@ -275,10 +275,10 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Brand.accent.withOpacity(0.15),
+                color: AppColors.accent.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: Brand.accent, size: 20),
+              child: Icon(icon, color: AppColors.accent, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -290,17 +290,17 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Brand.textStrong,
+                      color: AppColors.textStrong,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 14, color: Brand.textWeak),
+                    style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Brand.textWeak),
+            Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textWeak),
           ],
         ),
       ),
@@ -314,7 +314,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Brand.hot.withOpacity(0.3)),
+        border: Border.all(color: AppColors.hot.withOpacity(0.3)),
         // Ajout de l'effet glassmorphism manuel
         boxShadow: [
           BoxShadow(
@@ -334,7 +334,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.logout, color: Brand.hot, size: 24),
+              Icon(Icons.logout, color: AppColors.hot, size: 24),
               const SizedBox(width: 12),
               Flexible(
                 child: Text(
@@ -342,7 +342,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: Brand.textStrong,
+                    color: AppColors.textStrong,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -352,13 +352,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           const SizedBox(height: 16),
           Text(
             'Se déconnecter de votre compte administrateur.',
-            style: TextStyle(fontSize: 14, color: Brand.textWeak),
+            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _performLogout,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Brand.hot,
+              backgroundColor: AppColors.hot,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
@@ -390,7 +390,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la déconnexion: $e'),
-            backgroundColor: Brand.hot,
+            backgroundColor: AppColors.hot,
           ),
         );
       }

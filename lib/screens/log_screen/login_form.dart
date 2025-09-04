@@ -212,7 +212,7 @@ class LoginFormState extends State<LoginForm> {
                   suffixIcon: IconButton(
                     onPressed: () => setState(() => _obscure = !_obscure),
                     tooltip: _obscure ? 'Show password' : 'Hide password',
-                    icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off, color: Brand.text),
+                    icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off, color: AppColors.text),
                   ),
                 ),
                 validator: (v) =>
@@ -227,7 +227,7 @@ class LoginFormState extends State<LoginForm> {
                   Checkbox(
                     value: _rememberMe,
                     onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                    activeColor: Brand.accent,
+                    activeColor: AppColors.accent,
                     side: const BorderSide(
                       color: Color.fromRGBO(255, 255, 255, 0.6),
                     ),
@@ -239,7 +239,7 @@ class LoginFormState extends State<LoginForm> {
                       // TODO: navigation vers la récupération de mot de passe
                     },
                     style: TextButton.styleFrom(
-                      foregroundColor: Brand.accent,
+                      foregroundColor: AppColors.accent,
                     ),
                     child: const Text('Forgot password?'),
                   ),
@@ -315,7 +315,7 @@ class LoginFormState extends State<LoginForm> {
               children: [
                 TextSpan(
                   style: GoogleFonts.poppins(
-                    color: Brand.accent,
+                    color: AppColors.accent,
                     fontWeight: FontWeight.bold,
                   ),
                   text: 'Sign up',

@@ -17,9 +17,9 @@ class AdminBottomNavigationBar extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         // Effet glassmorphism pour la navigation
-        color: Brand.glass,
+        color: AppColors.glass,
         border: const Border(
-          top: BorderSide(color: Brand.glassStroke, width: 1),
+          top: BorderSide(color: AppColors.glassStroke, width: 1),
         ),
         boxShadow: const [
           BoxShadow(
@@ -83,15 +83,15 @@ class AdminBottomNavigationBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: isSelected
             ? BoxDecoration(
-                color: Brand.accent.withOpacity(0.15),
+                color: AppColors.accent.withOpacity(0.15),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Brand.accent.withOpacity(0.3),
+                  color: AppColors.accent.withOpacity(0.3),
                   width: 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Brand.accent.withOpacity(0.2),
+                    color: AppColors.accent.withOpacity(0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -103,7 +103,7 @@ class AdminBottomNavigationBar extends StatelessWidget {
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              color: isSelected ? Brand.accent : Brand.textWeak,
+              color: isSelected ? AppColors.accent : AppColors.textWeak,
               size: isSelected ? 26 : 24,
             ),
             const SizedBox(height: 4),
@@ -112,7 +112,7 @@ class AdminBottomNavigationBar extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? Brand.accent : Brand.textWeak,
+                color: isSelected ? AppColors.accent : AppColors.textWeak,
                 fontFamily: 'Poppins',
               ),
             ),
