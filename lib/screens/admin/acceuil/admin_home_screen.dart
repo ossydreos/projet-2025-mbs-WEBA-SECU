@@ -6,7 +6,10 @@ import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 
 class AdminHomeScreen extends StatefulWidget {
-  const AdminHomeScreen({super.key});
+  final Function(int)? onNavigate;
+  final bool showBottomBar;
+
+  const AdminHomeScreen({super.key, this.onNavigate, this.showBottomBar = true});
 
   @override
   State<AdminHomeScreen> createState() => _AdminHomeScreenState();
@@ -52,10 +55,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             // Contenu principal
             Expanded(child: _buildContent()),
             // Barre de navigation en bas
-            AdminBottomNavigationBar(
-              currentIndex: _selectedIndex,
-              onTap: _handleNavigation,
-            ),
+            if (widget.showBottomBar)
+              AdminBottomNavigationBar(
+                currentIndex: _selectedIndex,
+                onTap: _handleNavigation,
+              ),
           ],
         ),
       ),
@@ -493,6 +497,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (widget.onNavigate != null) {
+      widget.onNavigate!(index);
+      return;
+    }
 
     switch (index) {
       case 0: // Accueil (déjà sur cette page)

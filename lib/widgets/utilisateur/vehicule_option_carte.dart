@@ -45,7 +45,6 @@ class VehiculeOptionCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           child: Row(
             children: [
-              // Icône véhicule
               Container(
                 width: 48,
                 height: 48,
@@ -86,7 +85,11 @@ class VehiculeOptionCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.event_seat, size: 16, color: AppColors.textWeak),
+                        Icon(
+                          Icons.event_seat,
+                          size: 16,
+                          color: AppColors.textWeak,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           vehicle.capacity,

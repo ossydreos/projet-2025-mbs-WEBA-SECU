@@ -9,21 +9,21 @@ import 'package:flutter/material.dart';
 /// Palette — glass sur fond sombre (couleurs explicites)
 class AppColors {
   // Base (dark)
-  static const Color bg = Color(0xFF0B0E13);   // near-black blue
+  static const Color bg = Color(0xFF0B0E13); // near-black blue
   static const Color bgElev = Color(0xFF0F141B);
 
   // Accents
-  static const Color accent  = Color(0xFF7C9CFF); // periwinkle
+  static const Color accent = Color(0xFF7C9CFF); // periwinkle
   static const Color accent2 = Color(0xFF4FE5D2); // aqua mint
-  static const Color hot     = Color(0xFFFF9DB0); // warm highlight
+  static const Color hot = Color(0xFFFF9DB0); // warm highlight
 
   // Texte
   static const Color textStrong = Color(0xFFE6EAF2);
-  static const Color text       = Color(0xFFCAD3E0);
-  static const Color textWeak   = Color(0xFF9AA6B2);
+  static const Color text = Color(0xFFCAD3E0);
+  static const Color textWeak = Color(0xFF9AA6B2);
 
   // Verre (plus lisible sur sombre)
-  static const Color glass       = Color.fromRGBO(255, 255, 255, 0.08);
+  static const Color glass = Color.fromRGBO(255, 255, 255, 0.08);
   static const Color glassStroke = Color.fromRGBO(255, 255, 255, 0.16);
 }
 
@@ -55,7 +55,7 @@ class AppTheme {
       tertiary: AppColors.hot,
       onBackground: AppColors.text,
       onSurface: AppColors.text,
-      onPrimary: Colors.white,   // lisible sur periwinkle
+      onPrimary: Colors.white, // lisible sur periwinkle
       onSecondary: Colors.black,
     );
 
@@ -87,21 +87,41 @@ class AppTheme {
 
   static TextTheme _textTheme(Color base) {
     return TextTheme(
-      displayLarge:   TextStyle(fontSize: 48, fontWeight: FontWeight.w800, color: base),
-      displayMedium:  TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: base),
-      headlineMedium: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: base),
-      titleMedium:    TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: base.withOpacity(0.9)),
-      bodyLarge:      TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: base.withOpacity(0.9)),
-      bodyMedium:     TextStyle(fontSize: 14, color: base.withOpacity(0.8)),
-      labelLarge:     const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+      displayLarge: TextStyle(
+        fontSize: 48,
+        fontWeight: FontWeight.w800,
+        color: base,
+      ),
+      displayMedium: TextStyle(
+        fontSize: 36,
+        fontWeight: FontWeight.w800,
+        color: base,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        color: base,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: base.withOpacity(0.9),
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w500,
+        color: base.withOpacity(0.9),
+      ),
+      bodyMedium: TextStyle(fontSize: 14, color: base.withOpacity(0.8)),
+      labelLarge: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
     );
   }
 
   static InputDecorationTheme _inputTheme(ColorScheme scheme) {
     OutlineInputBorder border(Color c) => OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: c, width: 1),
-        );
+      borderRadius: BorderRadius.circular(16),
+      borderSide: BorderSide(color: c, width: 1),
+    );
 
     return InputDecorationTheme(
       filled: true,
@@ -118,11 +138,16 @@ class AppTheme {
   static ElevatedButtonThemeData _buttonTheme(ColorScheme scheme) {
     return ElevatedButtonThemeData(
       style: ButtonStyle(
-        padding: WidgetStateProperty.all(const EdgeInsets.symmetric(horizontal: 18, vertical: 14)),
-        shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+        padding: WidgetStateProperty.all(
+          const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        ),
+        shape: WidgetStateProperty.all(
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
         elevation: WidgetStateProperty.all(0),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.pressed)) return scheme.primary.withOpacity(0.85);
+          if (states.contains(WidgetState.pressed))
+            return scheme.primary.withOpacity(0.85);
           return scheme.primary.withOpacity(0.95);
         }),
         foregroundColor: WidgetStateProperty.all(scheme.onPrimary),
@@ -144,11 +169,7 @@ class GlassBackground extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0B0E13),
-            Color(0xFF121826),
-            Color(0xFF0B0E13),
-          ],
+          colors: [Color(0xFF0B0E13), Color(0xFF121826), Color(0xFF0B0E13)],
         ),
       ),
       child: Stack(
@@ -156,12 +177,18 @@ class GlassBackground extends StatelessWidget {
           Positioned(
             top: -120,
             right: -60,
-            child: _RadialGlow(color: AppColors.accent.withOpacity(0.18), size: 320),
+            child: _RadialGlow(
+              color: AppColors.accent.withOpacity(0.18),
+              size: 320,
+            ),
           ),
           Positioned(
             left: -80,
             bottom: -100,
-            child: _RadialGlow(color: AppColors.accent2.withOpacity(0.16), size: 380),
+            child: _RadialGlow(
+              color: AppColors.accent2.withOpacity(0.16),
+              size: 380,
+            ),
           ),
           if (child != null) child!,
         ],
@@ -220,7 +247,11 @@ class GlassContainer extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.glass,
             borderRadius: borderRadius,
-            border: showBorder ? const Border.fromBorderSide(BorderSide(color: AppColors.glassStroke)) : null,
+            border: showBorder
+                ? const Border.fromBorderSide(
+                    BorderSide(color: AppColors.glassStroke),
+                  )
+                : null,
             boxShadow: Fx.glow,
           ),
           child: child,
@@ -234,26 +265,59 @@ class GlassContainer extends StatelessWidget {
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
-  const GlassAppBar({super.key, required this.title, this.actions});
+  final PreferredSizeWidget? bottom;
+  final double height;
+  final BorderRadius borderRadius;
+
+  const GlassAppBar({
+    Key? key,
+    required this.title,
+    this.actions,
+    this.bottom,
+    this.height = 80,
+    this.borderRadius = const BorderRadius.vertical(
+      bottom: Radius.circular(16),
+    ),
+  }) : super(key: key);
+
+  // ➜ Très important : on additionne la hauteur du bottom
+  @override
+  Size get preferredSize =>
+      Size.fromHeight(height + (bottom?.preferredSize.height ?? 0));
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
+      borderRadius: borderRadius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: AppBar(
-          title: Text(title),
-          actions: actions,
+          // style / mise en page
+          elevation: 0,
           backgroundColor: Colors.white.withOpacity(0.04),
           surfaceTintColor: Colors.transparent,
           foregroundColor: AppColors.textStrong,
+          titleSpacing: 16,
+          toolbarHeight: height,
+
+          // contenu
+          title: Text(
+            title,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textStrong,
+              fontFamily: 'Poppins',
+            ),
+          ),
+          actions: actions,
+
+          // ➜ on passe le bottom ici
+          bottom: bottom,
         ),
       ),
     );
   }
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 /// Boutons
@@ -262,7 +326,13 @@ class GlassButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final IconData? icon;
   final bool primary; // filled when true
-  const GlassButton({super.key, required this.label, this.onPressed, this.icon, this.primary = true});
+  const GlassButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.icon,
+    this.primary = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -288,8 +358,16 @@ class GlassButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[Icon(icon, size: 18, color: AppColors.textStrong), const SizedBox(width: 8)],
-              Text(label, style: theme.textTheme.labelLarge?.copyWith(color: AppColors.textStrong)),
+              if (icon != null) ...[
+                Icon(icon, size: 18, color: AppColors.textStrong),
+                const SizedBox(width: 8),
+              ],
+              Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: AppColors.textStrong,
+                ),
+              ),
             ],
           ),
         ),
@@ -306,7 +384,14 @@ class GlassTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
 
-  const GlassTextField({super.key, this.controller, this.label, this.hint, this.keyboardType, this.obscureText = false});
+  const GlassTextField({
+    super.key,
+    this.controller,
+    this.label,
+    this.hint,
+    this.keyboardType,
+    this.obscureText = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -314,10 +399,7 @@ class GlassTextField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-      ),
+      decoration: InputDecoration(labelText: label, hintText: hint),
     );
   }
 }
@@ -355,13 +437,13 @@ class GlassSheet extends StatelessWidget {
             ),
             decoration: const BoxDecoration(
               color: AppColors.glass,
-              border: Border(
-                top: BorderSide(color: AppColors.glassStroke),
-              ),
+              border: Border(top: BorderSide(color: AppColors.glassStroke)),
             ),
             child: SingleChildScrollView(
               physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: screenHeight * 0.7),
                 child: child,

@@ -3,7 +3,10 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 
 class AdminGestionScreen extends StatefulWidget {
-  const AdminGestionScreen({super.key});
+  final Function(int)? onNavigate;
+  final bool showBottomBar;
+
+  const AdminGestionScreen({super.key, this.onNavigate, this.showBottomBar = true});
 
   @override
   State<AdminGestionScreen> createState() => _AdminGestionScreenState();
@@ -44,10 +47,11 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
             // Contenu principal
             Expanded(child: _buildContent()),
             // Barre de navigation en bas
-            AdminBottomNavigationBar(
-              currentIndex: _selectedIndex,
-              onTap: _handleNavigation,
-            ),
+            if (widget.showBottomBar)
+              AdminBottomNavigationBar(
+                currentIndex: _selectedIndex,
+                onTap: _handleNavigation,
+              ),
           ],
         ),
       ),
@@ -374,6 +378,11 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (widget.onNavigate != null) {
+      widget.onNavigate!(index);
+      return;
+    }
 
     switch (index) {
       case 0: // Accueil

@@ -5,7 +5,10 @@ import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/widgets/authgate.dart';
 
 class AdminProfileScreen extends StatefulWidget {
-  const AdminProfileScreen({super.key});
+  final Function(int)? onNavigate;
+  final bool showBottomBar;
+
+  const AdminProfileScreen({super.key, this.onNavigate, this.showBottomBar = true});
 
   @override
   State<AdminProfileScreen> createState() => _AdminProfileScreenState();
@@ -67,10 +70,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             body: Column(
               children: [
                 Expanded(child: _buildContent(user)),
-                AdminBottomNavigationBar(
-                  currentIndex: _selectedIndex,
-                  onTap: _handleNavigation,
-                ),
+                if (widget.showBottomBar)
+                  AdminBottomNavigationBar(
+                    currentIndex: _selectedIndex,
+                    onTap: _handleNavigation,
+                  ),
               ],
             ),
           ),
@@ -403,6 +407,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    if (widget.onNavigate != null) {
+      widget.onNavigate!(index);
+      return;
+    }
 
     switch (index) {
       case 0:

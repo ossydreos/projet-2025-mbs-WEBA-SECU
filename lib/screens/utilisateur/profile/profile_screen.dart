@@ -108,13 +108,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       widget.onNavigate!(index);
       return;
     } else {
-      switch (index) {
-        case 0: // Accueil
-          Navigator.pushReplacementNamed(context, '/home');
-          break;
-        case 1: // Trajets
-          Navigator.pushReplacementNamed(context, '/trajets');
-          break;
+      // Sinon, fallback routes
+      if (index == 0) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else if (index == 1) {
+        Navigator.pushReplacementNamed(context, '/trajets');
       }
     }
   }

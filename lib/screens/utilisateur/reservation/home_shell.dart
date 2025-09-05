@@ -78,12 +78,12 @@ class _HomeShellState extends State<HomeShell> {
                   onNavigate: _onTap,
                   showBottomBar: false,
                 ),
-                const TrajetsScreen(
-                  onNavigate: null,
+                TrajetsScreen(
+                  onNavigate: _onTap,
                   showBottomBar: false,
                 ),
-                const ProfileScreen(
-                  onNavigate: null,
+                ProfileScreen(
+                  onNavigate: _onTap,
                   showBottomBar: false,
                 ),
               ],

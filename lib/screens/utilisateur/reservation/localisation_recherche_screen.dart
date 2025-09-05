@@ -4,6 +4,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/constants.dart';
 
@@ -137,6 +139,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   final FocusNode _departureFocusNode = FocusNode();
   bool _isDestinationActive = false;
   bool _isDepartureActive = false;
+  LatLng? _currentPositionLatLng;
+  String? _currentPositionAddress;
+  LatLng? _selectedDepartureCoordinates;
 
   @override
   void initState() {
@@ -167,6 +172,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         _isDepartureActive = _departureFocusNode.hasFocus;
       });
     });
+
+    // Initialiser la position actuelle comme valeur par défaut du départ
+    _initCurrentLocation();
   }
 
   @override
@@ -269,6 +277,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         _currentPickupLocation = suggestion.shortName;
         _departureController.clear();
         _departureSuggestions = [];
+        _selectedDepartureCoordinates = coords;
       });
     } else {
       // Par défaut, cible la destination
@@ -362,6 +371,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       _currentPickupLocation = suggestion.shortName;
       _departureController.clear();
       _departureSuggestions = [];
+      _selectedDepartureCoordinates = coords;
     });
   }
 
@@ -390,16 +400,81 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     }
   }
 
+  Future<void> _initCurrentLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() {
+          _currentPositionLatLng = null;
+        });
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        setState(() {
+          _currentPositionLatLng = null;
+        });
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      final currentLatLng = LatLng(position.latitude, position.longitude);
+
+      String? addressLine;
+      try {
+        final placemarks = await geocoding.placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+          localeIdentifier: 'fr_FR',
+        );
+        if (placemarks.isNotEmpty) {
+          final p = placemarks.first;
+          final street = p.street?.trim();
+          final postal = p.postalCode?.trim();
+          final city = p.locality?.trim();
+          final parts = [street, postal, city]
+              .where((s) => s != null && s!.isNotEmpty)
+              .cast<String>()
+              .toList();
+          addressLine = parts.join(' ');
+        }
+      } catch (_) {}
+
+      setState(() {
+        _currentPositionLatLng = currentLatLng;
+        _currentPositionAddress = addressLine;
+        // _currentPickupLocation reste "Ma position actuelle"
+      });
+    } catch (e) {
+      setState(() {
+        _currentPositionLatLng = null;
+      });
+    }
+  }
+
   bool _canProceed() {
     return _searchController.text.isNotEmpty;
   }
 
   void _proceedToBooking() {
     // Retourner les données à l'écran principal avec les deux adresses
+    final String departureLabel =
+        (_currentPickupLocation == 'Ma position actuelle' &&
+                (_currentPositionAddress != null &&
+                    _currentPositionAddress!.isNotEmpty))
+            ? _currentPositionAddress!
+            : _currentPickupLocation;
     Navigator.pop(context, {
-      'departure': _currentPickupLocation,
+      'departure': departureLabel,
       'destination': _searchController.text,
-      'departureCoordinates': null, // À implémenter plus tard
+      'departureCoordinates': _selectedDepartureCoordinates ?? _currentPositionLatLng,
       'destinationCoordinates': null, // À implémenter plus tard
     });
   }
@@ -444,7 +519,23 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         return Center(child: CircularProgressIndicator(color: AppColors.accent));
       }
 
-      if (_departureSuggestions.isEmpty) {
+      // Construire la liste avec "Ma position actuelle" en tête si disponible
+      final List<Suggestion> items = [];
+      if (_currentPositionLatLng != null) {
+        items.add(
+          Suggestion(
+            displayName: 'Ma position actuelle',
+            shortName: 'Ma position actuelle',
+            address: _currentPositionAddress ?? '',
+            coordinates: _currentPositionLatLng,
+            icon: Icons.my_location,
+            distance: '',
+          ),
+        );
+      }
+      items.addAll(_departureSuggestions);
+
+      if (items.isEmpty) {
         return Center(
           child: Text(
             'Aucun résultat trouvé',
@@ -455,9 +546,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
       return ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: _departureSuggestions.length,
+        itemCount: items.length,
         itemBuilder: (context, index) {
-          final suggestion = _departureSuggestions[index];
+          final suggestion = items[index];
           return GlassContainer(
             margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -479,10 +570,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       overflow: TextOverflow.ellipsis,
                     )
                   : null,
-              trailing: Text(
-                suggestion.distance,
-                style: TextStyle(fontSize: 14, color: AppColors.text),
-              ),
+              trailing: suggestion.distance.isNotEmpty
+                  ? Text(
+                      suggestion.distance,
+                      style: TextStyle(fontSize: 14, color: AppColors.text),
+                    )
+                  : null,
               onTap: () => _onSuggestionTap(suggestion),
             ),
           );

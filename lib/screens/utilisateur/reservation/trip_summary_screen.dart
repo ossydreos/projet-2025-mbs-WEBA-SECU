@@ -139,6 +139,18 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         totalPrice: 28.1, // Prix fixe pour l'instant
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
+        departureCoordinates: widget.departureCoordinates != null
+            ? {
+                'latitude': widget.departureCoordinates!.latitude,
+                'longitude': widget.departureCoordinates!.longitude,
+              }
+            : null,
+        destinationCoordinates: widget.destinationCoordinates != null
+            ? {
+                'latitude': widget.destinationCoordinates!.latitude,
+                'longitude': widget.destinationCoordinates!.longitude,
+              }
+            : null,
       );
 
       // Sauvegarder dans Firebase
@@ -155,8 +167,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           ),
         );
 
-        // Retourner à l'accueil
-        Navigator.popUntil(context, (route) => route.isFirst);
+        // Aller directement à l'onglet "Trajets"
+        Navigator.pushNamedAndRemoveUntil(context, '/trajets', (route) => false);
       }
     } catch (e) {
       if (mounted) {
@@ -501,9 +513,9 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-                                const Text(
-                                  'Espèces',
-                                  style: TextStyle(
+                                Text(
+                                  _paymentMethod,
+                                  style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.white,

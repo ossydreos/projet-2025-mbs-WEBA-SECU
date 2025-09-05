@@ -45,6 +45,7 @@ class Authgate extends StatelessWidget {
                 return const AdminHomeScreen();
               } else {
                 print('AuthGate - Redirection vers HomeShell');
+                
                 return const HomeShell();
               }
             },

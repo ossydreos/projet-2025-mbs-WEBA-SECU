@@ -33,7 +33,6 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.glassDark,
       home: const Authgate(),
       onGenerateRoute: (settings) {
-        // Configuration des transitions fluides sans animations
         Widget page;
         switch (settings.name) {
           case '/home':

@@ -5,6 +5,9 @@ import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 
+// 👇 importe la barre réutilisable
+import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
+
 class TrajetsScreen extends StatefulWidget {
   final Function(int)? onNavigate;
   final bool showBottomBar;
@@ -42,21 +45,10 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       _selectedIndex = index;
     });
 
-    // Navigation vers les autres écrans
+    // Demander au shell de changer d'onglet si disponible
     if (widget.onNavigate != null) {
       widget.onNavigate!(index);
       return;
-    } else {
-      switch (index) {
-        case 0: // Accueil
-          Navigator.pushReplacementNamed(context, '/home');
-          break;
-        case 1: // Trajets (déjà sur cette page)
-          break;
-        case 2: // Compte
-          Navigator.pushReplacementNamed(context, '/profile');
-          break;
-      }
     }
   }
 
@@ -66,51 +58,24 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const GlassAppBar(title: 'Trajets'),
-        body: SafeArea(
-          child: Column(
-            children: [
-              // Onglets
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                child: TabBar(
-                  controller: _tabController,
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey[400],
-                  indicatorColor: AppColors.accent,
-                  indicatorSize: TabBarIndicatorSize.label,
-                  labelStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Poppins',
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    fontFamily: 'Poppins',
-                  ),
-                  tabs: const [
-                    Tab(text: 'À venir'),
-                    Tab(text: 'Terminés'),
-                  ],
-                ),
-              ),
 
-              // Contenu principal
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // Onglet "À venir"
-                    _buildUpcomingTab(),
-                    // Onglet "Terminés"
-                    _buildCompletedTab(),
-                  ],
-                ),
-              ),
-            ],
-          ),
+        // ⚠️ Nécessite que GlassAppBar accepte un paramètre `bottom` de type PreferredSizeWidget
+        appBar: GlassAppBar(
+          title: 'Trajets',
+          bottom: TrajetNav(_tabController), // ✅ même barre que côté admin
         ),
+
+        // Plus de Column + Container + TabBar ici : le TabBar est géré par l’AppBar.bottom
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            // Onglet "À venir"
+            _buildUpcomingTab(),
+            // Onglet "Terminés"
+            _buildCompletedTab(),
+          ],
+        ),
+
         bottomNavigationBar: widget.showBottomBar
             ? CustomBottomNavigationBar(
                 currentIndex: _selectedIndex,
@@ -139,6 +104,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         }
 
         if (snapshot.hasError) {
+          // ignore: avoid_print
           print('Erreur dans trajets_screen: ${snapshot.error}');
           return Center(
             child: Column(
@@ -235,7 +201,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Illustration 3D du calendrier
-                  Container(
+                  SizedBox(
                     width: 120,
                     height: 120,
                     child: Stack(
@@ -263,9 +229,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                                 // Barre supérieure du calendrier
                                 Container(
                                   height: 25,
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     color: Colors.black,
-                                    borderRadius: const BorderRadius.only(
+                                    borderRadius: BorderRadius.only(
                                       topLeft: Radius.circular(8),
                                       topRight: Radius.circular(8),
                                     ),
@@ -311,15 +277,17 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                           ),
                         ),
                         // Anneau de reliure
-                        Positioned(
+                        const Positioned(
                           left: 15,
                           top: 5,
-                          child: Container(
+                          child: SizedBox(
                             width: 20,
                             height: 20,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              shape: BoxShape.circle,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Colors.black,
+                                shape: BoxShape.circle,
+                              ),
                             ),
                           ),
                         ),
@@ -341,7 +309,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                                 ),
                               ],
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.schedule,
                               color: Colors.white,
                               size: 28,
@@ -355,7 +323,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   const SizedBox(height: 32),
 
                   // Message principal en anglais
-                  Text(
+                  const Text(
                     'No Upcoming rides',
                     style: TextStyle(
                       fontSize: 24,
@@ -388,12 +356,16 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
           // Bouton d'action en bas
           Padding(
-            padding: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.only(bottom: 120),
             child: SizedBox(
               width: double.infinity,
               child: GlassButton(
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, '/home');
+                  if (widget.onNavigate != null) {
+                    widget.onNavigate!(0); // Revenir à l'onglet Accueil
+                  } else {
+                    Navigator.pushReplacementNamed(context, '/home');
+                  }
                 },
                 label: 'Planifiez un trajet',
               ),
@@ -464,7 +436,10 @@ class _TrajetsScreenState extends State<TrajetsScreen>
               Expanded(
                 child: Text(
                   '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(fontSize: 14, color: AppColors.textStrong),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textStrong,
+                  ),
                 ),
               ),
             ],
@@ -506,12 +481,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: const [
                 Icon(Icons.error_outline, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 Text(
-                  'Erreur: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red),
+                  'Erreur: une erreur est survenue',
+                  style: TextStyle(color: Colors.red),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -572,7 +547,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   color: Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(Icons.check_circle, color: Colors.green, size: 20),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -605,7 +584,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   color: Colors.green.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(
+                child: const Text(
                   'Terminée',
                   style: TextStyle(
                     fontSize: 12,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/localisation_recherche_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
@@ -270,7 +269,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                 ),
                 child: const Icon(
                   Icons.schedule,
-                  color: Colors.orange,
+                  color: Colors.blue,
                   size: 20,
                 ),
               ),
