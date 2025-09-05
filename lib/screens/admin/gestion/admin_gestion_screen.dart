@@ -253,7 +253,11 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               ),
 
               // Flèche
-              Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textWeak),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: AppColors.textWeak,
+              ),
             ],
           ),
         ),

@@ -591,7 +591,10 @@ class _BookingScreenState extends State<BookingScreen>
                                         _vehicles.firstWhere(
                                           (v) => v['name'] == _selectedVehicle,
                                         )['description'],
-                                        style: TextStyle(fontSize: 12, color: AppColors.text),
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.text,
+                                        ),
                                       ),
                                     ],
                                   ),

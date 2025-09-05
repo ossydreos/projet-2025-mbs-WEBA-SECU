@@ -11,7 +11,7 @@ import 'screens/utilisateur/reservation/localisation_recherche_screen.dart';
 import 'screens/utilisateur/trajets/trajets_screen.dart';
 import 'screens/utilisateur/reservation/acceuil_res_screen.dart';
 // Import des écrans admin
-import 'screens/admin/acceuil/admin_home_screen.dart';
+import 'screens/admin/reception/admin_reception_screen.dart';
 import 'screens/admin/gestion/admin_gestion_screen.dart';
 import 'screens/admin/trajets/admin_trajets_screen.dart';
 import 'screens/admin/profile/admin_profile_screen.dart';
@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
             break;
           // Routes admin
           case '/admin/home':
-            page = const AdminHomeScreen();
+            page = const AdminReceptionScreen();
             break;
           case '/admin/trajets':
             page = const AdminTrajetsScreen();

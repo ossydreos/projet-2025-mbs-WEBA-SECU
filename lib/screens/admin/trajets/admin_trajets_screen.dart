@@ -49,7 +49,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
             toolbarHeight: 80,
             titleSpacing: 16,
             title: Text(
-              'Trajets',
+              'Courses',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -590,7 +590,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.glass,
+          backgroundColor: const Color.fromARGB(158, 11, 14, 19),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
             side: BorderSide(color: AppColors.glassStroke),
@@ -604,9 +604,19 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
             style: TextStyle(color: AppColors.text),
           ),
           actions: [
-            TextButton(
+            OutlinedButton(
               onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(foregroundColor: AppColors.textWeak),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textWeak,
+                side: BorderSide(color: AppColors.glassStroke, width: 1.5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
               child: const Text('Non'),
             ),
             ElevatedButton(
@@ -676,7 +686,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Course annulée !'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AppColors.hot,
           ),
         );
       }

@@ -94,8 +94,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             const SizedBox(height: 20),
             _buildUpdateAccountCard(),
             const SizedBox(height: 20),
-            _buildAdminFeaturesCard(),
-            const SizedBox(height: 20),
             _buildLogoutCard(),
           ],
         ),
@@ -159,7 +157,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
 
   Widget _buildUpdateAccountCard() {
     return GlassContainer(
-      margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,121 +202,13 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
-  Widget _buildAdminFeaturesCard() {
-    return GlassContainer(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.admin_panel_settings, color: AppColors.accent, size: 24),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  'Fonctionnalités administrateur',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textStrong,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildAdminFeatureItem(
-            icon: Icons.directions_car,
-            title: 'Gestion de la flotte',
-            subtitle: 'Gérer les véhicules disponibles',
-            onTap: () =>
-                Navigator.pushReplacementNamed(context, '/admin/gestion'),
-          ),
-          const SizedBox(height: 12),
-          _buildAdminFeatureItem(
-            icon: Icons.schedule,
-            title: 'Réservations en attente',
-            subtitle: 'Confirmer ou refuser les demandes',
-            onTap: () => Navigator.pushReplacementNamed(context, '/admin/home'),
-          ),
-          const SizedBox(height: 12),
-          _buildAdminFeatureItem(
-            icon: Icons.local_offer,
-            title: 'Codes promotionnels',
-            subtitle: 'Créer et gérer les offres',
-            onTap: () =>
-                Navigator.pushReplacementNamed(context, '/admin/gestion'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAdminFeatureItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.glassStroke, width: 0.5),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: AppColors.accent, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textStrong,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(fontSize: 14, color: AppColors.textWeak),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textWeak),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildLogoutCard() {
-    // Correction ligne 331: Utilisation d'un Container séparé avec decoration personnalisée
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.hot.withOpacity(0.3)),
-        // Ajout de l'effet glassmorphism manuel
         boxShadow: [
           BoxShadow(
             color: Colors.white.withOpacity(0.1),
@@ -336,40 +225,33 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.logout, color: AppColors.hot, size: 24),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  'Déconnexion',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textStrong,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Se déconnecter de votre compte administrateur.',
-            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
-          ),
-          const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _performLogout,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.hot,
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(12),
               ),
+              minimumSize: const Size(0, 44), // hauteur mini
             ),
-            child: const Text('Se déconnecter'),
+            child: Row(
+              mainAxisSize: MainAxisSize.min, // s’adapte au contenu
+              children: const [
+                Icon(Icons.logout, size: 20),
+                SizedBox(width: 8),
+                Text(
+                  'Déconnexion',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Se déconnecter de votre compte administrateur.',
+            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
           ),
         ],
       ),
