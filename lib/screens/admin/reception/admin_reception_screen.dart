@@ -5,14 +5,14 @@ import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 
-class AdminHomeScreen extends StatefulWidget {
-  const AdminHomeScreen({super.key});
+class AdminReceptionScreen extends StatefulWidget {
+  const AdminReceptionScreen({super.key});
 
   @override
-  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
+  State<AdminReceptionScreen> createState() => _AdminReceptionScreenState();
 }
 
-class _AdminHomeScreenState extends State<AdminHomeScreen> {
+class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   int _selectedIndex = 0;
@@ -26,7 +26,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             Colors.transparent, // Transparent pour laisser apparaître le fond
         appBar: GlassAppBar(
           // Nouvelle AppBar glassmorphism
-          title: 'Tableau de bord',
+          title: 'Boîte de réception',
           actions: [
             Container(
               margin: const EdgeInsets.only(right: 16),
