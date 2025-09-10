@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum ReservationStatus {
-  pending,    // En attente
-  confirmed,  // Confirmée
+  pending, // En attente
+  confirmed, // Confirmée
   inProgress, // En cours
-  completed,  // Terminée
-  cancelled,  // Annulée
+  completed, // Terminée
+  cancelled, // Annulée
 }
 
 // Extension pour obtenir le statut en français
@@ -44,6 +44,7 @@ class Reservation {
   final Map<String, dynamic>? departureCoordinates;
   final Map<String, dynamic>? destinationCoordinates;
   final String? clientNote; // Note du client pour le chauffeur
+  final bool contreoffre; // 🆕 Champ contre-offre ajouté
 
   Reservation({
     required this.id,
@@ -63,6 +64,7 @@ class Reservation {
     this.departureCoordinates,
     this.destinationCoordinates,
     this.clientNote,
+    this.contreoffre = false, // 🆕 Valeur par défaut : false
   });
 
   // Convertir en Map pour Firebase
@@ -85,6 +87,7 @@ class Reservation {
       'departureCoordinates': departureCoordinates,
       'destinationCoordinates': destinationCoordinates,
       'clientNote': clientNote,
+      'contreoffre': contreoffre, // 🆕 Ajouté dans le mapping
     };
   }
 
@@ -107,12 +110,14 @@ class Reservation {
         orElse: () => ReservationStatus.pending,
       ),
       createdAt: (map['createdAt'] as Timestamp).toDate(),
-      updatedAt: map['updatedAt'] != null 
-          ? (map['updatedAt'] as Timestamp).toDate() 
+      updatedAt: map['updatedAt'] != null
+          ? (map['updatedAt'] as Timestamp).toDate()
           : null,
       departureCoordinates: map['departureCoordinates'],
       destinationCoordinates: map['destinationCoordinates'],
       clientNote: map['clientNote'],
+      contreoffre:
+          map['contreoffre'] ?? false, // 🆕 Ajouté avec valeur par défaut
     );
   }
 
@@ -135,6 +140,7 @@ class Reservation {
     Map<String, dynamic>? departureCoordinates,
     Map<String, dynamic>? destinationCoordinates,
     String? clientNote,
+    bool? contreoffre, // 🆕 Ajouté dans copyWith
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -152,8 +158,10 @@ class Reservation {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       departureCoordinates: departureCoordinates ?? this.departureCoordinates,
-      destinationCoordinates: destinationCoordinates ?? this.destinationCoordinates,
+      destinationCoordinates:
+          destinationCoordinates ?? this.destinationCoordinates,
       clientNote: clientNote ?? this.clientNote,
+      contreoffre: contreoffre ?? this.contreoffre, // 🆕 Ajouté dans copyWith
     );
   }
 
@@ -172,4 +180,7 @@ class Reservation {
         return 'Annulée';
     }
   }
+
+  // 🆕 Getter pour vérifier si une contre-offre a été envoyée
+  bool get hasCounterOffer => contreoffre;
 }

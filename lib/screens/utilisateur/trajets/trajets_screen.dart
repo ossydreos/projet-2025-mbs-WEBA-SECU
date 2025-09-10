@@ -464,7 +464,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             ],
           ),
           // Boutons de contact pour les réservations confirmées
-          if (reservation.status == ReservationStatus.confirmed || 
+          if (reservation.status == ReservationStatus.confirmed ||
               reservation.status == ReservationStatus.inProgress) ...[
             const SizedBox(height: 16),
             Row(
@@ -730,10 +730,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   void _showErrorSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: AppColors.hot,
-        ),
+        SnackBar(content: Text(message), backgroundColor: AppColors.hot),
       );
     }
   }

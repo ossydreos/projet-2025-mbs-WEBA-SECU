@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:my_mobility_services/theme/glassmorphism_theme.dart'; // Import du nouveau thème
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
@@ -9,28 +10,41 @@ class AdminReceptionScreen extends StatefulWidget {
   final Function(int)? onNavigate;
   final bool showBottomBar;
 
-  const AdminReceptionScreen({super.key, this.onNavigate, this.showBottomBar = true});
+  const AdminReceptionScreen({
+    super.key,
+    this.onNavigate,
+    this.showBottomBar = true,
+  });
 
   @override
   State<AdminReceptionScreen> createState() => _AdminReceptionScreenState();
 }
+
+// Énumération pour les actions de refus
+enum RefusalAction { refuse, counterOffer }
 
 class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   int _selectedIndex = 0;
 
+  // Map pour stocker temporairement les contre-offres en cours
+  final Map<String, Map<String, dynamic>> _pendingCounterOffers = {};
+
   @override
   Widget build(BuildContext context) {
     return GlassBackground(
-      // Nouveau fond glassmorphism
       child: Scaffold(
-        backgroundColor:
-            Colors.transparent, // Transparent pour laisser apparaître le fond
+        backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          // Nouvelle AppBar glassmorphism
           title: 'Boîte de réception',
           actions: [
+            // Bouton de test pour créer des réservations
+            IconButton(
+              onPressed: _createTestReservation,
+              icon: Icon(Icons.science, color: AppColors.accent),
+              tooltip: 'Créer réservation de test',
+            ),
             Container(
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -52,9 +66,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         ),
         body: Column(
           children: [
-            // Contenu principal
             Expanded(child: _buildContent()),
-            // Barre de navigation en bas
             if (widget.showBottomBar)
               AdminBottomNavigationBar(
                 currentIndex: _selectedIndex,
@@ -83,72 +95,67 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   Widget _buildStatsCards() {
-    return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getPendingReservationsStream(),
+    return StreamBuilder<QuerySnapshot>(
+      stream: _reservationService.getReservationsStream(),
       builder: (context, snapshot) {
-        final pendingCount = snapshot.data?.length ?? 0;
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-        return StreamBuilder<List<Reservation>>(
-          stream: _reservationService.getConfirmedReservationsStream(),
-          builder: (context, confirmedSnapshot) {
-            final confirmedCount = confirmedSnapshot.data?.length ?? 0;
+        final reservations = snapshot.data!.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return Reservation.fromMap({...data, 'id': doc.id});
+        }).toList();
 
-            return Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    title: 'En attente',
-                    count: pendingCount,
-                    color: Colors.blue,
-                    icon: Icons.schedule,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    title: 'Confirmées',
-                    count: confirmedCount,
-                    color: Colors.green,
-                    icon: Icons.check_circle,
-                  ),
-                ),
-              ],
-            );
-          },
+        final pendingCount = reservations
+            .where((r) => r.status == ReservationStatus.pending)
+            .length;
+        final confirmedCount = reservations
+            .where((r) => r.status == ReservationStatus.confirmed)
+            .length;
+
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                'En attente',
+                pendingCount.toString(),
+                Icons.pending,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                'Confirmées',
+                confirmedCount.toString(),
+                Icons.check_circle,
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _buildStatCard({
-    required String title,
-    required int count,
-    required Color color,
-    required IconData icon,
-  }) {
+  Widget _buildStatCard(String title, String value, IconData icon) {
     return GlassContainer(
-      // Remplacement par GlassContainer
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 32),
+          Icon(icon, color: AppColors.accent, size: 32),
           const SizedBox(height: 8),
           Text(
-            count.toString(),
+            value,
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: AppColors
-                  .textStrong, // Utilisation des couleurs du nouveau thème
+              color: AppColors.textStrong,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textWeak, // Couleur texte secondaire
-            ),
+            style: TextStyle(fontSize: 12, color: AppColors.textWeak),
             textAlign: TextAlign.center,
           ),
         ],
@@ -157,90 +164,70 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   Widget _buildPendingReservations() {
-    return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getPendingReservationsStream(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(
-              color: AppColors.accent, // Couleur d'accent du nouveau thème
-            ),
-          );
-        }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Réservations en attente',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textStrong,
+          ),
+        ),
+        const SizedBox(height: 16),
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('reservations')
+              .where('status', isEqualTo: 'pending')
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  color: AppColors.hot, // Couleur pour les erreurs
-                  size: 48,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Erreur: ${snapshot.error}',
+            if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  'Erreur de chargement: ${snapshot.error}',
                   style: TextStyle(color: AppColors.hot),
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 16),
-                GlassButton(
-                  // Nouveau bouton glassmorphism
-                  label: 'Réessayer',
-                  onPressed: () {
-                    setState(() {});
-                  },
-                ),
-              ],
-            ),
-          );
-        }
+              );
+            }
 
-        final reservations = snapshot.data ?? [];
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return _buildEmptyState();
+            }
 
-        if (reservations.isEmpty) {
-          return _buildEmptyState();
-        }
+            final reservations = snapshot.data!.docs.map((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              return Reservation.fromMap({...data, 'id': doc.id});
+            }).toList();
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                'Réservations en attente (${reservations.length})',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textStrong, // Couleur principale du texte
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            ListView.builder(
+            return ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
               itemCount: reservations.length,
               itemBuilder: (context, index) {
-                final reservation = reservations[index];
-                return _buildReservationCard(reservation);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildReservationCard(reservations[index]),
+                );
               },
-            ),
-          ],
-        );
-      },
+            );
+          },
+        ),
+      ],
     );
   }
 
   Widget _buildEmptyState() {
     return GlassContainer(
-      // Remplacement par GlassContainer
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 24),
       child: Column(
         children: [
-          Icon(Icons.inbox, size: 64, color: AppColors.textWeak),
+          Icon(Icons.inbox, size: 64, color: Colors.white.withOpacity(0.6)),
           const SizedBox(height: 16),
           Text(
             'Aucune réservation en attente',
@@ -256,112 +243,21 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             style: TextStyle(fontSize: 14, color: AppColors.textWeak),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
-          GlassButton(
-            // Nouveau bouton glassmorphism
-            label: 'Créer une réservation de test',
-            onPressed: _createTestReservation,
-            primary: true,
-          ),
         ],
       ),
     );
   }
 
-  void _createTestReservation() async {
-    try {
-      final now = TimeOfDay.now();
-      final testReservation = Reservation(
-        id: '',
-        userId: 'test_user_123',
-        userName: 'Marie Martin',
-        vehicleName: 'Berline Économique',
-        departure: 'Place de la République, Paris',
-        destination: 'Gare du Nord, Paris',
-        selectedDate: DateTime.now().add(Duration(days: 1)),
-        selectedTime:
-            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-        estimatedArrival:
-            '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 13).toString().padLeft(2, '0')}',
-        paymentMethod: 'Espèces',
-        totalPrice: 6.0, // Prix calculé pour ~5km avec véhicule économique (1.20€/km)
-        status: ReservationStatus.pending,
-        createdAt: DateTime.now(),
-      );
-
-      await _reservationService.createReservation(testReservation);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Réservation de test créée avec succès !'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.hot),
-      );
-    }
-  }
-
-  void _confirmReservation(Reservation reservation) async {
-    try {
-      final updatedReservation = reservation.copyWith(
-        status: ReservationStatus.confirmed,
-        updatedAt: DateTime.now(),
-      );
-
-      await _reservationService.updateReservation(updatedReservation);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Réservation confirmée !'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de la confirmation: $e'),
-          backgroundColor: AppColors.hot,
-        ),
-      );
-    }
-  }
-
-  void _cancelReservation(Reservation reservation) async {
-    try {
-      final updatedReservation = reservation.copyWith(
-        status: ReservationStatus.cancelled,
-        updatedAt: DateTime.now(),
-      );
-
-      await _reservationService.updateReservation(updatedReservation);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Réservation refusée !'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors du refus: $e'),
-          backgroundColor: AppColors.hot,
-        ),
-      );
-    }
-  }
-
   Widget _buildReservationCard(Reservation reservation) {
+    final hasCounterOffer = _hasCounterOffer(reservation.id);
+    final counterOffer = _getCounterOffer(reservation.id);
+
     return GlassContainer(
-      // Remplacement par GlassContainer
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // En-tête avec icône véhicule, nom client et prix
           Row(
             children: [
               Container(
@@ -394,71 +290,162 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     const SizedBox(height: 4),
                     Text(
                       reservation.vehicleName,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.text,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Flexible(
-                      child: Text(
-                        '${reservation.totalPrice.toStringAsFixed(1)} €',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.accent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
-                      ),
+                      style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                     ),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'En attente',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w600,
+              // Prix
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    hasCounterOffer ? 'Prix original' : 'Prix total',
+                    style: TextStyle(fontSize: 12, color: AppColors.textWeak),
                   ),
+                  Text(
+                    '${reservation.totalPrice.toStringAsFixed(2)}€',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: hasCounterOffer
+                          ? AppColors.textWeak
+                          : AppColors.accent,
+                      decoration: hasCounterOffer
+                          ? TextDecoration.lineThrough
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Informations de trajet
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Point de départ
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            reservation.departure,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.text,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Ligne de connexion
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Container(
+                        width: 1,
+                        height: 20,
+                        color: AppColors.textWeak.withOpacity(0.5),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Point d'arrivée
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppColors.hot,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            reservation.destination,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.text,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
+              ),
+              // Informations temporelles
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    'Départ',
+                    style: TextStyle(fontSize: 12, color: AppColors.textWeak),
+                  ),
+                  Text(
+                    reservation.selectedTime,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Arrivée',
+                    style: TextStyle(fontSize: 12, color: AppColors.textWeak),
+                  ),
+                  Text(
+                    reservation.estimatedArrival ?? '--:--',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.text,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 12),
+
+          // Date et mode de paiement
           Row(
             children: [
-              Icon(Icons.location_on, color: AppColors.accent, size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${reservation.departure} → ${reservation.destination}',
-                  style: TextStyle(fontSize: 14, color: AppColors.text),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.schedule, color: AppColors.textWeak, size: 16),
+              Icon(Icons.calendar_today, color: AppColors.textWeak, size: 16),
               const SizedBox(width: 8),
               Text(
-                '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                '${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year}',
+                style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+              ),
+              const Spacer(),
+              Icon(Icons.payment, color: AppColors.textWeak, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                reservation.paymentMethod,
                 style: TextStyle(fontSize: 14, color: AppColors.textWeak),
               ),
             ],
           ),
+
           // Affichage de la note du client si elle existe
-          if (reservation.clientNote != null && reservation.clientNote!.isNotEmpty) ...[
+          if (reservation.clientNote != null &&
+              reservation.clientNote!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
@@ -473,11 +460,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.note_alt,
-                    color: AppColors.accent,
-                    size: 16,
-                  ),
+                  Icon(Icons.note_alt, color: AppColors.accent, size: 16),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(
@@ -494,10 +477,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                         const SizedBox(height: 4),
                         Text(
                           reservation.clientNote!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.text,
-                          ),
+                          style: TextStyle(fontSize: 14, color: AppColors.text),
                         ),
                       ],
                     ),
@@ -506,7 +486,77 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               ),
             ),
           ],
+
+          // *** Affichage de la contre-offre si elle existe ***
+          if (hasCounterOffer) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.local_offer,
+                        color: AppColors.accent,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Contre-offre: ${counterOffer!['newPrice'].toStringAsFixed(2)}€',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.accent,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'NOUVEAU',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (counterOffer['message'] != null &&
+                      counterOffer['message'].isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      counterOffer['message'],
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.text,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+
           const SizedBox(height: 16),
+
+          // Boutons d'action
           Row(
             children: [
               Expanded(
@@ -520,7 +570,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Confirmer'),
+                  child: Text(
+                    hasCounterOffer ? 'Confirmer contre-offre' : 'Confirmer',
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -535,7 +587,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: const Text('Refuser'),
+                  child: Text(hasCounterOffer ? 'Nouvelle offre' : 'Refuser'),
                 ),
               ),
             ],
@@ -543,6 +595,528 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         ],
       ),
     );
+  }
+
+  // Méthode pour créer une réservation de test
+  void _createTestReservation() async {
+    try {
+      final now = TimeOfDay.now();
+      final testReservation = Reservation(
+        id: '',
+        userId: 'test_user_123',
+        userName: 'Marie Martin',
+        vehicleName: 'Berline Économique',
+        departure: 'Place de la République, Paris',
+        destination: 'Gare du Nord, Paris',
+        selectedDate: DateTime.now().add(const Duration(days: 1)),
+        selectedTime:
+            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+        estimatedArrival:
+            '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 13).toString().padLeft(2, '0')}',
+        paymentMethod: 'Espèces',
+        totalPrice: 6.0,
+        status: ReservationStatus.pending,
+        createdAt: DateTime.now(),
+        clientNote: 'Test de réservation avec note client',
+      );
+
+      await _reservationService.createReservation(testReservation);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Réservation de test créée avec succès !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmReservation(Reservation reservation) async {
+    try {
+      final counterOffer = _getCounterOffer(reservation.id);
+      double finalPrice = reservation.totalPrice;
+
+      if (counterOffer != null) {
+        finalPrice = counterOffer['newPrice'];
+      }
+
+      // Mettre à jour le statut vers confirmed
+      await _reservationService.updateReservationStatus(
+        reservation.id,
+        ReservationStatus.confirmed,
+      );
+
+      // ✅ AJOUT : Mettre à jour le prix si contre-offre
+      if (counterOffer != null) {
+        final updatedReservation = reservation.copyWith(
+          totalPrice: finalPrice,
+          status: ReservationStatus.confirmed,
+        );
+        await _reservationService.updateReservation(updatedReservation);
+
+        setState(() {
+          _pendingCounterOffers.remove(reservation.id);
+        });
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Réservation confirmée avec succès !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // ✅ AJOUT : Petit délai pour laisser Firestore se synchroniser
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _cancelReservation(Reservation reservation) async {
+    final action = await _showRefusalDialog();
+    if (action == null) return;
+
+    switch (action) {
+      case RefusalAction.refuse:
+        await _refuseReservation(reservation);
+        break;
+      case RefusalAction.counterOffer:
+        await _showCounterOfferDialog(reservation);
+        break;
+    }
+  }
+
+  Future<RefusalAction?> _showRefusalDialog() async {
+    return showDialog<RefusalAction>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black87,
+          title: Text(
+            'Action sur la réservation',
+            style: TextStyle(color: AppColors.textStrong),
+          ),
+          content: Text(
+            'Que souhaitez-vous faire avec cette réservation ?',
+            style: TextStyle(color: AppColors.text),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Annuler',
+                style: TextStyle(color: AppColors.textWeak),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(RefusalAction.refuse),
+              child: const Text('Refuser', style: TextStyle(color: Colors.red)),
+            ),
+            ElevatedButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(RefusalAction.counterOffer),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+              ),
+              child: const Text('Contre-offre'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _refuseReservation(Reservation reservation) async {
+    try {
+      final updatedReservation = Reservation(
+        id: reservation.id,
+        userId: reservation.userId,
+        userName: reservation.userName,
+        vehicleName: reservation.vehicleName,
+        departure: reservation.departure,
+        destination: reservation.destination,
+        selectedDate: reservation.selectedDate,
+        selectedTime: reservation.selectedTime,
+        estimatedArrival: reservation.estimatedArrival,
+        paymentMethod: reservation.paymentMethod,
+        totalPrice: reservation.totalPrice,
+        status: ReservationStatus.cancelled,
+        createdAt: reservation.createdAt,
+        clientNote: reservation.clientNote,
+      );
+
+      await _reservationService.updateReservation(updatedReservation);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Réservation refusée'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _showCounterOfferDialog(Reservation reservation) async {
+    DateTime selectedDate = reservation.selectedDate;
+    TimeOfDay selectedTime = TimeOfDay(
+      hour: int.parse(reservation.selectedTime.split(':')[0]),
+      minute: int.parse(reservation.selectedTime.split(':')[1]),
+    );
+    final TextEditingController messageController = TextEditingController();
+
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (BuildContext context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: Colors.black87,
+          title: Text(
+            'Proposer une nouvelle date/heure',
+            style: TextStyle(color: AppColors.textStrong),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Date/heure actuelle
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.glass.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.glassStroke),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Date/heure actuelle:',
+                        style: TextStyle(
+                          color: AppColors.textWeak,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year} à ${reservation.selectedTime}',
+                        style: TextStyle(color: AppColors.text, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Nouvelle date
+                Text(
+                  'Nouvelle date:',
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate,
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: ColorScheme.dark(
+                              primary: AppColors.accent,
+                              surface: Colors.grey[900]!,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setDialogState(() {
+                        selectedDate = picked;
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withOpacity(0.1),
+                      border: Border.all(color: AppColors.accent),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          color: AppColors.accent,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                          style: TextStyle(
+                            color: AppColors.accent,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Nouvelle heure
+                Text(
+                  'Nouvelle heure:',
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () async {
+                    final TimeOfDay? picked = await showTimePicker(
+                      context: context,
+                      initialTime: selectedTime,
+                      builder: (context, child) {
+                        return Theme(
+                          data: Theme.of(context).copyWith(
+                            colorScheme: ColorScheme.dark(
+                              primary: AppColors.accent,
+                              surface: Colors.grey[900]!,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setDialogState(() {
+                        selectedTime = picked;
+                      });
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withOpacity(0.1),
+                      border: Border.all(color: AppColors.accent),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          color: AppColors.accent,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}',
+                          style: TextStyle(
+                            color: AppColors.accent,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Message/commentaire
+                Text(
+                  'Commentaire pour le client:',
+                  style: TextStyle(
+                    color: AppColors.textWeak,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: messageController,
+                  maxLines: 3,
+                  style: TextStyle(color: AppColors.text),
+                  decoration: InputDecoration(
+                    hintText: 'Expliquez le motif du changement d\'horaire...',
+                    hintStyle: TextStyle(color: AppColors.textWeak),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.accent),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.accent, width: 2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    filled: true,
+                    fillColor: AppColors.glass.withOpacity(0.3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Annuler',
+                style: TextStyle(color: AppColors.textWeak),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final newTime =
+                    '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}';
+                Navigator.of(context).pop({
+                  'newDate': selectedDate,
+                  'newTime': newTime,
+                  'message': messageController.text,
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Proposer'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null) {
+      await _sendCounterOffer(
+        reservation,
+        result['newDate'],
+        result['newTime'],
+        result['message'] ?? '',
+      );
+    }
+  }
+
+  // Méthode mise à jour pour gérer date/heure + commentaire
+  Future<void> _sendCounterOffer(
+    Reservation reservation,
+    DateTime newDate,
+    String newTime,
+    String message,
+  ) async {
+    try {
+      // Créer l'objet contre-offre
+      final counterOffer = {
+        'reservationId': reservation.id,
+        'adminId': _auth.currentUser?.uid,
+        'proposedDate': Timestamp.fromDate(newDate),
+        'proposedTime': newTime,
+        'adminMessage': message,
+        'status': 'pending', // pending, accepted, rejected
+        'createdAt': Timestamp.now(),
+      };
+
+      // 🔥 BATCH pour garantir la cohérence des données
+      final batch = FirebaseFirestore.instance.batch();
+
+      // 1️⃣ Sauvegarder la contre-offre
+      final counterOfferRef = FirebaseFirestore.instance
+          .collection('counter_offers')
+          .doc(); // Générer un ID automatique
+      batch.set(counterOfferRef, counterOffer);
+
+      // 2️⃣ Mettre à jour la réservation avec contreoffre: true
+      final reservationRef = FirebaseFirestore.instance
+          .collection('reservations')
+          .doc(reservation.id);
+      batch.update(reservationRef, {
+        'contreoffre': true, // 🆕 CHAMP AJOUTÉ
+        'status': 'counter_offered',
+        'lastUpdated': Timestamp.now(),
+      });
+
+      // 3️⃣ Exécuter les deux opérations ensemble
+      await batch.commit();
+
+      // 4️⃣ Garder aussi en local pour l'UI immédiate
+      setState(() {
+        _pendingCounterOffers[reservation.id] = {
+          'newDate': newDate,
+          'newTime': newTime,
+          'message': message,
+          'timestamp': DateTime.now(),
+        };
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '✅ Contre-offre envoyée: ${newDate.day}/${newDate.month} à $newTime',
+            ),
+            backgroundColor: AppColors.accent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Erreur lors de l\'envoi: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  bool _hasCounterOffer(String reservationId) {
+    return _pendingCounterOffers.containsKey(reservationId);
+  }
+
+  Map<String, dynamic>? _getCounterOffer(String reservationId) {
+    return _pendingCounterOffers[reservationId];
   }
 
   void _handleNavigation(int index) {

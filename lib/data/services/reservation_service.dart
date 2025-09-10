@@ -12,13 +12,9 @@ class ReservationService {
   // Créer une nouvelle réservation
   Future<String> createReservation(Reservation reservation) async {
     try {
-      // Générer un ID unique
       final docRef = _firestore.collection(_collection).doc();
       final reservationWithId = reservation.copyWith(id: docRef.id);
-
-      // Sauvegarder dans Firestore
       await docRef.set(reservationWithId.toMap());
-
       return docRef.id;
     } catch (e) {
       throw Exception('Erreur lors de la création de la réservation: $e');
@@ -35,7 +31,7 @@ class ReservationService {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => Reservation.fromMap(doc.data()))
+          .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
     } catch (e) {
       throw Exception('Erreur lors de la récupération des réservations: $e');
@@ -45,10 +41,13 @@ class ReservationService {
   // Obtenir une réservation par ID
   Future<Reservation?> getReservationById(String reservationId) async {
     try {
-      final doc = await _firestore.collection(_collection).doc(reservationId).get();
-      
+      final doc = await _firestore
+          .collection(_collection)
+          .doc(reservationId)
+          .get();
+
       if (doc.exists) {
-        return Reservation.fromMap(doc.data()!);
+        return Reservation.fromMap({...doc.data()!, 'id': doc.id});
       }
       return null;
     } catch (e) {
@@ -57,7 +56,10 @@ class ReservationService {
   }
 
   // Mettre à jour le statut d'une réservation
-  Future<void> updateReservationStatus(String reservationId, ReservationStatus newStatus) async {
+  Future<void> updateReservationStatus(
+    String reservationId,
+    ReservationStatus newStatus,
+  ) async {
     try {
       await _firestore.collection(_collection).doc(reservationId).update({
         'status': newStatus.name,
@@ -71,7 +73,9 @@ class ReservationService {
   // Mettre à jour une réservation complète
   Future<void> updateReservation(Reservation reservation) async {
     try {
-      final updatedReservation = reservation.copyWith(updatedAt: DateTime.now());
+      final updatedReservation = reservation.copyWith(
+        updatedAt: DateTime.now(),
+      );
       await _firestore
           .collection(_collection)
           .doc(reservation.id)
@@ -99,24 +103,28 @@ class ReservationService {
           .orderBy('createdAt', descending: true)
           .get();
 
-      final reservations = querySnapshot.docs
-          .map((doc) => Reservation.fromMap(doc.data()))
+      return querySnapshot.docs
+          .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
-      
-      return reservations;
     } catch (e) {
-      throw Exception('Erreur lors de la récupération des réservations en attente: $e');
+      throw Exception(
+        'Erreur lors de la récupération des réservations en attente: $e',
+      );
     }
   }
 
   // Obtenir l'utilisateur actuel
-  String? getCurrentUserId() {
-    return _auth.currentUser?.uid;
-  }
+  String? getCurrentUserId() => _auth.currentUser?.uid;
 
   // Vérifier si l'utilisateur est connecté
-  bool isUserLoggedIn() {
-    return _auth.currentUser != null;
+  bool isUserLoggedIn() => _auth.currentUser != null;
+
+  // ✅ Stream général de toutes les réservations (pour admin)
+  Stream<QuerySnapshot> getReservationsStream() {
+    return _firestore
+        .collection(_collection)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
   }
 
   // Stream des réservations d'un utilisateur (pour les mises à jour en temps réel)
@@ -126,9 +134,50 @@ class ReservationService {
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Reservation.fromMap(doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
+  }
+
+  // ✅ OPTIMISÉ : Méthode générique pour enrichir les réservations avec les noms d'utilisateurs
+  Future<Reservation> _enrichReservationWithUserName(
+    Reservation reservation,
+  ) async {
+    if (reservation.userName != null && reservation.userName!.isNotEmpty) {
+      return reservation;
+    }
+
+    try {
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(reservation.userId)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data()!;
+        final firstName = userData['firstName'] ?? '';
+        final lastName = userData['lastName'] ?? '';
+        final displayName = userData['displayName'] ?? '';
+        final email = userData['email'] ?? '';
+
+        String userName = 'Utilisateur';
+        if (displayName.isNotEmpty) {
+          userName = displayName;
+        } else if (firstName.isNotEmpty || lastName.isNotEmpty) {
+          userName = '$firstName $lastName'.trim();
+        } else if (email.isNotEmpty) {
+          userName = email.split('@')[0];
+        }
+
+        return reservation.copyWith(userName: userName);
+      }
+    } catch (e) {
+      // En cas d'erreur, garder le nom par défaut
+    }
+
+    return reservation.copyWith(userName: 'Utilisateur');
   }
 
   // Stream des réservations en attente (pour les conducteurs)
@@ -141,29 +190,18 @@ class ReservationService {
         .asyncMap((snapshot) async {
           final reservations = <Reservation>[];
           for (var doc in snapshot.docs) {
-            var reservation = Reservation.fromMap(doc.data());
-            // Si le nom d'utilisateur n'est pas défini, essayer de le récupérer
-            if (reservation.userName == null) {
-              try {
-                final userDoc = await _firestore.collection('users').doc(reservation.userId).get();
-                if (userDoc.exists) {
-                  final userData = userDoc.data()!;
-                  reservation = reservation.copyWith(
-                    userName: userData['displayName'] ?? userData['email']?.split('@')[0] ?? 'Utilisateur'
-                  );
-                }
-              } catch (e) {
-                // En cas d'erreur, garder le nom par défaut
-                reservation = reservation.copyWith(userName: 'Utilisateur');
-              }
-            }
+            var reservation = Reservation.fromMap({
+              ...doc.data(),
+              'id': doc.id,
+            });
+            reservation = await _enrichReservationWithUserName(reservation);
             reservations.add(reservation);
           }
           return reservations;
         });
   }
 
-  // Stream des réservations confirmées
+  // ✅ Stream des réservations confirmées (TOUTES - pour admin)
   Stream<List<Reservation>> getConfirmedReservationsStream() {
     return _firestore
         .collection(_collection)
@@ -173,29 +211,18 @@ class ReservationService {
         .asyncMap((snapshot) async {
           final reservations = <Reservation>[];
           for (var doc in snapshot.docs) {
-            var reservation = Reservation.fromMap(doc.data());
-            // Si le nom d'utilisateur n'est pas défini, essayer de le récupérer
-            if (reservation.userName == null) {
-              try {
-                final userDoc = await _firestore.collection('users').doc(reservation.userId).get();
-                if (userDoc.exists) {
-                  final userData = userDoc.data()!;
-                  reservation = reservation.copyWith(
-                    userName: userData['displayName'] ?? userData['email']?.split('@')[0] ?? 'Utilisateur'
-                  );
-                }
-              } catch (e) {
-                // En cas d'erreur, garder le nom par défaut
-                reservation = reservation.copyWith(userName: 'Utilisateur');
-              }
-            }
+            var reservation = Reservation.fromMap({
+              ...doc.data(),
+              'id': doc.id,
+            });
+            reservation = await _enrichReservationWithUserName(reservation);
             reservations.add(reservation);
           }
           return reservations;
         });
   }
 
-  // Stream des réservations terminées
+  // ✅ Stream des réservations terminées (TOUTES - pour admin)
   Stream<List<Reservation>> getCompletedReservationsStream() {
     return _firestore
         .collection(_collection)
@@ -205,22 +232,11 @@ class ReservationService {
         .asyncMap((snapshot) async {
           final reservations = <Reservation>[];
           for (var doc in snapshot.docs) {
-            var reservation = Reservation.fromMap(doc.data());
-            // Si le nom d'utilisateur n'est pas défini, essayer de le récupérer
-            if (reservation.userName == null) {
-              try {
-                final userDoc = await _firestore.collection('users').doc(reservation.userId).get();
-                if (userDoc.exists) {
-                  final userData = userDoc.data()!;
-                  reservation = reservation.copyWith(
-                    userName: userData['displayName'] ?? userData['email']?.split('@')[0] ?? 'Utilisateur'
-                  );
-                }
-              } catch (e) {
-                // En cas d'erreur, garder le nom par défaut
-                reservation = reservation.copyWith(userName: 'Utilisateur');
-              }
-            }
+            var reservation = Reservation.fromMap({
+              ...doc.data(),
+              'id': doc.id,
+            });
+            reservation = await _enrichReservationWithUserName(reservation);
             reservations.add(reservation);
           }
           return reservations;
@@ -230,9 +246,7 @@ class ReservationService {
   // Stream des réservations en attente pour un utilisateur spécifique
   Stream<List<Reservation>> getUserPendingReservationsStream() {
     final currentUser = _auth.currentUser;
-    if (currentUser == null) {
-      return Stream.value([]);
-    }
+    if (currentUser == null) return Stream.value([]);
 
     return _firestore
         .collection(_collection)
@@ -240,20 +254,17 @@ class ReservationService {
         .where('status', isEqualTo: ReservationStatus.pending.name)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) {
-          final reservations = snapshot.docs
-              .map((doc) => Reservation.fromMap(doc.data()))
-              .toList();
-          return reservations;
-        });
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
   }
 
   // Stream des réservations confirmées pour un utilisateur spécifique
   Stream<List<Reservation>> getUserConfirmedReservationsStream() {
     final currentUser = _auth.currentUser;
-    if (currentUser == null) {
-      return Stream.value([]);
-    }
+    if (currentUser == null) return Stream.value([]);
 
     return _firestore
         .collection(_collection)
@@ -261,20 +272,17 @@ class ReservationService {
         .where('status', isEqualTo: ReservationStatus.confirmed.name)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) {
-          final reservations = snapshot.docs
-              .map((doc) => Reservation.fromMap(doc.data()))
-              .toList();
-          return reservations;
-        });
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
   }
 
   // Stream des réservations terminées pour un utilisateur spécifique
   Stream<List<Reservation>> getUserCompletedReservationsStream() {
     final currentUser = _auth.currentUser;
-    if (currentUser == null) {
-      return Stream.value([]);
-    }
+    if (currentUser == null) return Stream.value([]);
 
     return _firestore
         .collection(_collection)
@@ -282,11 +290,10 @@ class ReservationService {
         .where('status', isEqualTo: ReservationStatus.completed.name)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snapshot) {
-          final reservations = snapshot.docs
-              .map((doc) => Reservation.fromMap(doc.data()))
-              .toList();
-          return reservations;
-        });
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
   }
 }
