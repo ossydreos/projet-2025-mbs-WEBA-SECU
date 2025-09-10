@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/acceuil_res_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/offres/offres_personnalisees_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/trajets/trajets_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/profile/profile_screen.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
@@ -75,6 +76,10 @@ class _HomeShellState extends State<HomeShell> {
               index: _currentIndex,
               children: [
                 AccueilScreen(
+                  onNavigate: _onTap,
+                  showBottomBar: false,
+                ),
+                OffresPersonnaliseesScreen(
                   onNavigate: _onTap,
                   showBottomBar: false,
                 ),

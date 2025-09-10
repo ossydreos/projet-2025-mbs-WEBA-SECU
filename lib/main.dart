@@ -10,6 +10,7 @@ import 'screens/utilisateur/profile/profile_screen.dart';
 import 'screens/utilisateur/reservation/localisation_recherche_screen.dart';
 import 'screens/utilisateur/trajets/trajets_screen.dart';
 import 'screens/utilisateur/reservation/acceuil_res_screen.dart';
+import 'screens/utilisateur/offres/offres_personnalisees_screen.dart';
 // Import des écrans admin
 import 'screens/admin/reception/admin_reception_screen.dart';
 import 'screens/admin/gestion/admin_gestion_screen.dart';
@@ -38,11 +39,14 @@ class MyApp extends StatelessWidget {
           case '/home':
             page = const HomeShell(initialIndex: 0);
             break;
-          case '/trajets':
+          case '/offres':
             page = const HomeShell(initialIndex: 1);
             break;
-          case '/profile':
+          case '/trajets':
             page = const HomeShell(initialIndex: 2);
+            break;
+          case '/profile':
+            page = const HomeShell(initialIndex: 3);
             break;
           // Routes admin
           case '/admin/home':

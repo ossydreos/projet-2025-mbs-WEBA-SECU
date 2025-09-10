@@ -40,6 +40,11 @@ class CustomBottomNavigationBar extends StatelessWidget {
             label: 'Accueil',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.local_offer_outlined),
+            activeIcon: Icon(Icons.local_offer),
+            label: 'Offres',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.schedule_outlined),
             activeIcon: Icon(Icons.schedule),
             label: 'Trajets',

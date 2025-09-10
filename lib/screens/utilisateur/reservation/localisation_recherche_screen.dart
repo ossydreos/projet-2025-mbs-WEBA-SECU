@@ -9,6 +9,26 @@ import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/constants.dart';
 
+class FavoriteTrip {
+  final String departure;
+  final String destination;
+  final String departureAddress;
+  final String destinationAddress;
+  final LatLng? departureCoordinates;
+  final LatLng? destinationCoordinates;
+  final IconData icon;
+
+  FavoriteTrip({
+    required this.departure,
+    required this.destination,
+    required this.departureAddress,
+    required this.destinationAddress,
+    this.departureCoordinates,
+    this.destinationCoordinates,
+    this.icon = Icons.favorite,
+  });
+}
+
 class Suggestion {
   final String displayName;
   final String shortName;
@@ -144,6 +164,37 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   LatLng? _selectedDepartureCoordinates;
   LatLng? _selectedDestinationCoordinates;
 
+  // Liste des trajets favoris codés en dur
+  final List<FavoriteTrip> _favoriteTrips = [
+    FavoriteTrip(
+      departure: "99 Chemin de Saule",
+      destination: "109 Bois de la Chappelle",
+      departureAddress: "99 Chemin de Saule, Genève, Suisse",
+      destinationAddress: "109 Bois de la Chappelle, Genève, Suisse",
+      departureCoordinates: const LatLng(46.2044, 6.1432),
+      destinationCoordinates: const LatLng(46.2084, 6.1472),
+      icon: Icons.home,
+    ),
+    FavoriteTrip(
+      departure: "Gare Cornavin",
+      destination: "Aéroport de Genève",
+      departureAddress: "Place de Cornavin, 1201 Genève, Suisse",
+      destinationAddress: "Route de l'Aéroport 21, 1215 Le Grand-Saconnex, Suisse",
+      departureCoordinates: const LatLng(46.2105, 6.1427),
+      destinationCoordinates: const LatLng(46.2381, 6.1090),
+      icon: Icons.train,
+    ),
+    FavoriteTrip(
+      departure: "Université de Genève",
+      destination: "CERN",
+      departureAddress: "Rue de Candolle 2, 1205 Genève, Suisse",
+      destinationAddress: "Route de Meyrin 385, 1217 Meyrin, Suisse",
+      departureCoordinates: const LatLng(46.1984, 6.1422),
+      destinationCoordinates: const LatLng(46.2332, 6.0533),
+      icon: Icons.school,
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -153,10 +204,10 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       _searchController.text = widget.currentDestination!;
     }
 
-    // Focus automatique pour faire apparaître le clavier
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
+    // PAS de focus automatique - on veut afficher les favoris par défaut
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   _focusNode.requestFocus();
+    // });
 
     // Écouter les changements de texte
     _searchController.addListener(_onTextChanged);
@@ -166,11 +217,19 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     _focusNode.addListener(() {
       setState(() {
         _isDestinationActive = _focusNode.hasFocus;
+        // Si on clique sur un champ, vider les suggestions de l'autre
+        if (_isDestinationActive) {
+          _departureSuggestions = [];
+        }
       });
     });
     _departureFocusNode.addListener(() {
       setState(() {
         _isDepartureActive = _departureFocusNode.hasFocus;
+        // Si on clique sur un champ, vider les suggestions de l'autre
+        if (_isDepartureActive) {
+          _suggestions = [];
+        }
       });
     });
 
@@ -630,15 +689,162 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     return null;
   }
 
+  // Méthode pour gérer le clic sur un trajet favori
+  void _onFavoriteTripTap(FavoriteTrip favoriteTrip) {
+    setState(() {
+      // Remplir le champ de départ
+      _currentPickupLocation = favoriteTrip.departure;
+      _selectedDepartureCoordinates = favoriteTrip.departureCoordinates;
+      
+      // Remplir le champ de destination
+      _searchController.text = favoriteTrip.destination;
+      _selectedDestinationCoordinates = favoriteTrip.destinationCoordinates;
+      
+      // Vider les suggestions
+      _suggestions = [];
+      _departureSuggestions = [];
+    });
+    
+    // Fermer le clavier
+    FocusScope.of(context).unfocus();
+  }
+
+  // Widget pour afficher les trajets favoris
+  Widget _buildFavoriteTripsList() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      itemCount: _favoriteTrips.length,
+      itemBuilder: (context, index) {
+        final favoriteTrip = _favoriteTrips[index];
+        return GlassContainer(
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          child: InkWell(
+            onTap: () => _onFavoriteTripTap(favoriteTrip),
+            borderRadius: BorderRadius.circular(12),
+            child: Row(
+              children: [
+                // Icône du trajet favori
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    favoriteTrip.icon,
+                    color: AppColors.accent,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                
+                // Informations du trajet
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Départ
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: AppColors.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              favoriteTrip.departure,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      
+                      // Destination
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            color: AppColors.accent,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              favoriteTrip.destination,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Flèche
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppColors.text,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildSuggestionsList() {
-    // Debug: Afficher l'état actuel
-    print('Debug suggestions:');
-    print('Departure text: "${_departureController.text}"');
-    print('Destination text: "${_searchController.text}"');
-    print('Departure suggestions count: ${_departureSuggestions.length}');
-    print('Destination suggestions count: ${_suggestions.length}');
-    print('Loading departure: $_isLoadingDeparture');
-    print('Loading destination: $_isLoading');
+    // Si aucun champ n'a le focus, afficher les trajets favoris
+    if (!_isDepartureActive && !_isDestinationActive) {
+      return Column(
+        children: [
+          // Titre des trajets favoris
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.favorite,
+                  color: AppColors.accent,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Trajets favoris',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Liste des trajets favoris
+          Expanded(child: _buildFavoriteTripsList()),
+        ],
+      );
+    }
 
     // Afficher les suggestions selon le champ actuellement FOCUS
     if (_isDepartureActive) {

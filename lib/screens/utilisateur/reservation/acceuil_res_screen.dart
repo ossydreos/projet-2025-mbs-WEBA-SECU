@@ -139,7 +139,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   }
 
   void _addUserLocationMarker() {
-    final userLocation = _userLocation ?? LatLng(48.8566, 2.3522);
+    final userLocation = _userLocation ?? LatLng(46.183355, 6.09998); // 106 Bois de la Chapelle, Onex, Suisse
     final marker = gmaps.Marker(
       markerId: const gmaps.MarkerId('user'),
       position: gmaps.LatLng(userLocation.latitude, userLocation.longitude),
@@ -155,7 +155,7 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   void _addDefaultLocationMarker() {
     setState(() {
-      _userLocation = LatLng(48.8566, 2.3522);
+      _userLocation = LatLng(46.183355, 6.09998); // 106 Bois de la Chapelle, Onex, Suisse
     });
     _addUserLocationMarker();
   }
@@ -178,7 +178,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   }
 
   void _fitMapToShowBothMarkers(LatLng destination) {
-    final user = _userLocation ?? LatLng(48.8566, 2.3522);
+    final user = _userLocation ?? LatLng(46.183355, 6.09998); // 106 Bois de la Chapelle, Onex, Suisse
     final bounds = gmaps.LatLngBounds(
       southwest: gmaps.LatLng(
         user.latitude < destination.latitude
@@ -487,6 +487,43 @@ class _AccueilScreenState extends State<AccueilScreen>
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          // Boutons de contact pour les réservations en attente
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _makePhoneCall,
+                  icon: const Icon(Icons.phone, size: 18),
+                  label: const Text('Appeler'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _sendSMS,
+                  icon: const Icon(Icons.message, size: 18),
+                  label: const Text('Message'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.accent,
+                    side: BorderSide(color: AppColors.accent),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -508,8 +545,8 @@ class _AccueilScreenState extends State<AccueilScreen>
             gmaps.GoogleMap(
               initialCameraPosition: gmaps.CameraPosition(
                 target: gmaps.LatLng(
-                  (_userLocation ?? const LatLng(48.8566, 2.3522)).latitude,
-                  (_userLocation ?? const LatLng(48.8566, 2.3522)).longitude,
+                  (_userLocation ?? const LatLng(46.183355, 6.09998)).latitude, // 106 Bois de la Chapelle, Onex, Suisse
+                  (_userLocation ?? const LatLng(46.183355, 6.09998)).longitude,
                 ),
                 zoom: _userLocation != null ? 15.0 : 14.0,
               ),
@@ -609,7 +646,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                       top: 16,
                       left: 16,
                       right: 16,
-                      bottom: bottomSafe + kBottomNavigationBarHeight + 8,
+                      bottom: bottomSafe + kBottomNavigationBarHeight - 20, // espace pour la navbar et champ de recherche
                     ),
                     child: hasPending
                         ? _buildPendingReservationPanel(snapshot.data!.first)
