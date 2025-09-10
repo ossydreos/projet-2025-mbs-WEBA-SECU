@@ -36,7 +36,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   bool _isLoadingLocation = true;
   String _locationError = '';
 
-  Set<gmaps.Marker> _gmMarkers = <gmaps.Marker>{};
+  final Set<gmaps.Marker> _gmMarkers = <gmaps.Marker>{};
 
   @override
   void initState() {
@@ -324,7 +324,11 @@ class _AccueilScreenState extends State<AccueilScreen>
               children: [
                 Row(
                   children: [
-                    Icon(Icons.directions_car, color: AppColors.accent, size: 20),
+                    Icon(
+                      Icons.directions_car,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       reservation.vehicleName,

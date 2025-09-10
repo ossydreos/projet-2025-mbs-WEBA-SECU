@@ -92,7 +92,7 @@ class VehiculeOptionCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          vehicle.capacity,
+                          vehicle.capacityDisplay,
                           style: TextStyle(
                             color: AppColors.textWeak,
                             fontWeight: FontWeight.w500,
@@ -107,7 +107,7 @@ class VehiculeOptionCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          vehicle.luggage,
+                          vehicle.luggageDisplay,
                           style: TextStyle(
                             color: AppColors.textWeak,
                             fontWeight: FontWeight.w500,
@@ -125,7 +125,7 @@ class VehiculeOptionCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    vehicle.price,
+                    vehicle.priceDisplay,
                     style: TextStyle(
                       color: AppColors.textStrong,
                       fontWeight: FontWeight.w800,

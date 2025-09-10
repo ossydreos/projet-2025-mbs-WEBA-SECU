@@ -121,35 +121,47 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       final vehicles = await _vehicleService.getActiveVehicles();
       final selectedVehicle = vehicles.firstWhere(
         (v) => v.name == widget.vehicleName,
-        orElse: () => vehicles.isNotEmpty ? vehicles.first : throw Exception('Aucun véhicule trouvé'),
+        orElse: () => vehicles.isNotEmpty
+            ? vehicles.first
+            : throw Exception('Aucun véhicule trouvé'),
       );
-      
-      print('🚗 Véhicule sélectionné pour la réservation: ${selectedVehicle.name} (${selectedVehicle.category.name}) - ${selectedVehicle.pricePerKm}€/km');
+
+      print(
+        '🚗 Véhicule sélectionné pour la réservation: ${selectedVehicle.name} (${selectedVehicle.category.name}) - ${selectedVehicle.pricePerKm}€/km',
+      );
 
       // Calculer la distance réelle avec Google Maps
       double distance = 5.0; // Distance par défaut
-      if (widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+      if (widget.departureCoordinates != null &&
+          widget.destinationCoordinates != null) {
         try {
           distance = await DirectionsService.getRealDistance(
             origin: widget.departureCoordinates!,
             destination: widget.destinationCoordinates!,
           );
-          
+
           // Distance minimum de 1km
           if (distance < 1.0) {
             distance = 1.0;
           }
         } catch (e) {
           // Pas de fallback - l'API doit fonctionner
-          throw Exception('Impossible de calculer la distance - API Google Maps indisponible');
+          throw Exception(
+            'Impossible de calculer la distance - API Google Maps indisponible',
+          );
         }
       }
 
       // Calculer le prix
-      _calculatedPrice = _vehicleService.calculateTripPrice(selectedVehicle, distance);
-      
-      print('💰 Prix calculé: ${_calculatedPrice.toStringAsFixed(2)} € (distance: ${distance.toStringAsFixed(2)} km)');
-      
+      _calculatedPrice = _vehicleService.calculateTripPrice(
+        selectedVehicle,
+        distance,
+      );
+
+      print(
+        '💰 Prix calculé: ${_calculatedPrice.toStringAsFixed(2)} € (distance: ${distance.toStringAsFixed(2)} km)',
+      );
+
       if (mounted) {
         setState(() {
           _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} €';
@@ -221,11 +233,15 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 'longitude': widget.destinationCoordinates!.longitude,
               }
             : null,
-        clientNote: _noteController.text.trim().isNotEmpty ? _noteController.text.trim() : null,
+        clientNote: _noteController.text.trim().isNotEmpty
+            ? _noteController.text.trim()
+            : null,
       );
 
       // Sauvegarder dans Firebase
-      print('💾 Sauvegarde de la réservation avec le véhicule: ${widget.vehicleName}');
+      print(
+        '💾 Sauvegarde de la réservation avec le véhicule: ${widget.vehicleName}',
+      );
       final reservationId = await _reservationService.createReservation(
         reservation,
       );
@@ -468,7 +484,9 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                     children: [
                                       Container(
                                         height: 2,
-                                        color: AppColors.textWeak.withOpacity(0.3),
+                                        color: AppColors.textWeak.withOpacity(
+                                          0.3,
+                                        ),
                                       ),
                                       const SizedBox(height: 40),
                                     ],
@@ -566,7 +584,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                   fontSize: 16,
                                 ),
                                 decoration: InputDecoration(
-                                  hintText: 'Ajoutez une note pour votre chauffeur...',
+                                  hintText:
+                                      'Ajoutez une note pour votre chauffeur...',
                                   hintStyle: TextStyle(
                                     color: AppColors.textWeak,
                                     fontSize: 16,

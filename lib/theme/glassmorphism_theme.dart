@@ -48,12 +48,10 @@ class Fx {
 class AppTheme {
   static ThemeData get glassDark {
     final scheme = const ColorScheme.dark(
-      background: AppColors.bg,
       surface: AppColors.bgElev,
       primary: AppColors.accent,
       secondary: AppColors.accent2,
       tertiary: AppColors.hot,
-      onBackground: AppColors.text,
       onSurface: AppColors.text,
       onPrimary: Colors.white, // lisible sur periwinkle
       onSecondary: Colors.black,
@@ -62,7 +60,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: scheme.background,
+      scaffoldBackgroundColor: scheme.surface,
       textTheme: _textTheme(Colors.white),
       inputDecorationTheme: _inputTheme(scheme),
       elevatedButtonTheme: _buttonTheme(scheme),
@@ -146,8 +144,9 @@ class AppTheme {
         ),
         elevation: WidgetStateProperty.all(0),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.pressed))
+          if (states.contains(WidgetState.pressed)) {
             return scheme.primary.withOpacity(0.85);
+          }
           return scheme.primary.withOpacity(0.95);
         }),
         foregroundColor: WidgetStateProperty.all(scheme.onPrimary),

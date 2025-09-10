@@ -41,8 +41,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   void _onItemTapped(int index) {
-    if (index == _selectedIndex)
+    if (index == _selectedIndex) {
       return; // Éviter la navigation si déjà sur la page
+    }
 
     setState(() {
       _selectedIndex = index;

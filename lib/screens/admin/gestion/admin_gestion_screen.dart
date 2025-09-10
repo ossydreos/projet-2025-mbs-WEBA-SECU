@@ -125,12 +125,6 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                   subtitle: 'Voir les statistiques de l\'application',
                   onTap: () => _showStatistics(),
                 ),
-                _buildMenuItem(
-                  icon: Icons.settings,
-                  title: 'Paramètres système',
-                  subtitle: 'Configuration générale de l\'application',
-                  onTap: () => _showSystemSettings(),
-                ),
               ],
             ),
             const SizedBox(height: 100), // Espace pour la navbar
@@ -328,10 +322,6 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
 
   void _showStatistics() {
     _showFeatureDialog('Statistiques');
-  }
-
-  void _showSystemSettings() {
-    _showFeatureDialog('Paramètres système');
   }
 
   void _showFeatureDialog(String feature) {
