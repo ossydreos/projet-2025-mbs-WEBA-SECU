@@ -11,6 +11,7 @@ import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
 import 'package:my_mobility_services/widgets/waiting_widget.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart' hide GlassSheet;
+import 'package:my_mobility_services/data/services/session_service.dart';
 class LoginForm extends StatefulWidget {
   const LoginForm({required this.onClose, required this.onSwitch, super.key});
 
@@ -29,6 +30,9 @@ class LoginFormState extends State<LoginForm> {
 
   // Tap recognizer pour le lien "Sign up"
   late final TapGestureRecognizer _signupTap;
+
+  // Services
+  final SessionService _sessionService = SessionService();
 
   // UI state
   var _rememberMe = false;
@@ -105,10 +109,11 @@ class LoginFormState extends State<LoginForm> {
 
       final uid = cred.user?.uid;
       if (uid != null) {
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'lastLoginAt': FieldValue.serverTimestamp(),
-          if (_rememberMe) 'rememberMe': true,
-        }, SetOptions(merge: true));
+        // Sauvegarder la préférence "Rester connecté" localement
+        await _sessionService.setRememberMe(_rememberMe);
+        
+        // Mettre à jour les préférences dans Firestore
+        await _sessionService.updateUserSessionPreferences(uid, _rememberMe);
       }
 
       if (!mounted) return;

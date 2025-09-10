@@ -12,6 +12,7 @@ import 'package:my_mobility_services/widgets/waiting_widget.dart';
 import 'package:my_mobility_services/screens/log_screen/welcome_login_screen.dart'
     show PanelType;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart' hide GlassSheet;
+import 'package:my_mobility_services/data/services/session_service.dart';
 
 class SignupForm extends StatefulWidget {
   const SignupForm({required this.onClose, required this.onSwitch, super.key});
@@ -32,6 +33,10 @@ class SignupFormState extends State<SignupForm> {
   late final TapGestureRecognizer _loginTap;
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
+
+  // Services
+  final SessionService _sessionService = SessionService();
 
   static final RegExp _emojiRegex = RegExp(
     r'[\u{1F300}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]',
@@ -116,12 +121,16 @@ class SignupFormState extends State<SignupForm> {
 
       final uid = cred.user?.uid;
       if (uid != null) {
+        // Sauvegarder la préférence "Rester connecté" localement
+        await _sessionService.setRememberMe(_rememberMe);
+        
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'uid': uid,
           'email': email,
           'provider': 'password',
           'emailVerified': cred.user?.emailVerified ?? false,
           'createdAt': FieldValue.serverTimestamp(),
+          'rememberMe': _rememberMe,
           if (name.isNotEmpty) 'name': name,
         }, SetOptions(merge: true));
       }
@@ -265,7 +274,23 @@ class SignupFormState extends State<SignupForm> {
               await _submit();
             },
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
+
+          // Checkbox "Rester connecté"
+          Row(
+            children: [
+              Checkbox(
+                value: _rememberMe,
+                onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                activeColor: AppColors.accent,
+                side: const BorderSide(
+                  color: Color.fromRGBO(255, 255, 255, 0.6),
+                ),
+              ),
+              Text('Rester connecté', style: txt.copyWith(color: Colors.white)),
+            ],
+          ),
+          const SizedBox(height: 6),
 
           SizedBox(
             height: 54,
