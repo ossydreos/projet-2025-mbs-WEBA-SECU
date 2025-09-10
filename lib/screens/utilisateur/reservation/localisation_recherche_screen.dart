@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/constants.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
 
 class FavoriteTrip {
   final String departure;
@@ -135,8 +136,21 @@ class _Debouncer {
 
 class LocationSearchScreen extends StatefulWidget {
   final String? currentDestination;
+  final String? initialDeparture;
+  final String? initialDestination;
+  final LatLng? departureCoordinates;
+  final LatLng? destinationCoordinates;
+  final bool fromSummary;
 
-  const LocationSearchScreen({super.key, this.currentDestination});
+  const LocationSearchScreen({
+    super.key, 
+    this.currentDestination,
+    this.initialDeparture,
+    this.initialDestination,
+    this.departureCoordinates,
+    this.destinationCoordinates,
+    this.fromSummary = false,
+  });
 
   @override
   State<LocationSearchScreen> createState() => _LocationSearchScreenState();
@@ -168,9 +182,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   final List<FavoriteTrip> _favoriteTrips = [
     FavoriteTrip(
       departure: "99 Chemin de Saule",
-      destination: "109 Bois de la Chappelle",
+      destination: "109 Bois de la Chappele",
       departureAddress: "99 Chemin de Saule, Genève, Suisse",
-      destinationAddress: "109 Bois de la Chappelle, Genève, Suisse",
+      destinationAddress: "109 Bois de la Chappele, Genève, Suisse",
       departureCoordinates: const LatLng(46.2044, 6.1432),
       destinationCoordinates: const LatLng(46.2084, 6.1472),
       icon: Icons.home,
@@ -202,6 +216,23 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     // Si on a déjà une destination, l'afficher
     if (widget.currentDestination != null) {
       _searchController.text = widget.currentDestination!;
+    }
+    
+    // Pré-remplir les champs avec les valeurs initiales si fournies
+    if (widget.initialDeparture != null) {
+      _departureController.text = widget.initialDeparture!;
+      _currentPickupLocation = widget.initialDeparture!;
+    }
+    if (widget.initialDestination != null) {
+      _searchController.text = widget.initialDestination!;
+    }
+    
+    // Initialiser les coordonnées sélectionnées
+    if (widget.departureCoordinates != null) {
+      _selectedDepartureCoordinates = widget.departureCoordinates;
+    }
+    if (widget.destinationCoordinates != null) {
+      _selectedDestinationCoordinates = widget.destinationCoordinates;
     }
 
     // PAS de focus automatique - on veut afficher les favoris par défaut
@@ -626,12 +657,32 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       destinationCoords = await _geocodeAddress(_searchController.text);
     }
     
-    Navigator.pop(context, {
-      'departure': departureLabel,
-      'destination': _searchController.text,
-      'departureCoordinates': _selectedDepartureCoordinates ?? _currentPositionLatLng,
-      'destinationCoordinates': destinationCoords,
-    });
+    if (widget.fromSummary) {
+      // Si on vient du résumé, aller vers BookingScreen
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => BookingScreen(
+            departure: departureLabel,
+            destination: _searchController.text,
+            departureCoordinates: _selectedDepartureCoordinates ?? _currentPositionLatLng,
+            destinationCoordinates: destinationCoords,
+            fromSummary: true,
+          ),
+        ),
+      );
+      
+      // Retourner le résultat de BookingScreen à TripSummaryScreen
+      Navigator.pop(context, result);
+    } else {
+      // Comportement normal : retourner les données à l'écran principal
+      Navigator.pop(context, {
+        'departure': departureLabel,
+        'destination': _searchController.text,
+        'departureCoordinates': _selectedDepartureCoordinates ?? _currentPositionLatLng,
+        'destinationCoordinates': destinationCoords,
+      });
+    }
   }
 
   // Géocoder une adresse pour récupérer ses coordonnées
@@ -694,6 +745,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     setState(() {
       // Remplir le champ de départ
       _currentPickupLocation = favoriteTrip.departure;
+      _departureController.text = favoriteTrip.departure;
       _selectedDepartureCoordinates = favoriteTrip.departureCoordinates;
       
       // Remplir le champ de destination
@@ -1003,7 +1055,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     children: [
                       GestureDetector(
                         onTap: () => Navigator.pop(context),
-                        child: Icon(Icons.close, size: 24, color: AppColors.accent),
+                        child: const Icon(Icons.close, size: 32, color: Colors.white),
                       ),
                       Expanded(
                         child: Center(
@@ -1176,7 +1228,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: GlassButton(
-                        label: 'Suivant',
+                        label: 'Continuer',
                         onPressed: _canProceed() ? _proceedToBooking : null,
                       ),
                     ),

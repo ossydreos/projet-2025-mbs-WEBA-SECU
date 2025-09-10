@@ -14,6 +14,7 @@ class BookingScreen extends StatefulWidget {
   final String destination;
   final LatLng? departureCoordinates;
   final LatLng? destinationCoordinates;
+  final bool fromSummary;
 
   const BookingScreen({
     super.key,
@@ -21,6 +22,7 @@ class BookingScreen extends StatefulWidget {
     required this.destination,
     this.departureCoordinates,
     this.destinationCoordinates,
+    this.fromSummary = false,
   });
 
   @override
@@ -81,6 +83,9 @@ class _BookingScreenState extends State<BookingScreen>
     if (oldWidget.departureCoordinates != widget.departureCoordinates ||
         oldWidget.destinationCoordinates != widget.destinationCoordinates) {
       _calculateEstimatedDistanceAndArrival();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _centerMapOnRoute();
+      });
     }
   }
 
@@ -198,6 +203,7 @@ class _BookingScreenState extends State<BookingScreen>
     }
     return points;
   }
+
 
   @override
   void dispose() {
@@ -811,23 +817,35 @@ class _BookingScreenState extends State<BookingScreen>
                                 child: ElevatedButton(
                                   onPressed: _selectedVehicle != null
                                       ? () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  SchedulingScreen(
-                                                    vehicleName:
-                                                        _selectedVehicle!.name,
-                                                    departure: widget.departure,
-                                                    destination:
-                                                        widget.destination,
-                                                    departureCoordinates: widget
-                                                        .departureCoordinates,
-                                                    destinationCoordinates: widget
-                                                        .destinationCoordinates,
-                                                  ),
-                                            ),
-                                          );
+                                          if (widget.fromSummary) {
+                                            // Retourner au résumé avec les données mises à jour
+                                            Navigator.pop(context, {
+                                              'departure': widget.departure,
+                                              'destination': widget.destination,
+                                              'departureCoordinates': widget.departureCoordinates,
+                                              'destinationCoordinates': widget.destinationCoordinates,
+                                              'vehicleName': _selectedVehicle!.name,
+                                            });
+                                          } else {
+                                            // Aller à la page de planification
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    SchedulingScreen(
+                                                      vehicleName:
+                                                          _selectedVehicle!.name,
+                                                      departure: widget.departure,
+                                                      destination:
+                                                          widget.destination,
+                                                      departureCoordinates: widget
+                                                          .departureCoordinates,
+                                                      destinationCoordinates: widget
+                                                          .destinationCoordinates,
+                                                    ),
+                                              ),
+                                            );
+                                          }
                                         }
                                       : null,
                                   style: ElevatedButton.styleFrom(
@@ -843,7 +861,9 @@ class _BookingScreenState extends State<BookingScreen>
                                   ),
                                   child: Text(
                                     _selectedVehicle != null
-                                        ? 'Planifier ${_selectedVehicle!.name}'
+                                        ? (widget.fromSummary 
+                                            ? 'Retour au résumé'
+                                            : 'Planifier ${_selectedVehicle!.name}')
                                         : 'Sélectionner un véhicule',
                                     style: TextStyle(
                                       fontSize: 16,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.dart';
 
 import 'package:my_mobility_services/widgets/authgate.dart';
@@ -15,6 +16,8 @@ import 'screens/admin/profile/admin_profile_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialiser les données de fuseau horaire pour toute l'application
+  tz.initializeTimeZones();
   runApp(const MyApp());
 }
 

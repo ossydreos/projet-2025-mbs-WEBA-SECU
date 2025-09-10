@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/trip_summary_screen.dart';
+import 'package:my_mobility_services/data/services/directions_service.dart';
 
 class SchedulingScreen extends StatefulWidget {
   final String vehicleName;
@@ -32,21 +34,95 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
   @override
   void initState() {
     super.initState();
-    // Définir l'heure par défaut à 22:00 comme dans l'exemple
-    _selectedTime = const TimeOfDay(hour: 22, minute: 0);
+    _initializeTime();
+  }
+
+  void _initializeTime() {
+    try {
+      // Définir l'heure par défaut à 30 minutes après l'heure actuelle de Zurich
+      final zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
+      final defaultTime = zurichTime.add(const Duration(minutes: 30));
+      _selectedTime = TimeOfDay(hour: defaultTime.hour, minute: defaultTime.minute);
+    } catch (e) {
+      // Fallback vers l'heure locale si la base de données n'est pas encore initialisée
+      final now = DateTime.now();
+      final defaultTime = now.add(const Duration(minutes: 30));
+      _selectedTime = TimeOfDay(hour: defaultTime.hour, minute: defaultTime.minute);
+    }
     _updateEstimatedArrival();
   }
 
-  void _updateEstimatedArrival() {
-    if (_selectedTime != null) {
-      // Ajouter 13 minutes à l'heure de prise en charge (comme dans l'exemple)
+  void _updateEstimatedArrival() async {
+    if (_selectedTime != null && widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+      try {
+        // Obtenir le temps de trajet réel via l'API Google Maps
+        final directions = await DirectionsService.getDirections(
+          origin: widget.departureCoordinates!,
+          destination: widget.destinationCoordinates!,
+        );
+
+        if (directions != null) {
+          final durationMinutes = (directions['durationValue'] / 60).round();
+          
+          // Créer la date/heure dans le fuseau horaire de Zurich
+          final zurichLocation = tz.getLocation('Europe/Zurich');
+          final selectedDateTime = tz.TZDateTime(
+            zurichLocation,
+            _selectedDate.year,
+            _selectedDate.month,
+            _selectedDate.day,
+            _selectedTime!.hour,
+            _selectedTime!.minute,
+          );
+          
+          // Ajouter le temps de trajet réel à l'heure de prise en charge
+          final arrivalTime = selectedDateTime.add(Duration(minutes: durationMinutes));
+
+          setState(() {
+            _estimatedArrival = DateFormat('HH:mm').format(arrivalTime);
+          });
+        } else {
+          // Fallback si l'API ne fonctionne pas
+          _setFallbackArrivalTime();
+        }
+      } catch (e) {
+        // Fallback en cas d'erreur
+        _setFallbackArrivalTime();
+      }
+    } else {
+      // Fallback si pas de coordonnées
+      _setFallbackArrivalTime();
+    }
+  }
+
+  void _setFallbackArrivalTime() {
+    try {
+      // Créer la date/heure dans le fuseau horaire de Zurich
+      final zurichLocation = tz.getLocation('Europe/Zurich');
+      final selectedDateTime = tz.TZDateTime(
+        zurichLocation,
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      );
+      
+      // Fallback avec 15 minutes par défaut
+      final arrivalTime = selectedDateTime.add(const Duration(minutes: 15));
+
+      setState(() {
+        _estimatedArrival = DateFormat('HH:mm').format(arrivalTime);
+      });
+    } catch (e) {
+      // Fallback vers l'heure locale si la base de données n'est pas encore initialisée
       final arrivalTime = DateTime(
         _selectedDate.year,
         _selectedDate.month,
         _selectedDate.day,
         _selectedTime!.hour,
         _selectedTime!.minute,
-      ).add(const Duration(minutes: 13));
+      ).add(const Duration(minutes: 15));
 
       setState(() {
         _estimatedArrival = DateFormat('HH:mm').format(arrivalTime);
@@ -55,11 +131,19 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
   }
 
   Future<void> _selectDate() async {
+    DateTime zurichTime;
+    try {
+      zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
+    } catch (e) {
+      // Fallback vers l'heure locale si la base de données n'est pas encore initialisée
+      zurichTime = DateTime.now();
+    }
+    
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDate,
-      firstDate: DateTime.now().add(const Duration(minutes: 30)),
-      lastDate: DateTime.now().add(const Duration(days: 90)),
+      firstDate: zurichTime.add(const Duration(minutes: 30)),
+      lastDate: zurichTime.add(const Duration(days: 90)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -86,7 +170,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
   Future<void> _selectTime() async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _selectedTime ?? const TimeOfDay(hour: 22, minute: 0),
+      initialTime: _selectedTime ?? TimeOfDay.now(),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -96,8 +180,34 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
               surface: AppColors.bgElev,
               onSurface: Colors.white,
             ),
+            timePickerTheme: const TimePickerThemeData(
+              hourMinuteTextStyle: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              hourMinuteColor: AppColors.bgElev,
+              dialHandColor: AppColors.accent,
+              dialBackgroundColor: AppColors.bgElev,
+              entryModeIconColor: AppColors.accent,
+              helpTextStyle: TextStyle(color: Colors.white),
+              inputDecorationTheme: InputDecorationTheme(
+                border: OutlineInputBorder(),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.accent),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.accent, width: 2),
+                ),
+              ),
+            ),
           ),
-          child: child!,
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              alwaysUse24HourFormat: true, // Force le format 24h
+            ),
+            child: child!,
+          ),
         );
       },
     );
@@ -111,7 +221,15 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
   }
 
   String _formatDate(DateTime date) {
-    final now = DateTime.now();
+    DateTime zurichTime;
+    try {
+      zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
+    } catch (e) {
+      // Fallback vers l'heure locale si la base de données n'est pas encore initialisée
+      zurichTime = DateTime.now();
+    }
+    
+    final now = DateTime(zurichTime.year, zurichTime.month, zurichTime.day);
     final today = DateTime(now.year, now.month, now.day);
     final selectedDay = DateTime(date.year, date.month, date.day);
 
@@ -313,36 +431,19 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
-
-              // Note fuseau horaire
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  'Le fuseau horaire est basé sur le lieu de prise en charge',
-                  style: TextStyle(fontSize: 14, color: AppColors.text),
-                ),
-              ),
-
               const SizedBox(height: 24),
 
               // Estimation d'arrivée (apparaît seulement si une heure est sélectionnée)
               if (_selectedTime != null && _estimatedArrival != null)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Heure d\'arrivée estimée: $_estimatedArrival',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.info_outline, size: 16, color: AppColors.text),
-                    ],
+                  child: Text(
+                    'Heure d\'arrivée estimée: $_estimatedArrival',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
 

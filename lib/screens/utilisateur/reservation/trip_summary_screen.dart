@@ -6,6 +6,9 @@ import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/localisation_recherche_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
 
 class TripSummaryScreen extends StatefulWidget {
   final String vehicleName;
@@ -41,6 +44,14 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
   bool _isCreatingReservation = false;
   double _calculatedPrice = 0.0;
   final TextEditingController _noteController = TextEditingController();
+  
+  // Variables pour les données modifiables
+  late String _currentDeparture;
+  late String _currentDestination;
+  late LatLng? _currentDepartureCoordinates;
+  late LatLng? _currentDestinationCoordinates;
+  late String _estimatedArrival;
+  late String _currentVehicleName;
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -105,6 +116,14 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialiser les variables modifiables
+    _currentDeparture = widget.departure;
+    _currentDestination = widget.destination;
+    _currentDepartureCoordinates = widget.departureCoordinates;
+    _currentDestinationCoordinates = widget.destinationCoordinates;
+    _estimatedArrival = widget.estimatedArrival;
+    _currentVehicleName = widget.vehicleName;
+    
     _calculatePrice();
   }
 
@@ -114,13 +133,85 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     super.dispose();
   }
 
+  // Mettre à jour avec une nouvelle route
+  Future<void> _updateWithNewRoute(String departure, String destination, LatLng? departureCoords, LatLng? destinationCoords) async {
+    setState(() {
+      _currentDeparture = departure;
+      _currentDestination = destination;
+      _currentDepartureCoordinates = departureCoords;
+      _currentDestinationCoordinates = destinationCoords;
+    });
+    
+    // Calculer le prix et l'heure d'arrivée en parallèle
+    await Future.wait([
+      _calculatePrice(),
+      _updateEstimatedArrival(),
+    ]);
+  }
+
+  // Méthode pour gérer le retour de BookingScreen
+  Future<void> _handleBookingScreenReturn(Map<String, dynamic>? result) async {
+    if (result != null) {
+      // Mettre à jour le nom du véhicule si fourni
+      if (result.containsKey('vehicleName')) {
+        setState(() {
+          _currentVehicleName = result['vehicleName'];
+        });
+      }
+      
+      await _updateWithNewRoute(
+        result['departure'],
+        result['destination'],
+        result['departureCoordinates'],
+        result['destinationCoordinates'],
+      );
+    }
+  }
+
+  // Méthode pour mettre à jour l'heure d'arrivée estimée
+  Future<void> _updateEstimatedArrival() async {
+    if (_currentDepartureCoordinates != null && _currentDestinationCoordinates != null) {
+      try {
+        // Calculer la durée du trajet avec les nouvelles coordonnées
+        final directions = await DirectionsService.getDirections(
+          origin: _currentDepartureCoordinates!,
+          destination: _currentDestinationCoordinates!,
+        );
+        
+        if (directions != null && directions.containsKey('durationValue')) {
+          final durationSeconds = directions['durationValue'] as int;
+          final durationMinutes = (durationSeconds / 60).round();
+          
+          // Calculer l'heure d'arrivée en ajoutant la durée à l'heure de départ
+          final departureTime = DateTime(
+            widget.selectedDate.year,
+            widget.selectedDate.month,
+            widget.selectedDate.day,
+            widget.selectedTime.hour,
+            widget.selectedTime.minute,
+          );
+          
+          final arrivalTime = departureTime.add(Duration(minutes: durationMinutes));
+          final arrivalTimeOfDay = TimeOfDay.fromDateTime(arrivalTime);
+          
+          setState(() {
+            _estimatedArrival = '${arrivalTimeOfDay.hour.toString().padLeft(2, '0')}:${arrivalTimeOfDay.minute.toString().padLeft(2, '0')}';
+          });
+        }
+      } catch (e) {
+        print('Erreur lors du calcul de l\'heure d\'arrivée: $e');
+        // Garder l'heure d'arrivée par défaut
+      }
+    }
+  }
+
   // Calculer le prix basé sur la distance et le type de véhicule
   Future<void> _calculatePrice() async {
     try {
       // Obtenir le véhicule sélectionné
       final vehicles = await _vehicleService.getActiveVehicles();
       final selectedVehicle = vehicles.firstWhere(
-        (v) => v.name == widget.vehicleName,
+        (v) => v.name == _currentVehicleName,
         orElse: () => vehicles.isNotEmpty
             ? vehicles.first
             : throw Exception('Aucun véhicule trouvé'),
@@ -132,12 +223,12 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
       // Calculer la distance réelle avec Google Maps
       double distance = 5.0; // Distance par défaut
-      if (widget.departureCoordinates != null &&
-          widget.destinationCoordinates != null) {
+      if (_currentDepartureCoordinates != null &&
+          _currentDestinationCoordinates != null) {
         try {
           distance = await DirectionsService.getRealDistance(
-            origin: widget.departureCoordinates!,
-            destination: widget.destinationCoordinates!,
+            origin: _currentDepartureCoordinates!,
+            destination: _currentDestinationCoordinates!,
           );
 
           // Distance minimum de 1km
@@ -211,26 +302,26 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         id: '', // Sera généré par le service
         userId: userId,
         userName: userName,
-        vehicleName: widget.vehicleName,
-        departure: widget.departure,
-        destination: widget.destination,
+        vehicleName: _currentVehicleName,
+        departure: _currentDeparture,
+        destination: _currentDestination,
         selectedDate: widget.selectedDate,
         selectedTime: _formatTime(widget.selectedTime),
-        estimatedArrival: widget.estimatedArrival,
+        estimatedArrival: _estimatedArrival,
         paymentMethod: _paymentMethod,
         totalPrice: _calculatedPrice,
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
-        departureCoordinates: widget.departureCoordinates != null
+        departureCoordinates: _currentDepartureCoordinates != null
             ? {
-                'latitude': widget.departureCoordinates!.latitude,
-                'longitude': widget.departureCoordinates!.longitude,
+                'latitude': _currentDepartureCoordinates!.latitude,
+                'longitude': _currentDepartureCoordinates!.longitude,
               }
             : null,
-        destinationCoordinates: widget.destinationCoordinates != null
+        destinationCoordinates: _currentDestinationCoordinates != null
             ? {
-                'latitude': widget.destinationCoordinates!.latitude,
-                'longitude': widget.destinationCoordinates!.longitude,
+                'latitude': _currentDestinationCoordinates!.latitude,
+                'longitude': _currentDestinationCoordinates!.longitude,
               }
             : null,
         clientNote: _noteController.text.trim().isNotEmpty
@@ -240,7 +331,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
       // Sauvegarder dans Firebase
       print(
-        '💾 Sauvegarde de la réservation avec le véhicule: ${widget.vehicleName}',
+        '💾 Sauvegarde de la réservation avec le véhicule: $_currentVehicleName',
       );
       final reservationId = await _reservationService.createReservation(
         reservation,
@@ -291,7 +382,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => _showExitConfirmation(),
                       child: const Icon(
                         Icons.close,
                         size: 32,
@@ -346,8 +437,19 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                 const Spacer(),
                                 GestureDetector(
                                   onTap: () {
-                                    // TODO: Retourner à la page de planification
-                                    Navigator.pop(context);
+                                    // Aller à la page de planification
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SchedulingScreen(
+                                          vehicleName: _currentVehicleName,
+                                          departure: _currentDeparture,
+                                          destination: _currentDestination,
+                                          departureCoordinates: _currentDepartureCoordinates,
+                                          destinationCoordinates: _currentDestinationCoordinates,
+                                        ),
+                                      ),
+                                    );
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
@@ -410,9 +512,26 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                 ),
                                 const Spacer(),
                                 GestureDetector(
-                                  onTap: () {
-                                    // Retourner à la page de sélection d'adresses
-                                    Navigator.pop(context);
+                                  onTap: () async {
+                                    // Aller à la page de recherche de localisation
+                                    // qui redirigera vers BookingScreen
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => LocationSearchScreen(
+                                          initialDeparture: widget.departure,
+                                          initialDestination: widget.destination,
+                                          departureCoordinates: widget.departureCoordinates,
+                                          destinationCoordinates: widget.destinationCoordinates,
+                                          fromSummary: true,
+                                        ),
+                                      ),
+                                    );
+                                    
+                                    // Si on revient de BookingScreen avec des données mises à jour
+                                    if (result != null) {
+                                      await _handleBookingScreenReturn(result);
+                                    }
                                   },
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
@@ -463,7 +582,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        widget.departure,
+                                        _currentDeparture,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
@@ -518,7 +637,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        widget.destination,
+                                        _currentDestination,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: const TextStyle(
@@ -531,6 +650,135 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+                      
+                      // ETA
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: AppColors.accent.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.access_time,
+                                size: 16,
+                                color: AppColors.accent,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Arrivée estimée: $_estimatedArrival',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.accent,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      Divider(
+                        color: AppColors.textWeak.withOpacity(0.3),
+                        thickness: 0.5,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Section Véhicule
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Text(
+                                  'Véhicule',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const Spacer(),
+                                GestureDetector(
+                                  onTap: () async {
+                                    // Aller à la page de sélection des véhicules
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => BookingScreen(
+                                          departure: _currentDeparture,
+                                          destination: _currentDestination,
+                                          departureCoordinates: _currentDepartureCoordinates,
+                                          destinationCoordinates: _currentDestinationCoordinates,
+                                          fromSummary: true,
+                                        ),
+                                      ),
+                                    );
+                                    
+                                    // Si l'utilisateur a changé de véhicule, mettre à jour
+                                    if (result != null) {
+                                      await _handleBookingScreenReturn(result);
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.accent.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: AppColors.accent,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Modifier',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: AppColors.accent,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 12,
+                                          color: AppColors.accent,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _currentVehicleName,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textWeak,
+                              ),
                             ),
                           ],
                         ),
@@ -753,18 +1001,60 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     );
   }
 
+  void _showExitConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.bgElev,
+          title: const Text(
+            'Annuler la réservation',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: const Text(
+            'Êtes-vous sûr de vouloir annuler cette réservation ? Toutes les informations saisies seront perdues.',
+            style: TextStyle(color: Colors.white),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Non',
+                style: TextStyle(color: AppColors.text),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Fermer la boîte de dialogue
+                Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+              },
+              child: Text(
+                'Oui, annuler',
+                style: TextStyle(color: AppColors.accent),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showPaymentMethodDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Méthode de paiement'),
+          backgroundColor: AppColors.bgElev,
+          title: const Text(
+            'Méthode de paiement',
+            style: TextStyle(color: Colors.white),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.apple),
-                title: const Text('Apple Pay'),
+                leading: const Icon(Icons.apple, color: Colors.white),
+                title: const Text('Apple Pay', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Apple Pay';
@@ -773,8 +1063,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.credit_card),
-                title: const Text('Carte bancaire'),
+                leading: const Icon(Icons.credit_card, color: Colors.white),
+                title: const Text('Carte bancaire', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Carte bancaire';
@@ -783,8 +1073,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.account_balance_wallet),
-                title: const Text('Espèces'),
+                leading: const Icon(Icons.account_balance_wallet, color: Colors.white),
+                title: const Text('Espèces', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Espèces';
