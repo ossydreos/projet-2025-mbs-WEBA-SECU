@@ -150,16 +150,20 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       
       print('💰 Prix calculé: ${_calculatedPrice.toStringAsFixed(2)} € (distance: ${distance.toStringAsFixed(2)} km)');
       
-      setState(() {
-        _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} €';
-      });
+      if (mounted) {
+        setState(() {
+          _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} €';
+        });
+      }
     } catch (e) {
       print('Erreur lors du calcul du prix: $e');
       // Prix par défaut en cas d'erreur
-      setState(() {
-        _calculatedPrice = 15.0;
-        _totalPrice = '15,00 €';
-      });
+      if (mounted) {
+        setState(() {
+          _calculatedPrice = 15.0;
+          _totalPrice = '15,00 €';
+        });
+      }
     }
   }
 

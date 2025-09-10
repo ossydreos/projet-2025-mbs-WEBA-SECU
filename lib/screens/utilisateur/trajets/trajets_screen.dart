@@ -4,6 +4,8 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/services/admin_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // 👇 importe la barre réutilisable
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
@@ -23,6 +25,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   late TabController _tabController;
   int _selectedIndex = 1; // Index 1 pour "Trajets" (actif)
   final ReservationService _reservationService = ReservationService();
+  final AdminService _adminService = AdminService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
@@ -459,6 +462,46 @@ class _TrajetsScreenState extends State<TrajetsScreen>
               ),
             ],
           ),
+          // Boutons de contact pour les réservations confirmées
+          if (reservation.status == ReservationStatus.confirmed || 
+              reservation.status == ReservationStatus.inProgress) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _makePhoneCall,
+                    icon: const Icon(Icons.phone, size: 18),
+                    label: const Text('Appeler'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _sendSMS,
+                    icon: const Icon(Icons.message, size: 18),
+                    label: const Text('Message'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.accent,
+                      side: BorderSide(color: AppColors.accent),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -630,6 +673,68 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         ],
       ),
     );
+  }
+
+  // Lancer un appel téléphonique
+  Future<void> _makePhoneCall() async {
+    try {
+      final phoneNumber = await _adminService.getAdminPhoneNumber();
+      if (phoneNumber != null) {
+        final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+        try {
+          if (await canLaunchUrl(phoneUri)) {
+            await launchUrl(phoneUri);
+          } else {
+            // Fallback: essayer de lancer directement sans vérification
+            await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+          }
+        } catch (e) {
+          // Fallback: essayer de lancer directement
+          await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+        }
+      } else {
+        _showErrorSnackBar('Numéro de téléphone admin non disponible');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Erreur lors de l\'appel: $e');
+    }
+  }
+
+  // Envoyer un SMS
+  Future<void> _sendSMS() async {
+    try {
+      final phoneNumber = await _adminService.getAdminPhoneNumber();
+      if (phoneNumber != null) {
+        final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
+        try {
+          if (await canLaunchUrl(smsUri)) {
+            await launchUrl(smsUri);
+          } else {
+            // Fallback: essayer de lancer directement sans vérification
+            await launchUrl(smsUri, mode: LaunchMode.externalApplication);
+          }
+        } catch (e) {
+          // Fallback: essayer de lancer directement
+          await launchUrl(smsUri, mode: LaunchMode.externalApplication);
+        }
+      } else {
+        _showErrorSnackBar('Numéro de téléphone admin non disponible');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Erreur lors de l\'envoi du SMS: $e');
+    }
+  }
+
+  // Afficher un message d'erreur
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: AppColors.hot,
+        ),
+      );
+    }
   }
 
   @override
