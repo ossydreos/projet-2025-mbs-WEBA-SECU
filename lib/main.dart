@@ -6,11 +6,6 @@ import 'package:my_mobility_services/widgets/authgate.dart';
 import 'firebase/firebase_options.dart';
 import 'theme/glassmorphism_theme.dart';
 // Import des écrans pour les routes
-import 'screens/utilisateur/profile/profile_screen.dart';
-import 'screens/utilisateur/reservation/localisation_recherche_screen.dart';
-import 'screens/utilisateur/trajets/trajets_screen.dart';
-import 'screens/utilisateur/reservation/acceuil_res_screen.dart';
-import 'screens/utilisateur/offres/offres_personnalisees_screen.dart';
 // Import des écrans admin
 import 'screens/admin/reception/admin_reception_screen.dart';
 import 'screens/admin/gestion/admin_gestion_screen.dart';

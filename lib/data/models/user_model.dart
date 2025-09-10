@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum UserRole {
-  user,
-  admin,
-}
+enum UserRole { user, admin }
 
 class UserModel {
   final String uid;
@@ -52,8 +49,8 @@ class UserModel {
         orElse: () => UserRole.user,
       ),
       createdAt: (map['createdAt'] as Timestamp).toDate(),
-      updatedAt: map['updatedAt'] != null 
-          ? (map['updatedAt'] as Timestamp).toDate() 
+      updatedAt: map['updatedAt'] != null
+          ? (map['updatedAt'] as Timestamp).toDate()
           : null,
       isActive: map['isActive'] ?? true,
     );

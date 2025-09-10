@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
-import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
-import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
 
 class AdminTrajetsScreen extends StatefulWidget {
   const AdminTrajetsScreen({super.key});
@@ -21,7 +19,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
   int _selectedIndex = 1;
   late TabController _tabController;
-  final Map<String, String> _departureAddressCache = {};
 
   @override
   void initState() {
@@ -79,9 +76,44 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 ),
               ),
             ],
-
             // Place proprement le TabBar dans AppBar.bottom
-            bottom: TrajetNav(_tabController),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(56),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.accent),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicator: BoxDecoration(
+                      color: AppColors.accent.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.accent, width: 2),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: AppColors.textStrong,
+                    unselectedLabelColor: AppColors.textWeak,
+                    dividerColor: Colors.transparent,
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                    tabs: const [
+                      Tab(text: 'À venir'),
+                      Tab(text: 'Terminés'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
 
           // Le contenu occupe l’espace restant, sans Column supplémentaire.
@@ -101,84 +133,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     );
   }
 
-  String _formatAddress(String label, Map<String, dynamic>? coords) {
-    final normalized = label.trim().toLowerCase();
-    if (normalized == 'ma position actuelle' && coords != null) {
-      final lat = (coords['latitude'] as num?)?.toDouble();
-      final lng = (coords['longitude'] as num?)?.toDouble();
-      if (lat != null && lng != null) {
-        return 'Position GPS (${lat.toStringAsFixed(5)}, ${lng.toStringAsFixed(5)})';
-      }
-    }
-    return label;
-  }
-
-  String _getDepartureText(Reservation reservation) {
-    final label = reservation.departure;
-    final normalized = label.trim().toLowerCase();
-    if (normalized != 'ma position actuelle') return label;
-
-    final coords = reservation.departureCoordinates;
-    if (coords == null) return label; // pas d'info en base
-
-    final key = reservation.id.isNotEmpty
-        ? reservation.id
-        : '${coords['latitude']}_${coords['longitude']}';
-    final cached = _departureAddressCache[key];
-    if (cached != null && cached.isNotEmpty) return cached;
-
-    final lat = (coords['latitude'] as num?)?.toDouble();
-    final lng = (coords['longitude'] as num?)?.toDouble();
-    if (lat == null || lng == null) return label;
-
-    _resolveAndCacheAddress(key, lat, lng);
-    return _formatAddress(label, coords);
-  }
-
-  Future<void> _resolveAndCacheAddress(
-    String key,
-    double lat,
-    double lng,
-  ) async {
-    try {
-      final placemarks = await geocoding.placemarkFromCoordinates(
-        lat,
-        lng,
-        localeIdentifier: 'fr_FR',
-      );
-      if (placemarks.isNotEmpty) {
-        final p = placemarks.first;
-        final street = p.street?.trim();
-        final postal = p.postalCode?.trim();
-        final city = p.locality?.trim();
-        final parts = [
-          street,
-          postal,
-          city,
-        ].where((s) => s != null && s!.isNotEmpty).cast<String>().toList();
-        final formatted = parts.isNotEmpty ? parts.join(' ') : 'Position GPS';
-        if (mounted) {
-          setState(() {
-            _departureAddressCache[key] = formatted;
-          });
-        } else {
-          _departureAddressCache[key] = formatted;
-        }
-      }
-    } catch (_) {
-      // on garde le fallback
-    }
-  }
-
   Widget _buildUpcomingTab() {
     // On peut ajouter un SafeArea(bottom:false) au besoin, mais ici pas nécessaire
     return StreamBuilder<List<Reservation>>(
       stream: _reservationService.getConfirmedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(color: AppColors.accent),
-          );
           return Center(
             child: CircularProgressIndicator(color: AppColors.accent),
           );
@@ -238,9 +198,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       stream: _reservationService.getCompletedReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: CircularProgressIndicator(color: AppColors.accent),
-          );
           return Center(
             child: CircularProgressIndicator(color: AppColors.accent),
           );
@@ -434,7 +391,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${_getDepartureText(reservation)} → ${reservation.destination}',
+                  '${reservation.departure} → ${reservation.destination}',
                   style: TextStyle(fontSize: 14, color: AppColors.text),
                 ),
               ),
@@ -451,55 +408,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               ),
             ],
           ),
-          // Affichage de la note du client si elle existe
-          if (reservation.clientNote != null && reservation.clientNote!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.note_alt,
-                    color: AppColors.accent,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Note du client:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.accent,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          reservation.clientNote!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.text,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
           const SizedBox(height: 16),
           Row(
             children: [
@@ -626,7 +534,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${_getDepartureText(reservation)} → ${reservation.destination}',
+                  '${reservation.departure} → ${reservation.destination}',
                   style: TextStyle(fontSize: 14, color: AppColors.text),
                 ),
               ),
@@ -643,55 +551,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               ),
             ],
           ),
-          // Affichage de la note du client si elle existe
-          if (reservation.clientNote != null && reservation.clientNote!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.note_alt,
-                    color: AppColors.accent,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Note du client:',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.accent,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          reservation.clientNote!,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.text,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );

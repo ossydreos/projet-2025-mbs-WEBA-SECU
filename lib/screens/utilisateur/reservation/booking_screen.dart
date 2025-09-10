@@ -37,7 +37,7 @@ class _BookingScreenState extends State<BookingScreen>
   bool _isPanelExpanded = true;
   double _currentPanelHeight = 0.0;
   double _dragStartHeight = 0.0;
-  
+
   // Service et données des véhicules
   final VehicleService _vehicleService = VehicleService();
   List<VehiculeType> _vehicles = [];
@@ -65,7 +65,7 @@ class _BookingScreenState extends State<BookingScreen>
 
     // Charger les véhicules depuis la base de données
     _loadVehicles();
-    
+
     // Calculer la distance et l'heure d'arrivée estimées
     _calculateEstimatedDistanceAndArrival();
 
@@ -105,24 +105,27 @@ class _BookingScreenState extends State<BookingScreen>
 
   // Calculer la distance et l'heure d'arrivée estimées
   Future<void> _calculateEstimatedDistanceAndArrival() async {
-    if (widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+    if (widget.departureCoordinates != null &&
+        widget.destinationCoordinates != null) {
       try {
         // Utiliser l'API Google Maps pour une estimation précise
         final distance = await DirectionsService.getRealDistance(
           origin: widget.departureCoordinates!,
           destination: widget.destinationCoordinates!,
         );
-        
+
         final arrivalTime = await DirectionsService.getEstimatedArrivalTime(
           origin: widget.departureCoordinates!,
           destination: widget.destinationCoordinates!,
         );
-        
+
         setState(() {
-          _estimatedDistance = distance < 1.0 ? 1.0 : distance; // Distance minimum de 1km
+          _estimatedDistance = distance < 1.0
+              ? 1.0
+              : distance; // Distance minimum de 1km
           _estimatedArrival = arrivalTime;
         });
-        
+
         // Mettre à jour le tracé de la route
         _updateRoutePolyline();
       } catch (e) {
@@ -139,20 +142,20 @@ class _BookingScreenState extends State<BookingScreen>
     }
   }
 
-
   // Mettre à jour le tracé de la route avec Google Maps
   Future<void> _updateRoutePolyline() async {
-    if (widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+    if (widget.departureCoordinates != null &&
+        widget.destinationCoordinates != null) {
       try {
         final directions = await DirectionsService.getDirections(
           origin: widget.departureCoordinates!,
           destination: widget.destinationCoordinates!,
         );
-        
+
         if (directions != null && directions['polyline'] != null) {
           // Décoder la polyline de Google Maps
           _routePoints = _decodePolyline(directions['polyline']);
-          
+
           // Forcer la mise à jour de l'UI
           if (mounted) {
             setState(() {});
@@ -268,7 +271,6 @@ class _BookingScreenState extends State<BookingScreen>
         return Colors.amber;
     }
   }
-
 
   void _togglePanel() {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -531,50 +533,66 @@ class _BookingScreenState extends State<BookingScreen>
                                     ),
                                   )
                                 : _vehicles.isEmpty
-                                    ? Center(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.car_rental,
-                                              size: 64,
-                                              color: AppColors.textWeak,
-                                            ),
-                                            const SizedBox(height: 16),
-                                            Text(
-                                              'Aucun véhicule disponible',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: AppColors.textWeak,
-                                              ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              'Veuillez réessayer plus tard',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: AppColors.textWeak,
-                                              ),
-                                            ),
-                                          ],
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.car_rental,
+                                          size: 64,
+                                          color: AppColors.textWeak,
                                         ),
-                                      )
-                                    : ListView.builder(
-                                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                                        itemCount: _vehicles.length,
-                                        itemBuilder: (context, index) {
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Aucun véhicule disponible',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: AppColors.textWeak,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Veuillez réessayer plus tard',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: AppColors.textWeak,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    padding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      0,
+                                      16,
+                                      0,
+                                    ),
+                                    itemCount: _vehicles.length,
+                                    itemBuilder: (context, index) {
                                       final vehicle = _vehicles[index];
-                                      final isSelected = _selectedVehicle?.id == vehicle.id;
-                                      final estimatedPrice = _vehicleService.calculateTripPrice(vehicle, _estimatedDistance);
-                                      
+                                      final isSelected =
+                                          _selectedVehicle?.id == vehicle.id;
+                                      final estimatedPrice = _vehicleService
+                                          .calculateTripPrice(
+                                            vehicle,
+                                            _estimatedDistance,
+                                          );
 
                                       return Container(
-                                        margin: const EdgeInsets.only(bottom: 8),
+                                        margin: const EdgeInsets.only(
+                                          bottom: 8,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: isSelected
-                                              ? AppColors.accent.withOpacity(0.1)
+                                              ? AppColors.accent.withOpacity(
+                                                  0.1,
+                                                )
                                               : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                           border: Border.all(
                                             color: isSelected
                                                 ? AppColors.accent
@@ -584,20 +602,26 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                         child: ListTile(
                                           onTap: () => _selectVehicle(vehicle),
-                                          contentPadding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 8,
-                                          ),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 8,
+                                              ),
                                           leading: Container(
                                             width: 40,
                                             height: 40,
                                             decoration: BoxDecoration(
-                                              color: _getVehicleColor(vehicle.category).withOpacity(0.2),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: _getVehicleColor(
+                                                vehicle.category,
+                                              ).withOpacity(0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             child: Icon(
                                               vehicle.icon,
-                                              color: _getVehicleColor(vehicle.category),
+                                              color: _getVehicleColor(
+                                                vehicle.category,
+                                              ),
                                               size: 20,
                                             ),
                                           ),
@@ -681,19 +705,24 @@ class _BookingScreenState extends State<BookingScreen>
                                     width: 40,
                                     height: 40,
                                     decoration: BoxDecoration(
-                                      color: _getVehicleColor(_selectedVehicle!.category).withOpacity(0.2),
+                                      color: _getVehicleColor(
+                                        _selectedVehicle!.category,
+                                      ).withOpacity(0.2),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Icon(
                                       _selectedVehicle!.icon,
-                                      color: _getVehicleColor(_selectedVehicle!.category),
+                                      color: _getVehicleColor(
+                                        _selectedVehicle!.category,
+                                      ),
                                       size: 20,
                                     ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
@@ -780,22 +809,27 @@ class _BookingScreenState extends State<BookingScreen>
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed: _selectedVehicle != null ? () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => SchedulingScreen(
-                                          vehicleName: _selectedVehicle!.name,
-                                          departure: widget.departure,
-                                          destination: widget.destination,
-                                          departureCoordinates:
-                                              widget.departureCoordinates,
-                                          destinationCoordinates:
-                                              widget.destinationCoordinates,
-                                        ),
-                                      ),
-                                    );
-                                  } : null,
+                                  onPressed: _selectedVehicle != null
+                                      ? () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  SchedulingScreen(
+                                                    vehicleName:
+                                                        _selectedVehicle!.name,
+                                                    departure: widget.departure,
+                                                    destination:
+                                                        widget.destination,
+                                                    departureCoordinates: widget
+                                                        .departureCoordinates,
+                                                    destinationCoordinates: widget
+                                                        .destinationCoordinates,
+                                                  ),
+                                            ),
+                                          );
+                                        }
+                                      : null,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.accent,
                                     foregroundColor: AppColors.bg,
@@ -808,7 +842,7 @@ class _BookingScreenState extends State<BookingScreen>
                                     elevation: 0,
                                   ),
                                   child: Text(
-                                    _selectedVehicle != null 
+                                    _selectedVehicle != null
                                         ? 'Planifier ${_selectedVehicle!.name}'
                                         : 'Sélectionner un véhicule',
                                     style: TextStyle(
