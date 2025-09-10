@@ -142,6 +142,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   LatLng? _currentPositionLatLng;
   String? _currentPositionAddress;
   LatLng? _selectedDepartureCoordinates;
+  LatLng? _selectedDestinationCoordinates;
 
   @override
   void initState() {
@@ -229,6 +230,50 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           final suggestions = preds
               .map((p) => Suggestion.fromPlaces(p))
               .toList();
+          
+          // Trier les suggestions : Suisse en premier, puis France, puis autres
+          suggestions.sort((a, b) {
+            final aIsSwiss = a.address.toLowerCase().contains('suisse') || 
+                            a.address.toLowerCase().contains('switzerland') ||
+                            a.address.toLowerCase().contains('genève') ||
+                            a.address.toLowerCase().contains('zurich') ||
+                            a.address.toLowerCase().contains('bern') ||
+                            a.address.toLowerCase().contains('lausanne') ||
+                            a.address.toLowerCase().contains('basel') ||
+                            a.address.toLowerCase().contains('lucerne');
+            
+            final bIsSwiss = b.address.toLowerCase().contains('suisse') || 
+                            b.address.toLowerCase().contains('switzerland') ||
+                            b.address.toLowerCase().contains('genève') ||
+                            b.address.toLowerCase().contains('zurich') ||
+                            b.address.toLowerCase().contains('bern') ||
+                            b.address.toLowerCase().contains('lausanne') ||
+                            b.address.toLowerCase().contains('basel') ||
+                            b.address.toLowerCase().contains('lucerne');
+            
+            final aIsFrench = a.address.toLowerCase().contains('france') ||
+                             a.address.toLowerCase().contains('paris') ||
+                             a.address.toLowerCase().contains('lyon') ||
+                             a.address.toLowerCase().contains('marseille') ||
+                             a.address.toLowerCase().contains('toulouse') ||
+                             a.address.toLowerCase().contains('nice');
+            
+            final bIsFrench = b.address.toLowerCase().contains('france') ||
+                             b.address.toLowerCase().contains('paris') ||
+                             b.address.toLowerCase().contains('lyon') ||
+                             b.address.toLowerCase().contains('marseille') ||
+                             b.address.toLowerCase().contains('toulouse') ||
+                             b.address.toLowerCase().contains('nice');
+            
+            // Priorité : Suisse > France > Autres
+            if (aIsSwiss && !bIsSwiss) return -1;
+            if (!aIsSwiss && bIsSwiss) return 1;
+            if (aIsFrench && !bIsFrench && !bIsSwiss) return -1;
+            if (!aIsFrench && bIsFrench && !aIsSwiss) return 1;
+            
+            return 0; // Garder l'ordre original si même priorité
+          });
+          
           setState(() {
             _suggestions = suggestions;
             _isLoading = false;
@@ -271,6 +316,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       setState(() {
         _searchController.text = suggestion.shortName;
         _suggestions = [];
+        _selectedDestinationCoordinates = coords; // Stocker les coordonnées de destination
       });
     } else if (_isDepartureActive) {
       setState(() {
@@ -299,7 +345,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   void _onDepartureTextChanged() {
     final query = _departureController.text;
-    print('Departure text changed: "$query"');
     if (query.isEmpty) {
       setState(() {
         _departureSuggestions = [];
@@ -338,6 +383,50 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           final suggestions = preds
               .map((p) => Suggestion.fromPlaces(p))
               .toList();
+          
+          // Trier les suggestions : Suisse en premier, puis France, puis autres
+          suggestions.sort((a, b) {
+            final aIsSwiss = a.address.toLowerCase().contains('suisse') || 
+                            a.address.toLowerCase().contains('switzerland') ||
+                            a.address.toLowerCase().contains('genève') ||
+                            a.address.toLowerCase().contains('zurich') ||
+                            a.address.toLowerCase().contains('bern') ||
+                            a.address.toLowerCase().contains('lausanne') ||
+                            a.address.toLowerCase().contains('basel') ||
+                            a.address.toLowerCase().contains('lucerne');
+            
+            final bIsSwiss = b.address.toLowerCase().contains('suisse') || 
+                            b.address.toLowerCase().contains('switzerland') ||
+                            b.address.toLowerCase().contains('genève') ||
+                            b.address.toLowerCase().contains('zurich') ||
+                            b.address.toLowerCase().contains('bern') ||
+                            b.address.toLowerCase().contains('lausanne') ||
+                            b.address.toLowerCase().contains('basel') ||
+                            b.address.toLowerCase().contains('lucerne');
+            
+            final aIsFrench = a.address.toLowerCase().contains('france') ||
+                             a.address.toLowerCase().contains('paris') ||
+                             a.address.toLowerCase().contains('lyon') ||
+                             a.address.toLowerCase().contains('marseille') ||
+                             a.address.toLowerCase().contains('toulouse') ||
+                             a.address.toLowerCase().contains('nice');
+            
+            final bIsFrench = b.address.toLowerCase().contains('france') ||
+                             b.address.toLowerCase().contains('paris') ||
+                             b.address.toLowerCase().contains('lyon') ||
+                             b.address.toLowerCase().contains('marseille') ||
+                             b.address.toLowerCase().contains('toulouse') ||
+                             b.address.toLowerCase().contains('nice');
+            
+            // Priorité : Suisse > France > Autres
+            if (aIsSwiss && !bIsSwiss) return -1;
+            if (!aIsSwiss && bIsSwiss) return 1;
+            if (aIsFrench && !bIsFrench && !bIsSwiss) return -1;
+            if (!aIsFrench && bIsFrench && !aIsSwiss) return 1;
+            
+            return 0; // Garder l'ordre original si même priorité
+          });
+          
           setState(() {
             _departureSuggestions = suggestions;
             _isLoadingDeparture = false;
@@ -463,7 +552,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     return _searchController.text.isNotEmpty;
   }
 
-  void _proceedToBooking() {
+  Future<void> _proceedToBooking() async {
     // Retourner les données à l'écran principal avec les deux adresses
     final String departureLabel =
         (_currentPickupLocation == 'Ma position actuelle' &&
@@ -471,12 +560,50 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     _currentPositionAddress!.isNotEmpty))
             ? _currentPositionAddress!
             : _currentPickupLocation;
+    
+    // Si pas de coordonnées de destination sélectionnées, essayer de les récupérer via géocoding
+    LatLng? destinationCoords = _selectedDestinationCoordinates;
+    if (destinationCoords == null && _searchController.text.isNotEmpty) {
+      destinationCoords = await _geocodeAddress(_searchController.text);
+    }
+    
     Navigator.pop(context, {
       'departure': departureLabel,
       'destination': _searchController.text,
       'departureCoordinates': _selectedDepartureCoordinates ?? _currentPositionLatLng,
-      'destinationCoordinates': null, // À implémenter plus tard
+      'destinationCoordinates': destinationCoords,
     });
+  }
+
+  // Géocoder une adresse pour récupérer ses coordonnées
+  Future<LatLng?> _geocodeAddress(String address) async {
+    try {
+      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
+          ? AppConstants.googlePlacesWebKey
+          : (Platform.isIOS
+                ? AppConstants.googleMapsApiKeyIOS
+                : AppConstants.googleMapsApiKeyAndroid);
+      
+      final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$key',
+      );
+      
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'OK' && data['results'].isNotEmpty) {
+          final result = data['results'][0];
+          final location = result['geometry']['location'];
+          return LatLng(
+            location['lat'].toDouble(),
+            location['lng'].toDouble(),
+          );
+        }
+      }
+    } catch (e) {
+      // Erreur silencieuse
+    }
+    return null;
   }
 
   Future<LatLng?> _fetchPlaceDetailsLatLng(String placeId) async {

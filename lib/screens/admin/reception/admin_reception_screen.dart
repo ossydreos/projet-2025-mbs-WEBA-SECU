@@ -275,7 +275,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         id: '',
         userId: 'test_user_123',
         userName: 'Marie Martin',
-        vehicleName: 'Bolt',
+        vehicleName: 'Berline Économique',
         departure: 'Place de la République, Paris',
         destination: 'Gare du Nord, Paris',
         selectedDate: DateTime.now().add(Duration(days: 1)),
@@ -284,7 +284,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         estimatedArrival:
             '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 13).toString().padLeft(2, '0')}',
         paymentMethod: 'Espèces',
-        totalPrice: 15.50,
+        totalPrice: 6.0, // Prix calculé pour ~5km avec véhicule économique (1.20€/km)
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
       );

@@ -5,6 +5,9 @@ import 'package:my_mobility_services/theme/google_map_styles.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_screen.dart';
+import 'package:my_mobility_services/data/models/vehicule_type.dart';
+import 'package:my_mobility_services/data/services/vehicle_service.dart';
+import 'package:my_mobility_services/data/services/directions_service.dart';
 
 class BookingScreen extends StatefulWidget {
   final String departure;
@@ -27,67 +30,21 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen>
     with TickerProviderStateMixin {
   gmaps.GoogleMapController? _googleMapController;
-  String _selectedVehicle = 'Bolt';
+  VehiculeType? _selectedVehicle;
   int _selectedIndex = 0;
   late AnimationController _panelController;
   late Animation<double> _panelAnimation;
   bool _isPanelExpanded = true;
   double _currentPanelHeight = 0.0;
   double _dragStartHeight = 0.0;
-
-  // Données des véhicules en dur (sera remplacé par Firebase plus tard)
-  final List<Map<String, dynamic>> _vehicles = [
-    {
-      'name': 'Bolt',
-      'icon': Icons.directions_car,
-      'time': '9 min',
-      'passengers': '4',
-      'price': '16,8 €',
-      'description': 'Voitures de taille standard',
-      'recommended': true,
-      'color': AppColors.accent,
-    },
-    {
-      'name': 'Comfort',
-      'icon': Icons.directions_car,
-      'time': '9 min',
-      'passengers': '4',
-      'price': '25,0 €',
-      'description': 'Voitures confortables',
-      'recommended': false,
-      'color': Colors.grey,
-    },
-    {
-      'name': 'Taxi',
-      'icon': Icons.local_taxi,
-      'time': '11 min',
-      'passengers': '4',
-      'price': '12,5–37,5 €',
-      'description': 'Taxis traditionnels',
-      'recommended': false,
-      'color': Colors.yellow,
-    },
-    {
-      'name': 'Green',
-      'icon': Icons.electric_car,
-      'time': '9 min',
-      'passengers': '4',
-      'price': '16,8 €',
-      'description': 'Véhicules écologiques',
-      'recommended': false,
-      'color': Colors.green,
-    },
-    {
-      'name': 'Women for women',
-      'icon': Icons.person,
-      'time': '12 min',
-      'passengers': '4',
-      'price': '21,6 €',
-      'description': 'Conductrices femmes',
-      'recommended': false,
-      'color': Colors.orange,
-    },
-  ];
+  
+  // Service et données des véhicules
+  final VehicleService _vehicleService = VehicleService();
+  List<VehiculeType> _vehicles = [];
+  bool _isLoadingVehicles = true;
+  double _estimatedDistance = 0.0; // Distance estimée en km
+  String _estimatedArrival = 'Arrivée d\'ici 10:13'; // Estimation d'arrivée
+  List<gmaps.LatLng> _routePoints = []; // Points de la route réelle
 
   @override
   void initState() {
@@ -106,9 +63,157 @@ class _BookingScreenState extends State<BookingScreen>
     // Par défaut, le panneau est étendu
     _panelController.forward();
 
+    // Charger les véhicules depuis la base de données
+    _loadVehicles();
+    
+    // Calculer la distance et l'heure d'arrivée estimées
+    _calculateEstimatedDistanceAndArrival();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _centerMapOnRoute();
     });
+  }
+
+  @override
+  void didUpdateWidget(BookingScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Recalculer si les coordonnées ont changé
+    if (oldWidget.departureCoordinates != widget.departureCoordinates ||
+        oldWidget.destinationCoordinates != widget.destinationCoordinates) {
+      _calculateEstimatedDistanceAndArrival();
+    }
+  }
+
+  // Charger les véhicules depuis la base de données
+  Future<void> _loadVehicles() async {
+    try {
+      final vehicles = await _vehicleService.getActiveVehicles();
+      setState(() {
+        _vehicles = vehicles;
+        _isLoadingVehicles = false;
+        // Sélectionner le premier véhicule par défaut
+        if (_vehicles.isNotEmpty) {
+          _selectedVehicle = _vehicles.first;
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingVehicles = false;
+      });
+    }
+  }
+
+  // Calculer la distance et l'heure d'arrivée estimées
+  Future<void> _calculateEstimatedDistanceAndArrival() async {
+    if (widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+      try {
+        // Utiliser l'API Google Maps pour une estimation précise
+        final distance = await DirectionsService.getRealDistance(
+          origin: widget.departureCoordinates!,
+          destination: widget.destinationCoordinates!,
+        );
+        
+        final arrivalTime = await DirectionsService.getEstimatedArrivalTime(
+          origin: widget.departureCoordinates!,
+          destination: widget.destinationCoordinates!,
+        );
+        
+        setState(() {
+          _estimatedDistance = distance < 1.0 ? 1.0 : distance; // Distance minimum de 1km
+          _estimatedArrival = arrivalTime;
+        });
+        
+        // Mettre à jour le tracé de la route
+        _updateRoutePolyline();
+      } catch (e) {
+        // Fallback avec la formule de Haversine
+        _calculateFallbackDistance();
+      }
+    } else {
+      // Distance par défaut si pas de coordonnées
+      _estimatedDistance = 5.0;
+      _estimatedArrival = 'Temps estimé 15 min';
+    }
+  }
+
+  // Fallback avec la formule de Haversine
+  void _calculateFallbackDistance() {
+    if (widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+      final lat1 = widget.departureCoordinates!.latitude;
+      final lon1 = widget.departureCoordinates!.longitude;
+      final lat2 = widget.destinationCoordinates!.latitude;
+      final lon2 = widget.destinationCoordinates!.longitude;
+      
+      // Formule de Haversine simplifiée
+      final dLat = (lat2 - lat1) * (3.14159265359 / 180);
+      final dLon = (lon2 - lon1) * (3.14159265359 / 180);
+      final a = (dLat / 2) * (dLat / 2) + (dLon / 2) * (dLon / 2);
+      final c = 2 * (a > 0 ? 1 : -1) * (a.abs() > 1 ? 1 : a.abs());
+      _estimatedDistance = (6371 * c).toDouble(); // Rayon de la Terre en km
+      
+      // Distance minimum de 1km
+      if (_estimatedDistance < 1.0) {
+        _estimatedDistance = 1.0;
+      }
+    } else {
+      _estimatedDistance = 5.0;
+    }
+  }
+
+  // Mettre à jour le tracé de la route avec Google Maps
+  Future<void> _updateRoutePolyline() async {
+    if (widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+      try {
+        final directions = await DirectionsService.getDirections(
+          origin: widget.departureCoordinates!,
+          destination: widget.destinationCoordinates!,
+        );
+        
+        if (directions != null && directions['polyline'] != null) {
+          // Décoder la polyline de Google Maps
+          _routePoints = _decodePolyline(directions['polyline']);
+          
+          // Forcer la mise à jour de l'UI
+          if (mounted) {
+            setState(() {});
+          }
+        }
+      } catch (e) {
+        // Erreur silencieuse
+      }
+    }
+  }
+
+  // Décoder la polyline de Google Maps
+  List<gmaps.LatLng> _decodePolyline(String polyline) {
+    List<gmaps.LatLng> points = [];
+    int index = 0;
+    int lat = 0;
+    int lng = 0;
+
+    while (index < polyline.length) {
+      int b, shift = 0, result = 0;
+      do {
+        b = polyline.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = polyline.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lng += dlng;
+
+      points.add(gmaps.LatLng(lat / 1E5, lng / 1E5));
+    }
+    return points;
   }
 
   @override
@@ -166,11 +271,24 @@ class _BookingScreenState extends State<BookingScreen>
     }
   }
 
-  void _selectVehicle(String vehicleName) {
+  void _selectVehicle(VehiculeType vehicle) {
     setState(() {
-      _selectedVehicle = vehicleName;
+      _selectedVehicle = vehicle;
     });
   }
+
+  // Obtenir la couleur du véhicule selon sa catégorie
+  Color _getVehicleColor(VehicleCategory category) {
+    switch (category) {
+      case VehicleCategory.economique:
+        return AppColors.accent;
+      case VehicleCategory.van:
+        return Colors.blue;
+      case VehicleCategory.luxe:
+        return Colors.amber;
+    }
+  }
+
 
   void _togglePanel() {
     final screenHeight = MediaQuery.of(context).size.height;
@@ -295,31 +413,41 @@ class _BookingScreenState extends State<BookingScreen>
                               ),
                             ),
                           },
-                          polylines: {
-                            gmaps.Polyline(
-                              polylineId: const gmaps.PolylineId('route'),
-                              color: Colors.blue,
-                              width: 4,
-                              points: [
-                                gmaps.LatLng(
-                                  (widget.departureCoordinates ??
-                                          const LatLng(48.8566, 2.3522))
-                                      .latitude,
-                                  (widget.departureCoordinates ??
-                                          const LatLng(48.8566, 2.3522))
-                                      .longitude,
-                                ),
-                                gmaps.LatLng(
-                                  (widget.destinationCoordinates ??
-                                          const LatLng(48.8584, 2.2945))
-                                      .latitude,
-                                  (widget.destinationCoordinates ??
-                                          const LatLng(48.8584, 2.2945))
-                                      .longitude,
-                                ),
-                              ],
-                            ),
-                          },
+                          polylines: _routePoints.isNotEmpty
+                              ? {
+                                  gmaps.Polyline(
+                                    polylineId: const gmaps.PolylineId('route'),
+                                    color: Colors.blue,
+                                    width: 4,
+                                    points: _routePoints,
+                                  ),
+                                }
+                              : {
+                                  // Fallback en ligne droite si pas de route
+                                  gmaps.Polyline(
+                                    polylineId: const gmaps.PolylineId('route'),
+                                    color: Colors.blue,
+                                    width: 4,
+                                    points: [
+                                      gmaps.LatLng(
+                                        (widget.departureCoordinates ??
+                                                const LatLng(48.8566, 2.3522))
+                                            .latitude,
+                                        (widget.departureCoordinates ??
+                                                const LatLng(48.8566, 2.3522))
+                                            .longitude,
+                                      ),
+                                      gmaps.LatLng(
+                                        (widget.destinationCoordinates ??
+                                                const LatLng(48.8584, 2.2945))
+                                            .latitude,
+                                        (widget.destinationCoordinates ??
+                                                const LatLng(48.8584, 2.2945))
+                                            .longitude,
+                                      ),
+                                    ],
+                                  ),
+                                },
                           compassEnabled: false,
                           mapToolbarEnabled: false,
                           zoomControlsEnabled: false,
@@ -400,7 +528,7 @@ class _BookingScreenState extends State<BookingScreen>
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    'Arrivée d\'ici 10:13',
+                                    _estimatedArrival,
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
@@ -416,202 +544,197 @@ class _BookingScreenState extends State<BookingScreen>
 
                           // Liste des véhicules - STYLE BOLT
                           Expanded(
-                            child: ListView.builder(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                              itemCount: _vehicles.length,
-                              itemBuilder: (context, index) {
-                                final vehicle = _vehicles[index];
-                                final isSelected =
-                                    _selectedVehicle == vehicle['name'];
-
-                                return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppColors.accent.withOpacity(0.1)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppColors.accent
-                                          : AppColors.glassStroke,
-                                      width: isSelected ? 2 : 1,
+                            child: _isLoadingVehicles
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.accent,
                                     ),
-                                  ),
-                                  child: ListTile(
-                                    onTap: () =>
-                                        _selectVehicle(vehicle['name']),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 8,
-                                    ),
-                                    leading: Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: vehicle['color'].withOpacity(
-                                          0.2,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Icon(
-                                        vehicle['icon'],
-                                        color: vehicle['color'],
-                                        size: 20,
-                                      ),
-                                    ),
-                                    title: Row(
-                                      children: [
-                                        Text(
-                                          vehicle['name'],
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: isSelected
-                                                ? AppColors.accent
-                                                : Colors.white,
-                                          ),
-                                        ),
-                                        if (vehicle['recommended']) ...[
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
+                                  )
+                                : _vehicles.isEmpty
+                                    ? Center(
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.car_rental,
+                                              size: 64,
+                                              color: AppColors.textWeak,
                                             ),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.accent,
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              'RECOMMANDÉ',
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Aucun véhicule disponible',
                                               style: TextStyle(
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.bg,
+                                                fontSize: 16,
+                                                color: AppColors.textWeak,
                                               ),
                                             ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'Veuillez réessayer plus tard',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: AppColors.textWeak,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : ListView.builder(
+                                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                                        itemCount: _vehicles.length,
+                                        itemBuilder: (context, index) {
+                                      final vehicle = _vehicles[index];
+                                      final isSelected = _selectedVehicle?.id == vehicle.id;
+                                      final estimatedPrice = _vehicleService.calculateTripPrice(vehicle, _estimatedDistance);
+                                      
+
+                                      return Container(
+                                        margin: const EdgeInsets.only(bottom: 8),
+                                        decoration: BoxDecoration(
+                                          color: isSelected
+                                              ? AppColors.accent.withOpacity(0.1)
+                                              : Colors.transparent,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? AppColors.accent
+                                                : AppColors.glassStroke,
+                                            width: isSelected ? 2 : 1,
                                           ),
-                                        ],
-                                      ],
-                                    ),
-                                    subtitle: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.access_time,
-                                          size: 14,
-                                          color: AppColors.text,
                                         ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          vehicle['time'],
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: AppColors.text,
+                                        child: ListTile(
+                                          onTap: () => _selectVehicle(vehicle),
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
+                                          leading: Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: BoxDecoration(
+                                              color: _getVehicleColor(vehicle.category).withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Icon(
+                                              vehicle.icon,
+                                              color: _getVehicleColor(vehicle.category),
+                                              size: 20,
+                                            ),
+                                          ),
+                                          title: Text(
+                                            vehicle.name,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: isSelected
+                                                  ? AppColors.accent
+                                                  : Colors.white,
+                                            ),
+                                          ),
+                                          subtitle: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.person,
+                                                size: 14,
+                                                color: AppColors.text,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                vehicle.capacityDisplay,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppColors.text,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Icon(
+                                                Icons.luggage,
+                                                size: 14,
+                                                color: AppColors.text,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                vehicle.luggageDisplay,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppColors.text,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          trailing: Text(
+                                            '${estimatedPrice.toStringAsFixed(2)} €',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: isSelected
+                                                  ? AppColors.accent
+                                                  : Colors.white,
+                                            ),
                                           ),
                                         ),
-                                        const SizedBox(width: 12),
-                                        Icon(
-                                          Icons.person,
-                                          size: 14,
-                                          color: AppColors.text,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          vehicle['passengers'],
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: AppColors.text,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    trailing: Text(
-                                      vehicle['price'],
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: isSelected
-                                            ? AppColors.accent
-                                            : Colors.white,
-                                      ),
-                                    ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
-                            ),
                           ),
                         ] else ...[
                           // Panneau réduit - STYLE BOLT EXACT
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: _vehicles
-                                        .firstWhere(
-                                          (v) => v['name'] == _selectedVehicle,
-                                        )['color']
-                                        .withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
+                          if (_selectedVehicle != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      color: _getVehicleColor(_selectedVehicle!.category).withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      _selectedVehicle!.icon,
+                                      color: _getVehicleColor(_selectedVehicle!.category),
+                                      size: 20,
+                                    ),
                                   ),
-                                  child: Icon(
-                                    _vehicles.firstWhere(
-                                      (v) => v['name'] == _selectedVehicle,
-                                    )['icon'],
-                                    color: _vehicles.firstWhere(
-                                      (v) => v['name'] == _selectedVehicle,
-                                    )['color'],
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        _selectedVehicle,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          _selectedVehicle!.name,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        _vehicles.firstWhere(
-                                          (v) => v['name'] == _selectedVehicle,
-                                        )['description'],
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: AppColors.text,
+                                        Text(
+                                          _selectedVehicle!.description,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.text,
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  _vehicles.firstWhere(
-                                    (v) => v['name'] == _selectedVehicle,
-                                  )['price'],
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
+                                  Text(
+                                    '${_vehicleService.calculateTripPrice(_selectedVehicle!, _estimatedDistance).toStringAsFixed(2)} €',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
                         ],
 
                         // Footer avec bouton de réservation - STYLE BOLT EXACT
@@ -663,12 +786,12 @@ class _BookingScreenState extends State<BookingScreen>
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: _selectedVehicle != null ? () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => SchedulingScreen(
-                                          vehicleName: _selectedVehicle,
+                                          vehicleName: _selectedVehicle!.name,
                                           departure: widget.departure,
                                           destination: widget.destination,
                                           departureCoordinates:
@@ -678,7 +801,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                       ),
                                     );
-                                  },
+                                  } : null,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.accent,
                                     foregroundColor: AppColors.bg,
@@ -691,7 +814,9 @@ class _BookingScreenState extends State<BookingScreen>
                                     elevation: 0,
                                   ),
                                   child: Text(
-                                    'Planifier $_selectedVehicle',
+                                    _selectedVehicle != null 
+                                        ? 'Planifier ${_selectedVehicle!.name}'
+                                        : 'Sélectionner un véhicule',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,

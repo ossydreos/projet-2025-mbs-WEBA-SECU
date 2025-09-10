@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/services/vehicle_service.dart';
+import 'package:my_mobility_services/data/services/directions_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -33,9 +35,11 @@ class TripSummaryScreen extends StatefulWidget {
 
 class _TripSummaryScreenState extends State<TripSummaryScreen> {
   String _paymentMethod = 'Espèces';
-  String _totalPrice = '28,1 €';
+  String _totalPrice = '0,00 €';
   final ReservationService _reservationService = ReservationService();
+  final VehicleService _vehicleService = VehicleService();
   bool _isCreatingReservation = false;
+  double _calculatedPrice = 0.0;
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -97,6 +101,75 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     return '$hour:$minute';
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _calculatePrice();
+  }
+
+  // Calculer le prix basé sur la distance et le type de véhicule
+  Future<void> _calculatePrice() async {
+    try {
+      // Obtenir le véhicule sélectionné
+      final vehicles = await _vehicleService.getActiveVehicles();
+      final selectedVehicle = vehicles.firstWhere(
+        (v) => v.name == widget.vehicleName,
+        orElse: () => vehicles.isNotEmpty ? vehicles.first : throw Exception('Aucun véhicule trouvé'),
+      );
+      
+      print('🚗 Véhicule sélectionné pour la réservation: ${selectedVehicle.name} (${selectedVehicle.category.name}) - ${selectedVehicle.pricePerKm}€/km');
+
+      // Calculer la distance réelle avec Google Maps
+      double distance = 5.0; // Distance par défaut
+      if (widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+        try {
+          distance = await DirectionsService.getRealDistance(
+            origin: widget.departureCoordinates!,
+            destination: widget.destinationCoordinates!,
+          );
+          
+          // Distance minimum de 1km
+          if (distance < 1.0) {
+            distance = 1.0;
+          }
+        } catch (e) {
+          print('Erreur lors du calcul de la distance réelle: $e');
+          // Fallback avec la formule de Haversine
+          final lat1 = widget.departureCoordinates!.latitude;
+          final lon1 = widget.departureCoordinates!.longitude;
+          final lat2 = widget.destinationCoordinates!.latitude;
+          final lon2 = widget.destinationCoordinates!.longitude;
+          
+          final dLat = (lat2 - lat1) * (3.14159265359 / 180);
+          final dLon = (lon2 - lon1) * (3.14159265359 / 180);
+          final a = (dLat / 2) * (dLat / 2) + (dLon / 2) * (dLon / 2);
+          final c = 2 * (a > 0 ? 1 : -1) * (a.abs() > 1 ? 1 : a.abs());
+          distance = (6371 * c).toDouble();
+          
+          if (distance < 1.0) {
+            distance = 1.0;
+          }
+        }
+      }
+
+      // Calculer le prix
+      _calculatedPrice = _vehicleService.calculateTripPrice(selectedVehicle, distance);
+      
+      print('💰 Prix calculé: ${_calculatedPrice.toStringAsFixed(2)} € (distance: ${distance.toStringAsFixed(2)} km)');
+      
+      setState(() {
+        _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} €';
+      });
+    } catch (e) {
+      print('Erreur lors du calcul du prix: $e');
+      // Prix par défaut en cas d'erreur
+      setState(() {
+        _calculatedPrice = 15.0;
+        _totalPrice = '15,00 €';
+      });
+    }
+  }
+
   Future<void> _createReservation() async {
     if (_isCreatingReservation) return;
 
@@ -136,7 +209,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         selectedTime: _formatTime(widget.selectedTime),
         estimatedArrival: widget.estimatedArrival,
         paymentMethod: _paymentMethod,
-        totalPrice: 28.1, // Prix fixe pour l'instant
+        totalPrice: _calculatedPrice,
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
         departureCoordinates: widget.departureCoordinates != null
@@ -154,9 +227,11 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       );
 
       // Sauvegarder dans Firebase
+      print('💾 Sauvegarde de la réservation avec le véhicule: ${widget.vehicleName}');
       final reservationId = await _reservationService.createReservation(
         reservation,
       );
+      print('✅ Réservation créée avec l\'ID: $reservationId');
 
       // Afficher le succès
       if (mounted) {
