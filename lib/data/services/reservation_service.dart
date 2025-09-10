@@ -96,14 +96,13 @@ class ReservationService {
       final querySnapshot = await _firestore
           .collection(_collection)
           .where('status', isEqualTo: ReservationStatus.pending.name)
+          .orderBy('createdAt', descending: true)
           .get();
 
       final reservations = querySnapshot.docs
           .map((doc) => Reservation.fromMap(doc.data()))
           .toList();
       
-      // Tri manuel en attendant l'index
-      reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
       return reservations;
     } catch (e) {
       throw Exception('Erreur lors de la récupération des réservations en attente: $e');
@@ -137,6 +136,7 @@ class ReservationService {
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: ReservationStatus.pending.name)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {
           final reservations = <Reservation>[];
@@ -159,8 +159,6 @@ class ReservationService {
             }
             reservations.add(reservation);
           }
-          // Tri manuel en attendant l'index
-          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
           return reservations;
         });
   }
@@ -170,6 +168,7 @@ class ReservationService {
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: ReservationStatus.confirmed.name)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {
           final reservations = <Reservation>[];
@@ -192,8 +191,6 @@ class ReservationService {
             }
             reservations.add(reservation);
           }
-          // Tri manuel en attendant l'index
-          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
           return reservations;
         });
   }
@@ -203,6 +200,7 @@ class ReservationService {
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: ReservationStatus.completed.name)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {
           final reservations = <Reservation>[];
@@ -225,8 +223,6 @@ class ReservationService {
             }
             reservations.add(reservation);
           }
-          // Tri manuel en attendant l'index
-          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
           return reservations;
         });
   }
@@ -242,13 +238,12 @@ class ReservationService {
         .collection(_collection)
         .where('userId', isEqualTo: currentUser.uid)
         .where('status', isEqualTo: ReservationStatus.pending.name)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           final reservations = snapshot.docs
               .map((doc) => Reservation.fromMap(doc.data()))
               .toList();
-          // Tri manuel en attendant l'index
-          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
           return reservations;
         });
   }
@@ -264,13 +259,12 @@ class ReservationService {
         .collection(_collection)
         .where('userId', isEqualTo: currentUser.uid)
         .where('status', isEqualTo: ReservationStatus.confirmed.name)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           final reservations = snapshot.docs
               .map((doc) => Reservation.fromMap(doc.data()))
               .toList();
-          // Tri manuel en attendant l'index
-          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
           return reservations;
         });
   }
@@ -286,13 +280,12 @@ class ReservationService {
         .collection(_collection)
         .where('userId', isEqualTo: currentUser.uid)
         .where('status', isEqualTo: ReservationStatus.completed.name)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
           final reservations = snapshot.docs
               .map((doc) => Reservation.fromMap(doc.data()))
               .toList();
-          // Tri manuel en attendant l'index
-          reservations.sort((a, b) => a.createdAt.compareTo(b.createdAt));
           return reservations;
         });
   }

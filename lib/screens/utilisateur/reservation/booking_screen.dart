@@ -126,8 +126,11 @@ class _BookingScreenState extends State<BookingScreen>
         // Mettre à jour le tracé de la route
         _updateRoutePolyline();
       } catch (e) {
-        // Fallback avec la formule de Haversine
-        _calculateFallbackDistance();
+        // Pas de fallback - l'API doit fonctionner
+        setState(() {
+          _estimatedDistance = 0.0;
+          _estimatedArrival = 'Erreur de calcul';
+        });
       }
     } else {
       // Distance par défaut si pas de coordonnées
@@ -136,29 +139,6 @@ class _BookingScreenState extends State<BookingScreen>
     }
   }
 
-  // Fallback avec la formule de Haversine
-  void _calculateFallbackDistance() {
-    if (widget.departureCoordinates != null && widget.destinationCoordinates != null) {
-      final lat1 = widget.departureCoordinates!.latitude;
-      final lon1 = widget.departureCoordinates!.longitude;
-      final lat2 = widget.destinationCoordinates!.latitude;
-      final lon2 = widget.destinationCoordinates!.longitude;
-      
-      // Formule de Haversine simplifiée
-      final dLat = (lat2 - lat1) * (3.14159265359 / 180);
-      final dLon = (lon2 - lon1) * (3.14159265359 / 180);
-      final a = (dLat / 2) * (dLat / 2) + (dLon / 2) * (dLon / 2);
-      final c = 2 * (a > 0 ? 1 : -1) * (a.abs() > 1 ? 1 : a.abs());
-      _estimatedDistance = (6371 * c).toDouble(); // Rayon de la Terre en km
-      
-      // Distance minimum de 1km
-      if (_estimatedDistance < 1.0) {
-        _estimatedDistance = 1.0;
-      }
-    } else {
-      _estimatedDistance = 5.0;
-    }
-  }
 
   // Mettre à jour le tracé de la route avec Google Maps
   Future<void> _updateRoutePolyline() async {

@@ -43,6 +43,7 @@ class Reservation {
   final DateTime? updatedAt;
   final Map<String, dynamic>? departureCoordinates;
   final Map<String, dynamic>? destinationCoordinates;
+  final String? clientNote; // Note du client pour le chauffeur
 
   Reservation({
     required this.id,
@@ -61,6 +62,7 @@ class Reservation {
     this.updatedAt,
     this.departureCoordinates,
     this.destinationCoordinates,
+    this.clientNote,
   });
 
   // Convertir en Map pour Firebase
@@ -82,6 +84,7 @@ class Reservation {
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
       'departureCoordinates': departureCoordinates,
       'destinationCoordinates': destinationCoordinates,
+      'clientNote': clientNote,
     };
   }
 
@@ -109,6 +112,7 @@ class Reservation {
           : null,
       departureCoordinates: map['departureCoordinates'],
       destinationCoordinates: map['destinationCoordinates'],
+      clientNote: map['clientNote'],
     );
   }
 
@@ -130,6 +134,7 @@ class Reservation {
     DateTime? updatedAt,
     Map<String, dynamic>? departureCoordinates,
     Map<String, dynamic>? destinationCoordinates,
+    String? clientNote,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -148,6 +153,7 @@ class Reservation {
       updatedAt: updatedAt ?? this.updatedAt,
       departureCoordinates: departureCoordinates ?? this.departureCoordinates,
       destinationCoordinates: destinationCoordinates ?? this.destinationCoordinates,
+      clientNote: clientNote ?? this.clientNote,
     );
   }
 

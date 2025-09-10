@@ -40,6 +40,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
   final VehicleService _vehicleService = VehicleService();
   bool _isCreatingReservation = false;
   double _calculatedPrice = 0.0;
+  final TextEditingController _noteController = TextEditingController();
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
@@ -107,6 +108,12 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     _calculatePrice();
   }
 
+  @override
+  void dispose() {
+    _noteController.dispose();
+    super.dispose();
+  }
+
   // Calculer le prix basé sur la distance et le type de véhicule
   Future<void> _calculatePrice() async {
     try {
@@ -133,22 +140,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
             distance = 1.0;
           }
         } catch (e) {
-          print('Erreur lors du calcul de la distance réelle: $e');
-          // Fallback avec la formule de Haversine
-          final lat1 = widget.departureCoordinates!.latitude;
-          final lon1 = widget.departureCoordinates!.longitude;
-          final lat2 = widget.destinationCoordinates!.latitude;
-          final lon2 = widget.destinationCoordinates!.longitude;
-          
-          final dLat = (lat2 - lat1) * (3.14159265359 / 180);
-          final dLon = (lon2 - lon1) * (3.14159265359 / 180);
-          final a = (dLat / 2) * (dLat / 2) + (dLon / 2) * (dLon / 2);
-          final c = 2 * (a > 0 ? 1 : -1) * (a.abs() > 1 ? 1 : a.abs());
-          distance = (6371 * c).toDouble();
-          
-          if (distance < 1.0) {
-            distance = 1.0;
-          }
+          // Pas de fallback - l'API doit fonctionner
+          throw Exception('Impossible de calculer la distance - API Google Maps indisponible');
         }
       }
 
@@ -224,6 +217,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 'longitude': widget.destinationCoordinates!.longitude,
               }
             : null,
+        clientNote: _noteController.text.trim().isNotEmpty ? _noteController.text.trim() : null,
       );
 
       // Sauvegarder dans Firebase
@@ -242,8 +236,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           ),
         );
 
-        // Aller directement à l'onglet "Trajets"
-        Navigator.pushNamedAndRemoveUntil(context, '/trajets', (route) => false);
+        // Aller directement à l'accueil
+        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
       }
     } catch (e) {
       if (mounted) {
@@ -515,6 +509,72 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      Divider(
+                        color: AppColors.textWeak.withOpacity(0.3),
+                        thickness: 0.5,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Section Note pour le chauffeur
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Note pour le chauffeur',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Ajoutez des informations utiles pour votre chauffeur (optionnel)',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textWeak,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: AppColors.textWeak.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: TextField(
+                                controller: _noteController,
+                                maxLines: 3,
+                                maxLength: 200,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                                decoration: InputDecoration(
+                                  hintText: 'Ajoutez une note pour votre chauffeur...',
+                                  hintStyle: TextStyle(
+                                    color: AppColors.textWeak,
+                                    fontSize: 16,
+                                  ),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.all(16),
+                                  counterStyle: TextStyle(
+                                    color: AppColors.textWeak,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

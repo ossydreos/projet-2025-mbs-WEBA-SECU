@@ -49,22 +49,6 @@ class DirectionsService {
     }
   }
 
-  // Fallback : calculer la distance avec la formule de Haversine
-  static double _calculateHaversineDistance(LatLng origin, LatLng destination) {
-    const double earthRadius = 6371; // Rayon de la Terre en km
-    
-    final lat1Rad = origin.latitude * (3.14159265359 / 180);
-    final lat2Rad = destination.latitude * (3.14159265359 / 180);
-    final deltaLatRad = (destination.latitude - origin.latitude) * (3.14159265359 / 180);
-    final deltaLngRad = (destination.longitude - origin.longitude) * (3.14159265359 / 180);
-
-    final a = (deltaLatRad / 2) * (deltaLatRad / 2) +
-        (deltaLngRad / 2) * (deltaLngRad / 2) * 
-        (lat1Rad > 0 ? 1 : -1) * (lat2Rad > 0 ? 1 : -1);
-    final c = 2 * (a > 0 ? 1 : -1) * (a.abs() > 1 ? 1 : a.abs());
-    
-    return earthRadius * c;
-  }
 
   // Obtenir le temps de trajet formaté
   static Future<String> getEstimatedArrivalTime({
@@ -106,22 +90,18 @@ class DirectionsService {
     required LatLng origin,
     required LatLng destination,
   }) async {
-    try {
-      final directions = await getDirections(
-        origin: origin,
-        destination: destination,
-      );
+    final directions = await getDirections(
+      origin: origin,
+      destination: destination,
+    );
 
-      if (directions != null) {
-        // Convertir les mètres en kilomètres
-        return directions['distanceValue'] / 1000.0;
-      }
-      
-      // Fallback avec la formule de Haversine
-      return _calculateHaversineDistance(origin, destination);
-    } catch (e) {
-      return _calculateHaversineDistance(origin, destination);
+    if (directions != null) {
+      // Convertir les mètres en kilomètres
+      return directions['distanceValue'] / 1000.0;
     }
+    
+    // Pas de fallback - l'API doit fonctionner
+    throw Exception('Impossible de calculer la distance - API Google Maps indisponible');
   }
 
 }
