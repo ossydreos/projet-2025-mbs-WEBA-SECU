@@ -394,12 +394,16 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                         color: AppColors.text,
                       ),
                     ),
-                    Text(
-                      '${reservation.totalPrice.toStringAsFixed(1)} €',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.accent2,
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        '${reservation.totalPrice.toStringAsFixed(1)} €',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.accent2,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
                       ),
                     ),
                   ],
@@ -582,12 +586,16 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                         color: AppColors.text,
                       ),
                     ),
-                    Text(
-                      '${reservation.totalPrice.toStringAsFixed(1)} €',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.accent2,
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        '${reservation.totalPrice.toStringAsFixed(1)} €',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.accent2,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
                       ),
                     ),
                   ],

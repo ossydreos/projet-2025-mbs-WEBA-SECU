@@ -619,11 +619,14 @@ class _BookingScreenState extends State<BookingScreen>
                                                 color: AppColors.text,
                                               ),
                                               const SizedBox(width: 4),
-                                              Text(
-                                                vehicle.capacityDisplay,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: AppColors.text,
+                                              Flexible(
+                                                child: Text(
+                                                  vehicle.capacityDisplay,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: AppColors.text,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               const SizedBox(width: 12),
@@ -633,23 +636,30 @@ class _BookingScreenState extends State<BookingScreen>
                                                 color: AppColors.text,
                                               ),
                                               const SizedBox(width: 4),
-                                              Text(
-                                                vehicle.luggageDisplay,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: AppColors.text,
+                                              Flexible(
+                                                child: Text(
+                                                  vehicle.luggageDisplay,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: AppColors.text,
+                                                  ),
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          trailing: Text(
-                                            '${estimatedPrice.toStringAsFixed(2)} €',
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              color: isSelected
-                                                  ? AppColors.accent
-                                                  : Colors.white,
+                                          trailing: Flexible(
+                                            child: Text(
+                                              '${estimatedPrice.toStringAsFixed(2)} €',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: isSelected
+                                                    ? AppColors.accent
+                                                    : Colors.white,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.end,
                                             ),
                                           ),
                                         ),
@@ -704,12 +714,16 @@ class _BookingScreenState extends State<BookingScreen>
                                       ],
                                     ),
                                   ),
-                                  Text(
-                                    '${_vehicleService.calculateTripPrice(_selectedVehicle!, _estimatedDistance).toStringAsFixed(2)} €',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
+                                  Flexible(
+                                    child: Text(
+                                      '${_vehicleService.calculateTripPrice(_selectedVehicle!, _estimatedDistance).toStringAsFixed(2)} €',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.end,
                                     ),
                                   ),
                                 ],

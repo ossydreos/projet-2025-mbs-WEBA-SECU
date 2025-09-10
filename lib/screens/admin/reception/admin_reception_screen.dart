@@ -401,12 +401,16 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '${reservation.totalPrice.toStringAsFixed(1)} €',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        '${reservation.totalPrice.toStringAsFixed(1)} €',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
                       ),
                     ),
                   ],

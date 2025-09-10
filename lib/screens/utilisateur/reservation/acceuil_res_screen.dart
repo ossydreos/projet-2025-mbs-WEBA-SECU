@@ -332,12 +332,16 @@ class _AccueilScreenState extends State<AccueilScreen>
                       ),
                     ),
                     const Spacer(),
-                    Text(
-                      '${reservation.totalPrice.toStringAsFixed(1)} €',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w700,
+                    Flexible(
+                      child: Text(
+                        '${reservation.totalPrice.toStringAsFixed(1)} €',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
                       ),
                     ),
                   ],

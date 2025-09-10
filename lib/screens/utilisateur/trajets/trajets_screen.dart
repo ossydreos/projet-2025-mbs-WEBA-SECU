@@ -418,12 +418,16 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   ],
                 ),
               ),
-              Text(
-                '${reservation.totalPrice.toStringAsFixed(1)} €',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textStrong,
+              Flexible(
+                child: Text(
+                  '${reservation.totalPrice.toStringAsFixed(1)} €',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textStrong,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                 ),
               ),
             ],
@@ -567,12 +571,16 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '${reservation.totalPrice.toStringAsFixed(1)} €',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600,
+                    Flexible(
+                      child: Text(
+                        '${reservation.totalPrice.toStringAsFixed(1)} €',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.accent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.end,
                       ),
                     ),
                   ],
