@@ -63,20 +63,27 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       child: Scaffold(
         backgroundColor: Colors.transparent,
 
-        // ⚠️ Nécessite que GlassAppBar accepte un paramètre `bottom` de type PreferredSizeWidget
-        appBar: GlassAppBar(
-          title: 'Trajets',
-          bottom: TrajetNav(_tabController), // ✅ même barre que côté admin
-        ),
+        appBar: const GlassAppBar(title: 'Trajets'),
 
-        // Plus de Column + Container + TabBar ici : le TabBar est géré par l’AppBar.bottom
-        body: TabBarView(
-          controller: _tabController,
+        body: Column(
           children: [
-            // Onglet "À venir"
-            _buildUpcomingTab(),
-            // Onglet "Terminés"
-            _buildCompletedTab(),
+            // Barre de navigation des onglets séparée
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: TrajetNav(_tabController),
+            ),
+            // Contenu des onglets
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Onglet "À venir"
+                  _buildUpcomingTab(),
+                  // Onglet "Terminés"
+                  _buildCompletedTab(),
+                ],
+              ),
+            ),
           ],
         ),
 
@@ -615,17 +622,15 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Flexible(
-                      child: Text(
-                        '${reservation.totalPrice.toStringAsFixed(1)} €',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: AppColors.accent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
+                    Text(
+                      '${reservation.totalPrice.toStringAsFixed(1)} €',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w600,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.end,
                     ),
                   ],
                 ),

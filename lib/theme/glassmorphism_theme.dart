@@ -273,7 +273,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.actions,
     this.bottom,
-    this.height = 80,
+    this.height = 60,
     this.borderRadius = const BorderRadius.vertical(
       bottom: Radius.circular(16),
     ),
@@ -303,7 +303,7 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
           title: Text(
             title,
             style: TextStyle(
-              fontSize: 28,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: AppColors.textStrong,
               fontFamily: 'Poppins',

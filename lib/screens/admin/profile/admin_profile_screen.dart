@@ -92,8 +92,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           children: [
             _buildHeader(user),
             const SizedBox(height: 20),
-            _buildUpdateAccountCard(),
-            const SizedBox(height: 20),
             _buildLogoutCard(),
           ],
         ),
@@ -151,53 +149,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildUpdateAccountCard() {
-    return GlassContainer(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.edit, color: AppColors.accent, size: 24),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  'Mettez à jour vos informations',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textStrong,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Gérez vos informations personnelles et vos préférences de compte.',
-            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
-          ),
-          const SizedBox(height: 16),
-          GlassButton(
-            label: 'Modifier le profil',
-            icon: Icons.edit,
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Fonctionnalité à implémenter'),
-                  backgroundColor: AppColors.accent,
-                ),
-              );
-            },
-            primary: true,
-          ),
-        ],
       ),
     );
   }

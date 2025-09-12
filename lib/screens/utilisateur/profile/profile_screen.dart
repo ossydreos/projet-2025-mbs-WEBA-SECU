@@ -43,8 +43,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Données utilisateur avec Firebase Auth
   Utilisateur get _utilisateur {
     if (_currentUser != null) {
-      print('ProfileScreen - Utilisateur connecté: ${_currentUser!.email}');
-      print('ProfileScreen - DisplayName: ${_currentUser!.displayName}');
       return Utilisateur(
         uid: _currentUser!.uid,
         nom:
@@ -56,7 +54,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         dateCreation: _currentUser!.metadata.creationTime ?? DateTime.now(),
       );
     } else {
-      print('ProfileScreen - Aucun utilisateur connecté');
       // Utilisateur par défaut si pas connecté
       return Utilisateur(
         uid: 'guest',
@@ -79,8 +76,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             appBar: const GlassAppBar(title: 'Profil'),
             body: Stack(
               children: [
-                // Contenu principal
-                _buildContent(),
+                // Contenu principal avec espacement
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: _buildContent(),
+                ),
                 // Barre de navigation en bas
                 if (widget.showBottomBar)
                   Positioned(
@@ -125,10 +125,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           children: [
             _buildHeader(),
-            _buildUpdateAccountCard(),
+            const SizedBox(height: 20),
             _buildMenuSection(),
+            const SizedBox(height: 16),
             _buildLocationSection(),
+            const SizedBox(height: 16),
             _buildSettingsSection(),
+            const SizedBox(height: 16),
             _buildAccountActions(),
           ],
         ),
@@ -148,10 +151,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             backgroundColor: AppColors.accent.withOpacity(0.2),
             child: Icon(Icons.person, size: 60, color: AppColors.accent),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 20),
           // Nom en blanc (thème appliqué automatiquement)
           Text(_utilisateur.nom, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 5),
+          const SizedBox(height: 12),
           // Email avec couleur secondaire
           Text(
             _utilisateur.email,
@@ -162,26 +165,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Carte de mise à jour - THÉMATISÉE
-  Widget _buildUpdateAccountCard() {
-    return GlassContainer(
-      margin: const EdgeInsets.fromLTRB(15, 20, 15, 15),
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Icon(Icons.info_outline, color: AppColors.accent),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Text(
-              'Mettez à jour vos informations de compte',
-              style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
-            ),
-          ),
-          Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.text),
-        ],
-      ),
-    );
-  }
 
   /// Section menu - THÉMATISÉE
   Widget _buildMenuSection() {
@@ -191,7 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
             child: Text(
               'Menu',
               style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
@@ -220,7 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
             child: Text(
               'Localisation',
               style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
@@ -247,7 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(15),
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
             child: Text(
               'Paramètres',
               style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
@@ -317,20 +300,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Item de menu réutilisable - THÉMATISÉ
   Widget _buildMenuItem(IconData icon, String title) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.text),
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Icon(icon, color: AppColors.text),
+        title: Text(
+          title,
+          style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: AppColors.text.withOpacity(0.6),
+        ),
+        onTap: () {
+          _showFeatureDialog(title);
+        },
       ),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-        color: AppColors.text.withOpacity(0.6),
-      ),
-      onTap: () {
-        _showFeatureDialog(title);
-      },
     );
   }
 

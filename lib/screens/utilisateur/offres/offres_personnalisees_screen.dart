@@ -16,20 +16,10 @@ class OffresPersonnaliseesScreen extends StatelessWidget {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: const Text(
-            'Offres Personnalisées',
-            style: TextStyle(
-              color: AppColors.text,
-              fontFamily: 'Poppins',
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          centerTitle: true,
-        ),
-        body: const Center(
+        appBar: const GlassAppBar(title: 'Offres'),
+        body: Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -59,6 +49,7 @@ class OffresPersonnaliseesScreen extends StatelessWidget {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),
