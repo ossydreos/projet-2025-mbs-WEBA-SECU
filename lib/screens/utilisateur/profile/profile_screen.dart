@@ -2,17 +2,20 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/widgets/authgate.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 
-/// Modèle utilisateur (temporaire - sans Firebase)
+/// Modèle utilisateur avec données Firestore
 class Utilisateur {
   final String uid;
   final String nom;
   final String email;
   final String telephone;
   final DateTime dateCreation;
+  final bool emailVerified;
+  final String provider;
 
   Utilisateur({
     required this.uid,
@@ -20,7 +23,25 @@ class Utilisateur {
     required this.email,
     required this.telephone,
     required this.dateCreation,
+    required this.emailVerified,
+    required this.provider,
   });
+
+  factory Utilisateur.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    final phone = data['phone'] ?? '';
+    final countryCode = data['countryCode'] ?? '+33';
+    
+    return Utilisateur(
+      uid: data['uid'] ?? '',
+      nom: data['name'] ?? 'Utilisateur',
+      email: data['email'] ?? '',
+      telephone: phone.isNotEmpty ? phone : 'Non renseigné',
+      dateCreation: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      emailVerified: data['emailVerified'] ?? false,
+      provider: data['provider'] ?? 'password',
+    );
+  }
 }
 
 /// Écran de profil - Version thématisée sombre
@@ -36,67 +57,86 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Obtenir les données utilisateur depuis Firebase Auth
   User? get _currentUser => _auth.currentUser;
-
-  // Données utilisateur avec Firebase Auth
-  Utilisateur get _utilisateur {
-    if (_currentUser != null) {
-      return Utilisateur(
-        uid: _currentUser!.uid,
-        nom:
-            _currentUser!.displayName ??
-            _currentUser!.email?.split('@')[0] ??
-            'Utilisateur',
-        email: _currentUser!.email ?? 'email@example.com',
-        telephone: _currentUser!.phoneNumber ?? '+33 0 00 00 00 00',
-        dateCreation: _currentUser!.metadata.creationTime ?? DateTime.now(),
-      );
-    } else {
-      // Utilisateur par défaut si pas connecté
-      return Utilisateur(
-        uid: 'guest',
-        nom: 'Invité',
-        email: 'invite@example.com',
-        telephone: '+33 0 00 00 00 00',
-        dateCreation: DateTime.now(),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: _auth.authStateChanges(),
-      builder: (context, snapshot) {
-        return GlassBackground(
-          child: Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: const GlassAppBar(title: 'Profil'),
-            body: Stack(
-              children: [
-                // Contenu principal avec espacement
-                Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: _buildContent(),
-                ),
-                // Barre de navigation en bas
-                if (widget.showBottomBar)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: CustomBottomNavigationBar(
-                      currentIndex: 2,
-                      onTap: _handleNavigation,
-                    ),
-                  ),
-              ],
+      builder: (context, authSnapshot) {
+        if (authSnapshot.connectionState == ConnectionState.waiting) {
+          return const GlassBackground(
+            child: Scaffold(
+              backgroundColor: Colors.transparent,
+              body: Center(child: CircularProgressIndicator()),
             ),
-          ),
+          );
+        }
+
+        if (authSnapshot.data == null) {
+          return const Authgate();
+        }
+
+        return StreamBuilder<DocumentSnapshot>(
+          stream: _firestore.collection('users').doc(authSnapshot.data!.uid).snapshots(),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.connectionState == ConnectionState.waiting) {
+              return const GlassBackground(
+                child: Scaffold(
+                  backgroundColor: Colors.transparent,
+                  body: Center(child: CircularProgressIndicator()),
+                ),
+              );
+            }
+
+            final utilisateur = userSnapshot.hasData 
+                ? Utilisateur.fromFirestore(userSnapshot.data!)
+                : _getDefaultUser(authSnapshot.data!);
+
+            return GlassBackground(
+              child: Scaffold(
+                backgroundColor: Colors.transparent,
+                appBar: const GlassAppBar(title: 'Profil'),
+                body: Stack(
+                  children: [
+                    // Contenu principal avec espacement
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: _buildContent(utilisateur),
+                    ),
+                    // Barre de navigation en bas
+                    if (widget.showBottomBar)
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: CustomBottomNavigationBar(
+                          currentIndex: 2,
+                          onTap: _handleNavigation,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
+    );
+  }
+
+  Utilisateur _getDefaultUser(User user) {
+    return Utilisateur(
+      uid: user.uid,
+      nom: user.displayName ?? user.email?.split('@')[0] ?? 'Utilisateur',
+      email: user.email ?? 'email@example.com',
+      telephone: user.phoneNumber ?? 'Non renseigné',
+      dateCreation: user.metadata.creationTime ?? DateTime.now(),
+      emailVerified: user.emailVerified,
+      provider: 'password',
     );
   }
 
@@ -118,21 +158,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// Contenu principal avec padding pour éviter le chevauchement
-  Widget _buildContent() {
+  Widget _buildContent(Utilisateur utilisateur) {
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 100),
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(utilisateur),
             const SizedBox(height: 20),
+            _buildUserInfoSection(utilisateur),
+            const SizedBox(height: 16),
             _buildMenuSection(),
             const SizedBox(height: 16),
             _buildLocationSection(),
             const SizedBox(height: 16),
             _buildSettingsSection(),
             const SizedBox(height: 16),
-            _buildAccountActions(),
+            _buildAccountActions(utilisateur),
           ],
         ),
       ),
@@ -140,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// Header avec photo et infos utilisateur - THÉMATISÉ
-  Widget _buildHeader() {
+  Widget _buildHeader(Utilisateur utilisateur) {
     return GlassContainer(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -153,12 +195,126 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 20),
           // Nom en blanc (thème appliqué automatiquement)
-          Text(_utilisateur.nom, style: Theme.of(context).textTheme.titleLarge),
+          Text(utilisateur.nom, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 12),
           // Email avec couleur secondaire
           Text(
-            _utilisateur.email,
+            utilisateur.email,
             style: TextStyle(fontSize: 16, color: AppColors.text),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Section informations utilisateur détaillées
+  Widget _buildUserInfoSection(Utilisateur utilisateur) {
+    return GlassContainer(
+      margin: const EdgeInsets.symmetric(horizontal: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Informations personnelles',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Implémenter la navigation vers l'écran de modification
+                    _showFeatureDialog('Modifier les informations');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent.withOpacity(0.2),
+                    foregroundColor: AppColors.accent,
+                    padding: const EdgeInsets.all(8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(color: AppColors.accent),
+                    ),
+                    elevation: 0,
+                    minimumSize: const Size(40, 40),
+                  ),
+                  child: Icon(
+                    Icons.edit,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(20),
+            child: Column(
+              children: [
+                _buildInfoRow(Icons.person, 'Nom complet', utilisateur.nom),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
+                _buildInfoRow(Icons.email, 'Email', utilisateur.email),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
+                _buildInfoRow(Icons.phone, 'Téléphone', utilisateur.telephone),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Ligne d'information réutilisable - HARMONISÉE AVEC MENU
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Row(
+        children: [
+          // Icône avec container glass comme dans le menu
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.accent.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Icon(icon, color: AppColors.accent, size: 22),
+          ),
+          const SizedBox(width: 16),
+
+          // Textes avec même style que le menu
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textStrong,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(fontSize: 13, color: AppColors.textWeak),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -181,11 +337,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           GlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
                 _buildMenuItem(Icons.directions_car, 'Mes réservations'),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
                 _buildMenuItem(Icons.history, 'Historique'),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
                 _buildMenuItem(Icons.payment, 'Paiements'),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
                 _buildMenuItem(Icons.help_outline, 'Aide'),
               ],
             ),
@@ -210,9 +383,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           GlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
                 _buildMenuItem(Icons.location_on, 'Adresses sauvegardées'),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
                 _buildMenuItem(Icons.map, 'Gérer les lieux favoris'),
               ],
             ),
@@ -237,10 +417,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           GlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
                 _buildMenuItem(Icons.notifications, 'Notifications'),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
                 _buildMenuItem(Icons.privacy_tip, 'Confidentialité'),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
                 _buildMenuItem(Icons.language, 'Langue'),
               ],
             ),
@@ -251,25 +443,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// Actions de compte - THÉMATISÉES
-  Widget _buildAccountActions() {
+  Widget _buildAccountActions(Utilisateur utilisateur) {
     return GlassContainer(
       margin: const EdgeInsets.all(15),
       child: Column(
         children: [
-          // Bouton déconnexion
+          // Bouton déconnexion - STYLE GLASSMORPHIQUE
           GlassContainer(
-            child: ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text(
-                'Se déconnecter',
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.w500,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      _showLogoutDialog();
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout, color: Colors.redAccent, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Se déconnecter',
+                              style: TextStyle(
+                                color: Colors.redAccent,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: AppColors.textWeak,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              onTap: () {
-                _showLogoutDialog();
-              },
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Se déconnecter de votre compte.',
+                    style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 10),
@@ -279,12 +504,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               children: [
                 Text(
-                  'Membre depuis le ${DateFormat('dd/MM/yyyy').format(_utilisateur.dateCreation)}',
+                  'Membre depuis le ${DateFormat('dd/MM/yyyy').format(utilisateur.dateCreation)}',
                   style: TextStyle(color: AppColors.text, fontSize: 14),
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  'ID: ${_utilisateur.uid}',
+                  'ID: ${utilisateur.uid}',
                   style: TextStyle(
                     color: AppColors.text.withOpacity(0.7),
                     fontSize: 12,
@@ -298,82 +523,170 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Item de menu réutilisable - THÉMATISÉ
+  /// Item de menu réutilisable - EXACTEMENT COMME GESTION ADMIN
   Widget _buildMenuItem(IconData icon, String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Icon(icon, color: AppColors.text),
-        title: Text(
-          title,
-          style: Theme.of(context).textTheme.bodyMedium, // ✅ Texte blanc
-        ),
-        trailing: Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: AppColors.text.withOpacity(0.6),
-        ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         onTap: () {
           _showFeatureDialog(title);
         },
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Icône avec container glass
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.accent.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(icon, color: AppColors.accent, size: 22),
+              ),
+              const SizedBox(width: 16),
+
+              // Textes
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textStrong,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Fonctionnalité disponible bientôt',
+                      style: TextStyle(fontSize: 13, color: AppColors.textWeak),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Flèche
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: AppColors.textWeak,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  /// Dialog de confirmation de déconnexion - THÉMATISÉ
+  /// Dialog de confirmation de déconnexion - STYLE GLASSMORPHIQUE
   void _showLogoutDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.glass,
-          title: Text(
-            'Déconnexion',
-            style: Theme.of(context).textTheme.titleLarge,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassContainer(
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.logout,
+                color: Colors.redAccent,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Déconnexion',
+                style: TextStyle(
+                  color: AppColors.textStrong,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Voulez-vous vraiment vous déconnecter de votre compte ?',
+                style: TextStyle(
+                  color: AppColors.textWeak,
+                  fontSize: 16,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  GlassButton(
+                    label: 'Annuler',
+                    onPressed: () => Navigator.pop(context),
+                    primary: false,
+                  ),
+                  GlassButton(
+                    label: 'Déconnexion',
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _performLogout();
+                    },
+                    primary: true,
+                  ),
+                ],
+              ),
+            ],
           ),
-          content: Text(
-            'Êtes-vous sûr de vouloir vous déconnecter ?',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Annuler', style: TextStyle(color: AppColors.text)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _performLogout();
-              },
-              child: Text('Déconnexion', style: TextStyle(color: AppColors.accent)),
-            ),
-          ],
-        );
-      },
+        ),
+      ),
     );
   }
 
-  /// Dialog pour les fonctionnalités à implémenter - THÉMATISÉ
+  /// Dialog pour les fonctionnalités à implémenter - EXACTEMENT COMME ADMIN
   void _showFeatureDialog(String feature) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.glass,
-          title: Text(feature, style: Theme.of(context).textTheme.titleLarge),
-          content: Text(
-            'Cette fonctionnalité sera bientôt disponible.',
-            style: Theme.of(context).textTheme.bodyMedium,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassContainer(
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                feature,
+                style: TextStyle(
+                  color: AppColors.textStrong,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Cette fonctionnalité sera bientôt disponible.',
+                style: TextStyle(color: AppColors.textWeak),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GlassButton(
+                    label: 'OK',
+                    onPressed: () => Navigator.pop(context),
+                    primary: true,
+                  ),
+                ],
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('OK', style: TextStyle(color: AppColors.accent)),
-            ),
-          ],
-        );
-      },
+        ),
+      ),
     );
   }
 

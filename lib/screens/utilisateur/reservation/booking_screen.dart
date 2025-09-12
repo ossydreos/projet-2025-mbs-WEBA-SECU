@@ -102,8 +102,10 @@ class _BookingScreenState extends State<BookingScreen>
         }
       });
     } catch (e) {
+      print('Erreur lors du chargement des véhicules: $e');
       setState(() {
         _isLoadingVehicles = false;
+        _vehicles = []; // S'assurer que la liste est vide en cas d'erreur
       });
     }
   }
@@ -270,11 +272,11 @@ class _BookingScreenState extends State<BookingScreen>
   Color _getVehicleColor(VehicleCategory category) {
     switch (category) {
       case VehicleCategory.economique:
-        return AppColors.accent;
+        return AppColors.accent; // Couleur principale de l'app
       case VehicleCategory.van:
-        return Colors.blue;
+        return AppColors.accent2; // Couleur secondaire de l'app
       case VehicleCategory.luxe:
-        return Colors.amber;
+        return AppColors.hot; // Couleur tertiaire de l'app
     }
   }
 
@@ -533,9 +535,23 @@ class _BookingScreenState extends State<BookingScreen>
                           // Liste des véhicules - STYLE BOLT
                           Expanded(
                             child: _isLoadingVehicles
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.accent,
+                                ? Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const CircularProgressIndicator(
+                                          color: AppColors.accent,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Chargement des véhicules...',
+                                          style: TextStyle(
+                                            color: AppColors.textStrong,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   )
                                 : _vehicles.isEmpty
@@ -554,7 +570,8 @@ class _BookingScreenState extends State<BookingScreen>
                                           'Aucun véhicule disponible',
                                           style: TextStyle(
                                             fontSize: 16,
-                                            color: AppColors.textWeak,
+                                            color: AppColors.textStrong,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                         const SizedBox(height: 8),
@@ -562,7 +579,23 @@ class _BookingScreenState extends State<BookingScreen>
                                           'Veuillez réessayer plus tard',
                                           style: TextStyle(
                                             fontSize: 14,
-                                            color: AppColors.textWeak,
+                                            color: AppColors.text,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        ElevatedButton.icon(
+                                          onPressed: () {
+                                            setState(() {
+                                              _isLoadingVehicles = true;
+                                            });
+                                            _loadVehicles();
+                                          },
+                                          icon: const Icon(Icons.refresh),
+                                          label: const Text('Réessayer'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppColors.accent,
+                                            foregroundColor: Colors.white,
                                           ),
                                         ),
                                       ],
@@ -641,55 +674,85 @@ class _BookingScreenState extends State<BookingScreen>
                                                   : Colors.white,
                                             ),
                                           ),
-                                          subtitle: Row(
+                                          subtitle: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              Icon(
-                                                Icons.person,
-                                                size: 14,
-                                                color: AppColors.text,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Flexible(
-                                                child: Text(
-                                                  vehicle.capacityDisplay,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: AppColors.text,
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.person,
+                                                    size: 14,
+                                                    color: AppColors.textStrong,
                                                   ),
-                                                  overflow: TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Icon(
-                                                Icons.luggage,
-                                                size: 14,
-                                                color: AppColors.text,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Flexible(
-                                                child: Text(
-                                                  vehicle.luggageDisplay,
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: AppColors.text,
+                                                  const SizedBox(width: 4),
+                                                  Flexible(
+                                                    child: Text(
+                                                      vehicle.capacityDisplay,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: AppColors.textStrong,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
                                                   ),
-                                                  overflow: TextOverflow.ellipsis,
+                                                  const SizedBox(width: 12),
+                                                  Icon(
+                                                    Icons.luggage,
+                                                    size: 14,
+                                                    color: AppColors.textStrong,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Flexible(
+                                                    child: Text(
+                                                      vehicle.luggageDisplay,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: AppColors.textStrong,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 4),
+                                              Text(
+                                                vehicle.category.categoryInFrench,
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: _getVehicleColor(vehicle.category),
+                                                  fontWeight: FontWeight.w600,
                                                 ),
                                               ),
                                             ],
                                           ),
-                                          trailing: Flexible(
+                                          trailing: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: isSelected
+                                                  ? _getVehicleColor(vehicle.category).withOpacity(0.2)
+                                                  : AppColors.glass,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: isSelected
+                                                    ? _getVehicleColor(vehicle.category)
+                                                    : AppColors.glassStroke,
+                                                width: 1,
+                                              ),
+                                            ),
                                             child: Text(
                                               '${estimatedPrice.toStringAsFixed(2)} €',
                                               style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
                                                 color: isSelected
-                                                    ? AppColors.accent
-                                                    : Colors.white,
+                                                    ? _getVehicleColor(vehicle.category)
+                                                    : AppColors.textStrong,
                                               ),
-                                              overflow: TextOverflow.ellipsis,
-                                              textAlign: TextAlign.end,
                                             ),
                                           ),
                                         ),
@@ -743,7 +806,8 @@ class _BookingScreenState extends State<BookingScreen>
                                           _selectedVehicle!.description,
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color: AppColors.text,
+                                            color: AppColors.textStrong,
+                                            fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                       ],

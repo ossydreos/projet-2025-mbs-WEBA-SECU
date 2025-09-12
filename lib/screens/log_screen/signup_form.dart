@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:country_code_picker/country_code_picker.dart';
 import 'package:my_mobility_services/widgets/buttons/social_buttons.dart';
 import 'package:my_mobility_services/widgets/divider_text.dart';
 import 'package:my_mobility_services/widgets/sheet_handle.dart';
@@ -29,11 +30,13 @@ class SignupFormState extends State<SignupForm> {
   final _nameCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
+  final _phoneCtrl = TextEditingController();
 
   late final TapGestureRecognizer _loginTap;
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  CountryCode? _selectedCountry;
 
   // Services
   final SessionService _sessionService = SessionService();
@@ -44,11 +47,11 @@ class SignupFormState extends State<SignupForm> {
   );
   bool _containsEmoji(String? s) => (s != null) && _emojiRegex.hasMatch(s);
 
-  // ====== Email: format strict, pas d’emoji, pas d’Unicode exotique ======
+  // ====== Email: format strict, pas d'emoji, pas d'Unicode exotique ======
   // - pas d'espaces
   // - au moins 1 char avant @
   // - au moins 1 char entre @ et le dernier point
-  // - TLD >= 2 et l’email NE finit PAS par un point
+  // - TLD >= 2 et l'email NE finit PAS par un point
   // - on refuse les emojis et on force ASCII imprimable de base
   bool _isValidEmail(String? v) {
     if (v == null) return false;
@@ -61,6 +64,18 @@ class SignupFormState extends State<SignupForm> {
 
     final re = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s\.]{2,}$');
     return re.hasMatch(email);
+  }
+
+  // ====== Validation numéro de téléphone (chiffres seulement) ======
+  bool _isValidPhone(String? v) {
+    if (v == null) return false;
+    final phone = v.trim().replaceAll(RegExp(r'[\s\-\.]'), '');
+    if (phone.isEmpty) return false;
+    if (_containsEmoji(phone)) return false;
+
+    // Format simple : 7 à 15 chiffres seulement
+    final phoneRegex = RegExp(r'^\d{7,15}$');
+    return phoneRegex.hasMatch(phone);
   }
 
   // Petites helpers pour formatters
@@ -80,6 +95,7 @@ class SignupFormState extends State<SignupForm> {
     _nameCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
+    _phoneCtrl.dispose();
     _loginTap.dispose();
     super.dispose();
   }
@@ -93,13 +109,21 @@ class SignupFormState extends State<SignupForm> {
 
     setState(() => _isLoading = true);
 
-    // Sanitize (parano) : retire toute trace d’emoji avant envoi Firebase
+    // Sanitize (parano) : retire toute trace d'emoji avant envoi Firebase
     String name = _nameCtrl.text.trim().replaceAll(_emojiRegex, '');
     String email = _emailCtrl.text.trim().toLowerCase().replaceAll(
       _emojiRegex,
       '',
     );
     String password = _passwordCtrl.text.replaceAll(_emojiRegex, '');
+    String phone = _phoneCtrl.text.trim().replaceAll(_emojiRegex, '');
+    String fullPhone = '${_selectedCountry?.dialCode ?? '+33'}$phone';
+    
+    // Debug: vérifier la concaténation
+    print('DEBUG - Indicatif: ${_selectedCountry?.dialCode ?? '+33'}');
+    print('DEBUG - Pays: ${_selectedCountry?.name ?? 'France'}');
+    print('DEBUG - Numéro: $phone');
+    print('DEBUG - Numéro complet: $fullPhone');
 
     try {
       if (password.length < 8) {
@@ -107,6 +131,21 @@ class SignupFormState extends State<SignupForm> {
           code: 'weak-password',
           message: '8 caractères minimum',
         );
+      }
+
+      // Vérifier l'unicité du numéro de téléphone
+      if (phone.isNotEmpty) {
+        final phoneQuery = await FirebaseFirestore.instance
+            .collection('users')
+            .where('phone', isEqualTo: fullPhone)
+            .get();
+        
+        if (phoneQuery.docs.isNotEmpty) {
+          throw FirebaseAuthException(
+            code: 'phone-already-in-use',
+            message: 'Ce numéro de téléphone est déjà utilisé',
+          );
+        }
       }
 
       final cred = await FirebaseAuth.instance.createUserWithEmailAndPassword(
@@ -132,23 +171,28 @@ class SignupFormState extends State<SignupForm> {
           'createdAt': FieldValue.serverTimestamp(),
           'rememberMe': _rememberMe,
           if (name.isNotEmpty) 'name': name,
+          if (phone.isNotEmpty) 'phone': fullPhone,
+          if (phone.isNotEmpty) 'countryCode': _selectedCountry?.dialCode ?? '+33',
+          if (phone.isNotEmpty) 'countryName': _selectedCountry?.name ?? 'France',
         }, SetOptions(merge: true));
+        
+        // Debug: confirmer la sauvegarde
+        print('DEBUG - Sauvegarde Firestore réussie:');
+        print('  - phone: $fullPhone');
+        print('  - countryCode: ${_selectedCountry?.dialCode ?? '+33'}');
+        print('  - countryName: ${_selectedCountry?.name ?? 'France'}');
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Compte créé ✔ Vérifie ton email pour activer le compte.',
-          ),
-        ),
-      );
       widget.onSwitch(PanelType.login);
     } on FirebaseAuthException catch (e) {
       String msg;
       switch (e.code) {
         case 'email-already-in-use':
           msg = 'Cet email est déjà utilisé';
+          break;
+        case 'phone-already-in-use':
+          msg = 'Ce numéro de téléphone est déjà utilisé';
           break;
         case 'weak-password':
           msg = 'Mot de passe trop faible';
@@ -214,12 +258,14 @@ class SignupFormState extends State<SignupForm> {
             autofillHints: const [AutofillHints.name],
             style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
-              labelText: 'Enter name',
+              labelText: 'Nom complet',
               labelStyle: TextStyle(color: Colors.white),
+              hintText: 'Ex: Jean Dupont',
+              hintStyle: TextStyle(color: Colors.white54),
             ),
             validator: (v) {
               final s = v?.trim() ?? '';
-              if (s.length < 4) return 'Nom: minimum 4 caractères';
+              if (s.length < 4) return 'Minimum 4 caractères';
               if (_containsEmoji(s)) return 'Les emojis ne sont pas autorisés';
               return null;
             },
@@ -235,12 +281,65 @@ class SignupFormState extends State<SignupForm> {
             autofillHints: const [AutofillHints.email],
             style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
-              labelText: 'Enter email',
+              labelText: 'Adresse email',
               labelStyle: TextStyle(color: Colors.white),
+              hintText: 'Ex: jean.dupont@email.com',
+              hintStyle: TextStyle(color: Colors.white54),
             ),
             validator: (v) => _isValidEmail(v)
                 ? null
-                : 'Email invalide (ex: nom@domaine.tld)',
+                : 'Format email invalide',
+            onEditingComplete: () => FocusScope.of(context).nextFocus(),
+          ),
+          const SizedBox(height: 12),
+
+          // Numéro de téléphone avec sélecteur de pays intégré
+          TextFormField(
+            controller: _phoneCtrl,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(15),
+            ],
+            textInputAction: TextInputAction.next,
+            keyboardType: TextInputType.phone,
+            autofillHints: const [AutofillHints.telephoneNumber],
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              labelText: 'Numéro de téléphone',
+              labelStyle: const TextStyle(color: Colors.white),
+              hintText: 'Ex: 612345678',
+              hintStyle: const TextStyle(color: Colors.white54),
+              prefixIcon: CountryCodePicker(
+                onChanged: (CountryCode countryCode) {
+                  setState(() {
+                    _selectedCountry = countryCode;
+                  });
+                },
+                initialSelection: _selectedCountry?.code ?? 'FR',
+                favorite: const ['FR', 'US', 'GB', 'DE', 'ES', 'IT'],
+                showCountryOnly: false,
+                showOnlyCountryWhenClosed: false,
+                alignLeft: false,
+                showFlag: true,
+                showFlagMain: true,
+                showFlagDialog: true,
+                hideMainText: false,
+                showDropDownButton: true,
+                flagWidth: 25.0,
+                textStyle: const TextStyle(color: Colors.white, fontSize: 16),
+                dialogTextStyle: const TextStyle(color: Colors.white, fontSize: 16),
+                searchStyle: const TextStyle(color: Colors.white, fontSize: 16),
+                dialogBackgroundColor: const Color(0xFF1E1E1E),
+                barrierColor: Colors.black54,
+                searchDecoration: const InputDecoration(
+                  hintText: 'Rechercher un pays...',
+                  hintStyle: TextStyle(color: Colors.white54),
+                  border: OutlineInputBorder(),
+                ),
+                dialogSize: Size(MediaQuery.of(context).size.width * 0.9, MediaQuery.of(context).size.height * 0.7),
+              ),
+            ),
+            validator: (v) => _isValidPhone(v) ? null : 'Numéro invalide',
             onEditingComplete: () => FocusScope.of(context).nextFocus(),
           ),
           const SizedBox(height: 12),
@@ -253,8 +352,10 @@ class SignupFormState extends State<SignupForm> {
             autofillHints: const [AutofillHints.newPassword],
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              labelText: 'Create password',
+              labelText: 'Mot de passe',
               labelStyle: const TextStyle(color: Colors.white),
+              hintText: 'Ex: MonMotDePasse123!',
+              hintStyle: const TextStyle(color: Colors.white54),
               suffixIcon: IconButton(
                 onPressed: () =>
                     setState(() => _obscurePassword = !_obscurePassword),
@@ -265,7 +366,7 @@ class SignupFormState extends State<SignupForm> {
               ),
             ),
             validator: (v) {
-              if (v == null || v.length < 8) return '8 caractères minimum';
+              if (v == null || v.length < 8) return 'Minimum 8 caractères';
               if (_containsEmoji(v)) return 'Les emojis ne sont pas autorisés';
               return null;
             },

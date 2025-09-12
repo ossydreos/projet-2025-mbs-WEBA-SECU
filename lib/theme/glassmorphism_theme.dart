@@ -80,6 +80,10 @@ class AppTheme {
         centerTitle: true,
         scrolledUnderElevation: 0,
       ),
+      // Configuration pour les InkWell - même style que la page admin
+      splashFactory: InkRipple.splashFactory,
+      highlightColor: AppColors.accent.withOpacity(0.1),
+      splashColor: AppColors.accent.withOpacity(0.2),
     );
   }
 

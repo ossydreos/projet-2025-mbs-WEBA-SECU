@@ -525,6 +525,10 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         return Colors.orange;
       case ReservationStatus.confirmed:
         return Colors.green;
+      case ReservationStatus.counterOffered:
+        return Colors.blue;
+      case ReservationStatus.waitingPayment:
+        return Colors.purple;
       case ReservationStatus.inProgress:
         return AppColors.accent;
       case ReservationStatus.completed:
@@ -540,6 +544,10 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         return 'En attente';
       case ReservationStatus.confirmed:
         return 'Confirmée';
+      case ReservationStatus.counterOffered:
+        return 'Contre-offre proposée';
+      case ReservationStatus.waitingPayment:
+        return 'En attente de paiement';
       case ReservationStatus.inProgress:
         return 'En cours';
       case ReservationStatus.completed:

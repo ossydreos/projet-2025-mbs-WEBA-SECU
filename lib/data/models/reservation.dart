@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 enum ReservationStatus {
   pending, // En attente
   confirmed, // Confirmée
+  counterOffered, // Contre-offre proposée
+  waitingPayment, // En attente de paiement
   inProgress, // En cours
   completed, // Terminée
   cancelled, // Annulée
@@ -16,6 +18,10 @@ extension ReservationStatusExtension on ReservationStatus {
         return 'En attente';
       case ReservationStatus.confirmed:
         return 'Confirmée';
+      case ReservationStatus.counterOffered:
+        return 'Contre-offre proposée';
+      case ReservationStatus.waitingPayment:
+        return 'En attente de paiement';
       case ReservationStatus.inProgress:
         return 'En cours';
       case ReservationStatus.completed:
@@ -172,6 +178,10 @@ class Reservation {
         return 'En attente';
       case ReservationStatus.confirmed:
         return 'Confirmée';
+      case ReservationStatus.counterOffered:
+        return 'Contre-offre proposée';
+      case ReservationStatus.waitingPayment:
+        return 'En attente de paiement';
       case ReservationStatus.inProgress:
         return 'En cours';
       case ReservationStatus.completed:

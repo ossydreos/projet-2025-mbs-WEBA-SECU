@@ -45,6 +45,12 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               icon: Icon(Icons.science, color: AppColors.accent),
               tooltip: 'Créer réservation de test',
             ),
+            // Bouton pour annuler toutes les réservations en attente de paiement
+            IconButton(
+              onPressed: _cancelAllWaitingReservations,
+              icon: Icon(Icons.clear_all, color: Colors.red),
+              tooltip: 'Annuler toutes les réservations en attente',
+            ),
             Container(
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -168,7 +174,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Réservations en attente',
+          'Réservations en cours',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -179,7 +185,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('reservations')
-              .where('status', isEqualTo: 'pending')
+              .where('status', whereIn: ['pending', 'waitingPayment'])
               .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
@@ -230,7 +236,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           Icon(Icons.inbox, size: 64, color: Colors.white.withOpacity(0.6)),
           const SizedBox(height: 16),
           Text(
-            'Aucune réservation en attente',
+            'Aucune réservation en cours',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -239,7 +245,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Les nouvelles réservations apparaîtront ici',
+            'Les nouvelles réservations et celles en attente de paiement apparaîtront ici',
             style: TextStyle(fontSize: 14, color: AppColors.textWeak),
             textAlign: TextAlign.center,
           ),
@@ -556,45 +562,205 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
           const SizedBox(height: 16),
 
-          // Boutons d'action
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _confirmReservation(reservation),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+          // Boutons d'action ou barre d'attente
+          if (reservation.status == ReservationStatus.waitingPayment) ...[
+            // Barre d'attente de paiement
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.accent.withOpacity(0.8),
+                    AppColors.accent.withOpacity(0.6),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accent.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   ),
-                  child: Text(
-                    hasCounterOffer ? 'Confirmer contre-offre' : 'Confirmer',
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _cancelReservation(reservation),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'En attente du paiement du client',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Le client doit valider et payer sa réservation',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Text(hasCounterOffer ? 'Nouvelle offre' : 'Refuser'),
-                ),
+                  Icon(
+                    Icons.payment,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ],
               ),
-            ],
+            ),
+          ] else ...[
+            // Boutons d'action normaux
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _confirmReservation(reservation),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      hasCounterOffer ? 'Confirmer contre-offre' : 'Confirmer',
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _cancelReservation(reservation),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(hasCounterOffer ? 'Nouvelle offre' : 'Refuser'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Méthode pour annuler toutes les réservations en attente de paiement
+  Future<void> _cancelAllWaitingReservations() async {
+    // Demander confirmation
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.bgElev,
+        title: const Text(
+          'Annuler toutes les réservations',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Êtes-vous sûr de vouloir annuler toutes les réservations en attente de paiement ? Cette action est irréversible.',
+          style: TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Non',
+              style: TextStyle(color: AppColors.text),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Oui, annuler tout',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
     );
+
+    if (confirmed != true) return;
+
+    try {
+      // Récupérer toutes les réservations en attente de paiement
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('reservations')
+          .where('status', isEqualTo: 'waitingPayment')
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Aucune réservation en attente de paiement à annuler'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Annuler toutes les réservations en batch
+      final batch = FirebaseFirestore.instance.batch();
+      
+      for (final doc in querySnapshot.docs) {
+        batch.update(doc.reference, {
+          'status': 'cancelled',
+          'lastUpdated': Timestamp.now(),
+          'cancelledAt': Timestamp.now(),
+          'cancelledBy': 'admin',
+          'cancellationReason': 'Annulé par l\'admin (debug)',
+        });
+      }
+
+      await batch.commit();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${querySnapshot.docs.length} réservation(s) annulée(s) avec succès'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de l\'annulation: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   // Méthode pour créer une réservation de test
@@ -648,17 +814,17 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         finalPrice = counterOffer['newPrice'];
       }
 
-      // Mettre à jour le statut vers confirmed
+      // Mettre à jour le statut vers waitingPayment (en attente de paiement)
       await _reservationService.updateReservationStatus(
         reservation.id,
-        ReservationStatus.confirmed,
+        ReservationStatus.waitingPayment,
       );
 
       // ✅ AJOUT : Mettre à jour le prix si contre-offre
       if (counterOffer != null) {
         final updatedReservation = reservation.copyWith(
           totalPrice: finalPrice,
-          status: ReservationStatus.confirmed,
+          status: ReservationStatus.waitingPayment,
         );
         await _reservationService.updateReservation(updatedReservation);
 
@@ -1064,7 +1230,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           .doc(reservation.id);
       batch.update(reservationRef, {
         'contreoffre': true, // 🆕 CHAMP AJOUTÉ
-        'status': 'counter_offered',
+        'status': 'waiting_payment', // En attente de paiement après contre-offre
         'lastUpdated': Timestamp.now(),
       });
 

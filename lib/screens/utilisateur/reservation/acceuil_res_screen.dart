@@ -11,6 +11,8 @@ import 'package:my_mobility_services/widgets/utilisateur/paneau_recherche.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_service.dart';
+import 'package:my_mobility_services/data/services/notification_service.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AccueilScreen extends StatefulWidget {
@@ -28,6 +30,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   gmaps.GoogleMapController? _googleMapController;
   final ReservationService _reservationService = ReservationService();
   final AdminService _adminService = AdminService();
+  final NotificationService _notificationService = NotificationService();
   int _selectedIndex = 0;
 
   String? _selectedDestination;
@@ -43,7 +46,14 @@ class _AccueilScreenState extends State<AccueilScreen>
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getUserLocation();
+      _listenToNotifications();
     });
+  }
+
+  // Écouter les notifications en temps réel
+  void _listenToNotifications() {
+    // Désactivé - pas de notification automatique
+    // L'utilisateur verra directement le changement dans l'interface
   }
 
   @override
@@ -254,6 +264,8 @@ class _AccueilScreenState extends State<AccueilScreen>
   }
 
   Widget _buildPendingReservationPanel(Reservation reservation) {
+    final isWaitingPayment = reservation.status == ReservationStatus.waitingPayment;
+    
     return GlassContainer(
       margin: const EdgeInsets.all(0),
       padding: const EdgeInsets.all(20),
@@ -267,32 +279,38 @@ class _AccueilScreenState extends State<AccueilScreen>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.2),
+                  color: isWaitingPayment 
+                      ? AppColors.accent.withOpacity(0.2)
+                      : Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(
-                  Icons.schedule,
-                  color: Colors.blue,
+                child: Icon(
+                  isWaitingPayment ? Icons.payment : Icons.schedule,
+                  color: isWaitingPayment ? AppColors.accent : Colors.blue,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Réservation en attente',
-                      style: TextStyle(
+                      isWaitingPayment 
+                          ? 'Réservation confirmée !'
+                          : 'Réservation en attente',
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      'En attente de confirmation du chauffeur',
-                      style: TextStyle(fontSize: 14, color: Colors.white70),
+                      isWaitingPayment 
+                          ? 'Validez et payez votre réservation'
+                          : 'En attente de confirmation du chauffeur',
+                      style: const TextStyle(fontSize: 14, color: Colors.white70),
                     ),
                   ],
                 ),
@@ -303,14 +321,16 @@ class _AccueilScreenState extends State<AccueilScreen>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.2),
+                  color: isWaitingPayment 
+                      ? AppColors.accent.withOpacity(0.2)
+                      : Colors.blue.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'En attente',
+                child: Text(
+                  isWaitingPayment ? 'À payer' : 'En attente',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.orange,
+                    color: isWaitingPayment ? AppColors.accent : Colors.orange,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -470,6 +490,27 @@ class _AccueilScreenState extends State<AccueilScreen>
                         ),
                       ),
                     ],
+                  ),
+                ],
+                
+                // Bouton de détail pour les réservations en attente de paiement
+                if (reservation.status == ReservationStatus.waitingPayment) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showReservationDetail(reservation),
+                      icon: const Icon(Icons.payment, size: 18),
+                      label: const Text('Voir les détails et payer'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
                   ),
                 ],
               ],
@@ -633,10 +674,25 @@ class _AccueilScreenState extends State<AccueilScreen>
               right: 0,
               bottom: 0, // on laisse le verre passer SOUS la navbar
               child: StreamBuilder<List<Reservation>>(
-                stream: _reservationService.getUserPendingReservationsStream(),
+                stream: _reservationService.getUserReservationsStream(
+                  _reservationService.getCurrentUserId() ?? '',
+                ),
                 builder: (context, snapshot) {
-                  final hasPending =
-                      snapshot.hasData && snapshot.data!.isNotEmpty;
+                  if (!snapshot.hasData) {
+                    return PaneauRecherche(
+                      selectedDestination: _selectedDestination,
+                      onTap: _openLocationSearch,
+                      noWrapper: true,
+                    );
+                  }
+                  
+                  final reservations = snapshot.data!;
+                  final pendingOrWaitingReservations = reservations
+                      .where((r) => r.status == ReservationStatus.pending || 
+                                   r.status == ReservationStatus.waitingPayment)
+                      .toList();
+                  
+                  final hasPending = pendingOrWaitingReservations.isNotEmpty;
 
                   return GlassContainer(
                     // arrondis seulement en haut pour coller au bas de l'écran
@@ -653,7 +709,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                       bottom: bottomSafe + kBottomNavigationBarHeight - 20, // espace pour la navbar et champ de recherche
                     ),
                     child: hasPending
-                        ? _buildPendingReservationPanel(snapshot.data!.first)
+                        ? _buildPendingReservationPanel(pendingOrWaitingReservations.first)
                         : PaneauRecherche(
                             selectedDestination: _selectedDestination,
                             onTap: _openLocationSearch,
@@ -725,6 +781,18 @@ class _AccueilScreenState extends State<AccueilScreen>
     } catch (e) {
       _showErrorSnackBar('Erreur lors de l\'envoi du SMS: $e');
     }
+  }
+
+  // Afficher les détails de la réservation
+  void _showReservationDetail(Reservation reservation) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ReservationDetailScreen(
+          reservation: reservation,
+        ),
+      ),
+    );
   }
 
   // Afficher un message d'erreur

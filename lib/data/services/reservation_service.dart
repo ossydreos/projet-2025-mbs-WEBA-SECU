@@ -141,6 +141,46 @@ class ReservationService {
         );
   }
 
+  // Stream des réservations confirmées d'un utilisateur (pour l'onglet "À venir")
+  Stream<List<Reservation>> getUserConfirmedReservationsStream() {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: currentUser.uid)
+        .where('status', whereIn: ['confirmed', 'in_progress'])
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
+  }
+
+  // Stream des réservations terminées d'un utilisateur (pour l'onglet "Terminés")
+  Stream<List<Reservation>> getUserCompletedReservationsStream() {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      return Stream.value([]);
+    }
+
+    return _firestore
+        .collection(_collection)
+        .where('userId', isEqualTo: currentUser.uid)
+        .where('status', isEqualTo: 'completed')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
+  }
+
   // ✅ OPTIMISÉ : Méthode générique pour enrichir les réservations avec les noms d'utilisateurs
   Future<Reservation> _enrichReservationWithUserName(
     Reservation reservation,
@@ -261,39 +301,4 @@ class ReservationService {
         );
   }
 
-  // Stream des réservations confirmées pour un utilisateur spécifique
-  Stream<List<Reservation>> getUserConfirmedReservationsStream() {
-    final currentUser = _auth.currentUser;
-    if (currentUser == null) return Stream.value([]);
-
-    return _firestore
-        .collection(_collection)
-        .where('userId', isEqualTo: currentUser.uid)
-        .where('status', isEqualTo: ReservationStatus.confirmed.name)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
-              .toList(),
-        );
-  }
-
-  // Stream des réservations terminées pour un utilisateur spécifique
-  Stream<List<Reservation>> getUserCompletedReservationsStream() {
-    final currentUser = _auth.currentUser;
-    if (currentUser == null) return Stream.value([]);
-
-    return _firestore
-        .collection(_collection)
-        .where('userId', isEqualTo: currentUser.uid)
-        .where('status', isEqualTo: ReservationStatus.completed.name)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
-              .toList(),
-        );
-  }
 }
