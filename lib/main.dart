@@ -10,14 +10,21 @@ import 'theme/glassmorphism_theme.dart';
 // Import des écrans admin
 import 'screens/admin/reception/admin_reception_screen.dart';
 import 'screens/admin/gestion/admin_gestion_screen.dart';
+import 'screens/admin/gestion/vehicle_management_screen.dart';
 import 'screens/admin/trajets/admin_trajets_screen.dart';
 import 'screens/admin/profile/admin_profile_screen.dart';
+import 'data/services/vehicle_category_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initialiser les données de fuseau horaire pour toute l'application
   tz.initializeTimeZones();
+  
+  // Initialiser les catégories de véhicules par défaut
+  final categoryService = VehicleCategoryService();
+  await categoryService.initializeDefaultCategories();
+  
   runApp(const MyApp());
 }
 
@@ -55,6 +62,9 @@ class MyApp extends StatelessWidget {
             break;
           case '/admin/gestion':
             page = const AdminGestionScreen();
+            break;
+          case '/admin/vehicle-management':
+            page = const VehicleManagementScreen();
             break;
           case '/admin/profile':
             page = const AdminProfileScreen();

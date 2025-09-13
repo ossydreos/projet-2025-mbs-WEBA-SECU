@@ -30,6 +30,7 @@ class VehiculeType {
   final int maxLuggage; // Nombre maximum de bagages
   final String description; // Description du véhicule
   final String imageUrl; // URL de l'image du véhicule
+  final IconData icon; // Icône du véhicule
   final bool isActive; // Si le véhicule est disponible
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -43,6 +44,7 @@ class VehiculeType {
     required this.maxLuggage,
     required this.description,
     required this.imageUrl,
+    required this.icon,
     required this.isActive,
     required this.createdAt,
     this.updatedAt,
@@ -59,6 +61,7 @@ class VehiculeType {
       'maxLuggage': maxLuggage,
       'description': description,
       'imageUrl': imageUrl,
+      'icon': icon.codePoint,
       'isActive': isActive,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
@@ -79,6 +82,10 @@ class VehiculeType {
       maxLuggage: map['maxLuggage'] ?? 2,
       description: map['description'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
+      icon: IconData(
+        map['icon'] ?? Icons.directions_car.codePoint,
+        fontFamily: 'MaterialIcons',
+      ),
       isActive: map['isActive'] ?? true,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: map['updatedAt'] != null 
@@ -97,6 +104,7 @@ class VehiculeType {
     int? maxLuggage,
     String? description,
     String? imageUrl,
+    IconData? icon,
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -110,6 +118,7 @@ class VehiculeType {
       maxLuggage: maxLuggage ?? this.maxLuggage,
       description: description ?? this.description,
       imageUrl: imageUrl ?? this.imageUrl,
+      icon: icon ?? this.icon,
       isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -121,15 +130,4 @@ class VehiculeType {
   String get capacityDisplay => '$maxPassengers passagers';
   String get luggageDisplay => '$maxLuggage bagages';
   
-  // Icône basée sur la catégorie
-  IconData get icon {
-    switch (category) {
-      case VehicleCategory.luxe:
-        return Icons.directions_car;
-      case VehicleCategory.van:
-        return Icons.airport_shuttle;
-      case VehicleCategory.economique:
-        return Icons.directions_car_outlined;
-    }
-  }
 }

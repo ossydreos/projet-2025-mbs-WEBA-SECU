@@ -70,22 +70,10 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               icon: Icons.directions_car,
               children: [
                 _buildMenuItem(
-                  icon: Icons.add_circle,
-                  title: 'Ajouter un véhicule',
-                  subtitle: 'Ajouter un nouveau véhicule à la flotte',
-                  onTap: () => _showAddVehicleDialog(),
-                ),
-                _buildMenuItem(
-                  icon: Icons.list,
-                  title: 'Liste des véhicules',
-                  subtitle: 'Voir et gérer tous les véhicules',
-                  onTap: () => _showVehicleList(),
-                ),
-                _buildMenuItem(
-                  icon: Icons.settings,
-                  title: 'Configuration véhicules',
-                  subtitle: 'Activer/désactiver des véhicules',
-                  onTap: () => _showVehicleSettings(),
+                  icon: Icons.category,
+                  title: 'Gestion des véhicules',
+                  subtitle: 'Gérer les catégories, prix et disponibilité des véhicules',
+                  onTap: () => _navigateToVehicleManagement(),
                 ),
               ],
             ),
@@ -259,53 +247,8 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     );
   }
 
-  void _showAddVehicleDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: GlassContainer(
-          borderRadius: BorderRadius.circular(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Ajouter un véhicule',
-                style: TextStyle(
-                  color: AppColors.textStrong,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Fonctionnalité à implémenter',
-                style: TextStyle(color: AppColors.textWeak),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GlassButton(
-                    label: 'OK',
-                    onPressed: () => Navigator.pop(context),
-                    primary: true,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showVehicleList() {
-    _showFeatureDialog('Liste des véhicules');
-  }
-
-  void _showVehicleSettings() {
-    _showFeatureDialog('Configuration véhicules');
+  void _navigateToVehicleManagement() {
+    Navigator.pushNamed(context, '/admin/vehicle-management');
   }
 
   void _showCreatePromoDialog() {

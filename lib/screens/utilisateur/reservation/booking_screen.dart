@@ -6,6 +6,7 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_screen.dart';
 import 'package:my_mobility_services/data/models/vehicule_type.dart';
+import 'package:my_mobility_services/data/models/vehicle_with_category_status.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
 
@@ -32,7 +33,7 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen>
     with TickerProviderStateMixin {
   gmaps.GoogleMapController? _googleMapController;
-  VehiculeType? _selectedVehicle;
+  VehicleWithCategoryStatus? _selectedVehicle;
   int _selectedIndex = 0;
   late AnimationController _panelController;
   late Animation<double> _panelAnimation;
@@ -42,8 +43,6 @@ class _BookingScreenState extends State<BookingScreen>
 
   // Service et données des véhicules
   final VehicleService _vehicleService = VehicleService();
-  List<VehiculeType> _vehicles = [];
-  bool _isLoadingVehicles = true;
   double _estimatedDistance = 0.0; // Distance estimée en km
   String _estimatedArrival = 'Arrivée d\'ici 10:13'; // Estimation d'arrivée
   List<gmaps.LatLng> _routePoints = []; // Points de la route réelle
@@ -65,8 +64,7 @@ class _BookingScreenState extends State<BookingScreen>
     // Par défaut, le panneau est étendu
     _panelController.forward();
 
-    // Charger les véhicules depuis la base de données
-    _loadVehicles();
+    // Les véhicules sont maintenant chargés via StreamBuilder
 
     // Calculer la distance et l'heure d'arrivée estimées
     _calculateEstimatedDistanceAndArrival();
@@ -89,26 +87,6 @@ class _BookingScreenState extends State<BookingScreen>
     }
   }
 
-  // Charger les véhicules depuis la base de données
-  Future<void> _loadVehicles() async {
-    try {
-      final vehicles = await _vehicleService.getActiveVehicles();
-      setState(() {
-        _vehicles = vehicles;
-        _isLoadingVehicles = false;
-        // Sélectionner le premier véhicule par défaut
-        if (_vehicles.isNotEmpty) {
-          _selectedVehicle = _vehicles.first;
-        }
-      });
-    } catch (e) {
-      print('Erreur lors du chargement des véhicules: $e');
-      setState(() {
-        _isLoadingVehicles = false;
-        _vehicles = []; // S'assurer que la liste est vide en cas d'erreur
-      });
-    }
-  }
 
   // Calculer la distance et l'heure d'arrivée estimées
   Future<void> _calculateEstimatedDistanceAndArrival() async {
@@ -262,7 +240,12 @@ class _BookingScreenState extends State<BookingScreen>
     }
   }
 
-  void _selectVehicle(VehiculeType vehicle) {
+  void _selectVehicle(VehicleWithCategoryStatus vehicle) {
+    // Ne pas permettre la sélection des véhicules non sélectionnables
+    if (!vehicle.isSelectable) {
+      return;
+    }
+    
     setState(() {
       _selectedVehicle = vehicle;
     });
@@ -532,10 +515,14 @@ class _BookingScreenState extends State<BookingScreen>
 
                           const SizedBox(height: 16),
 
-                          // Liste des véhicules - STYLE BOLT
+                          // Liste des véhicules - STYLE BOLT avec StreamBuilder
                           Expanded(
-                            child: _isLoadingVehicles
-                                ? Center(
+                            child: StreamBuilder<List<VehicleWithCategoryStatus>>(
+                              stream: _vehicleService.getVehiclesWithCategoryStatusStream(),
+                              initialData: <VehicleWithCategoryStatus>[],
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting && snapshot.data == null) {
+                                  return Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
@@ -553,12 +540,48 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                       ],
                                     ),
-                                  )
-                                : _vehicles.isEmpty
-                                ? Center(
+                                  );
+                                }
+
+                                if (snapshot.hasError) {
+                                  return Center(
                                     child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.error_outline,
+                                          size: 64,
+                                          color: Colors.red,
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          'Erreur de chargement',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: AppColors.textStrong,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Veuillez réessayer',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: AppColors.text,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+
+                                final vehicles = snapshot.data ?? [];
+                                
+                                if (vehicles.isEmpty) {
+                                  return Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Icon(
                                           Icons.car_rental,
@@ -583,96 +606,99 @@ class _BookingScreenState extends State<BookingScreen>
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
-                                        const SizedBox(height: 16),
-                                        ElevatedButton.icon(
-                                          onPressed: () {
-                                            setState(() {
-                                              _isLoadingVehicles = true;
-                                            });
-                                            _loadVehicles();
-                                          },
-                                          icon: const Icon(Icons.refresh),
-                                          label: const Text('Réessayer'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.accent,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                        ),
                                       ],
                                     ),
-                                  )
-                                : ListView.builder(
-                                    padding: const EdgeInsets.fromLTRB(
-                                      16,
-                                      0,
-                                      16,
-                                      0,
-                                    ),
-                                    itemCount: _vehicles.length,
-                                    itemBuilder: (context, index) {
-                                      final vehicle = _vehicles[index];
-                                      final isSelected =
-                                          _selectedVehicle?.id == vehicle.id;
-                                      final estimatedPrice = _vehicleService
-                                          .calculateTripPrice(
-                                            vehicle,
-                                            _estimatedDistance,
-                                          );
+                                  );
+                                }
 
-                                      return Container(
-                                        margin: const EdgeInsets.only(
-                                          bottom: 8,
-                                        ),
-                                        decoration: BoxDecoration(
+                                // Vérifier si le véhicule sélectionné est toujours sélectionnable
+                                if (_selectedVehicle != null) {
+                                  final currentVehicle = vehicles.firstWhere(
+                                    (v) => v.id == _selectedVehicle!.id,
+                                    orElse: () => _selectedVehicle!,
+                                  );
+                                  
+                                  if (!currentVehicle.isSelectable) {
+                                    // Désélectionner le véhicule si sa catégorie est devenue inactive
+                                    _selectedVehicle = null;
+                                  }
+                                }
+
+                                // Sélectionner le premier véhicule sélectionnable si aucun n'est sélectionné
+                                if (_selectedVehicle == null) {
+                                  final selectableVehicles = vehicles.where((v) => v.isSelectable).toList();
+                                  if (selectableVehicles.isNotEmpty) {
+                                    _selectedVehicle = selectableVehicles.first;
+                                  }
+                                }
+
+                                return ListView.builder(
+                                  key: ValueKey('vehicles_${vehicles.length}'),
+                                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                                  itemCount: vehicles.length,
+                                  itemBuilder: (context, index) {
+                                    final vehicle = vehicles[index];
+                                    final isSelected = _selectedVehicle?.id == vehicle.id;
+                                    final estimatedPrice = _vehicleService.calculateTripPrice(
+                                      vehicle.vehicle,
+                                      _estimatedDistance,
+                                    );
+
+                                    return Container(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.accent.withOpacity(0.1)
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
                                           color: isSelected
-                                              ? AppColors.accent.withOpacity(
-                                                  0.1,
-                                                )
-                                              : Colors.transparent,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                          border: Border.all(
-                                            color: isSelected
-                                                ? AppColors.accent
-                                                : AppColors.glassStroke,
-                                            width: isSelected ? 2 : 1,
-                                          ),
+                                              ? AppColors.accent
+                                              : AppColors.glassStroke,
+                                          width: isSelected ? 2 : 1,
                                         ),
+                                      ),
+                                      child: Opacity(
+                                        opacity: vehicle.isSelectable ? 1.0 : 0.5,
                                         child: ListTile(
-                                          onTap: () => _selectVehicle(vehicle),
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 8,
-                                              ),
+                                          onTap: vehicle.isSelectable 
+                                              ? () => _selectVehicle(vehicle)
+                                              : null,
+                                          contentPadding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
                                           leading: Container(
                                             width: 40,
                                             height: 40,
                                             decoration: BoxDecoration(
-                                              color: _getVehicleColor(
-                                                vehicle.category,
-                                              ).withOpacity(0.2),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                              color: _getVehicleColor(vehicle.category)
+                                                  .withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: Icon(
                                               vehicle.icon,
-                                              color: _getVehicleColor(
-                                                vehicle.category,
-                                              ),
+                                              color: _getVehicleColor(vehicle.category),
                                               size: 20,
                                             ),
                                           ),
-                                          title: Text(
-                                            vehicle.name,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                              color: isSelected
-                                                  ? AppColors.accent
-                                                  : Colors.white,
-                                            ),
+                                          title: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  vehicle.name,
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: isSelected
+                                                        ? AppColors.accent
+                                                        : (vehicle.isSelectable 
+                                                            ? Colors.white 
+                                                            : Colors.grey),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                           subtitle: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -718,7 +744,7 @@ class _BookingScreenState extends State<BookingScreen>
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                vehicle.category.categoryInFrench,
+                                                vehicle.categoryDisplayName,
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   color: _getVehicleColor(vehicle.category),
@@ -756,9 +782,12 @@ class _BookingScreenState extends State<BookingScreen>
                                             ),
                                           ),
                                         ),
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
                           ),
                         ] else ...[
                           // Panneau réduit - STYLE BOLT EXACT
@@ -803,7 +832,7 @@ class _BookingScreenState extends State<BookingScreen>
                                           ),
                                         ),
                                         Text(
-                                          _selectedVehicle!.description,
+                                          _selectedVehicle!.categoryDisplayName,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: AppColors.textStrong,
@@ -815,7 +844,7 @@ class _BookingScreenState extends State<BookingScreen>
                                   ),
                                   Flexible(
                                     child: Text(
-                                      '${_vehicleService.calculateTripPrice(_selectedVehicle!, _estimatedDistance).toStringAsFixed(2)} €',
+                                      '${_vehicleService.calculateTripPrice(_selectedVehicle!.vehicle, _estimatedDistance).toStringAsFixed(2)} €',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -881,34 +910,36 @@ class _BookingScreenState extends State<BookingScreen>
                                 child: ElevatedButton(
                                   onPressed: _selectedVehicle != null
                                       ? () {
-                                          if (widget.fromSummary) {
-                                            // Retourner au résumé avec les données mises à jour
-                                            Navigator.pop(context, {
-                                              'departure': widget.departure,
-                                              'destination': widget.destination,
-                                              'departureCoordinates': widget.departureCoordinates,
-                                              'destinationCoordinates': widget.destinationCoordinates,
-                                              'vehicleName': _selectedVehicle!.name,
-                                            });
-                                          } else {
-                                            // Aller à la page de planification
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    SchedulingScreen(
-                                                      vehicleName:
-                                                          _selectedVehicle!.name,
-                                                      departure: widget.departure,
-                                                      destination:
-                                                          widget.destination,
-                                                      departureCoordinates: widget
-                                                          .departureCoordinates,
-                                                      destinationCoordinates: widget
-                                                          .destinationCoordinates,
-                                                    ),
-                                              ),
-                                            );
+                                          if (_selectedVehicle != null && _selectedVehicle!.isSelectable) {
+                                            if (widget.fromSummary) {
+                                              // Retourner au résumé avec les données mises à jour
+                                              Navigator.pop(context, {
+                                                'departure': widget.departure,
+                                                'destination': widget.destination,
+                                                'departureCoordinates': widget.departureCoordinates,
+                                                'destinationCoordinates': widget.destinationCoordinates,
+                                                'vehicleName': _selectedVehicle!.name,
+                                              });
+                                            } else {
+                                              // Aller à la page de planification
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      SchedulingScreen(
+                                                        vehicleName:
+                                                            _selectedVehicle!.name,
+                                                        departure: widget.departure,
+                                                        destination:
+                                                            widget.destination,
+                                                        departureCoordinates: widget
+                                                            .departureCoordinates,
+                                                        destinationCoordinates: widget
+                                                            .destinationCoordinates,
+                                                      ),
+                                                ),
+                                              );
+                                            }
                                           }
                                         }
                                       : null,
