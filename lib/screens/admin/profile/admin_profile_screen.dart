@@ -154,58 +154,77 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   }
 
   Widget _buildLogoutCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.hot.withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -1),
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ElevatedButton(
-            onPressed: _performLogout,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.hot,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              minimumSize: const Size(0, 44), // hauteur mini
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min, // s’adapte au contenu
-              children: const [
-                Icon(Icons.logout, size: 20),
-                SizedBox(width: 8),
-                Text(
-                  'Déconnexion',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+    return Column(
+      children: [
+        // Bouton déconnexion - STYLE GLASSMORPHIQUE
+        GlassContainer(
+          margin: const EdgeInsets.symmetric(horizontal: 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    _showLogoutDialog();
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: Colors.redAccent, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Se déconnecter',
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          size: 16,
+                          color: AppColors.textWeak,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'Se déconnecter de votre compte administrateur.',
+                  style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Se déconnecter de votre compte administrateur.',
-            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
-          ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  /// Dialog de confirmation de déconnexion - STYLE GLASSMORPHIQUE
+  void _showLogoutDialog() {
+    showGlassConfirmDialog(
+      context: context,
+      title: 'Déconnexion',
+      message: 'Voulez-vous vraiment vous déconnecter de votre compte administrateur ?',
+      confirmText: 'Déconnexion',
+      cancelText: 'Annuler',
+      icon: Icons.logout,
+      iconColor: Colors.redAccent,
+      onConfirm: () {
+        Navigator.pop(context);
+        _performLogout();
+      },
+      onCancel: () => Navigator.pop(context),
     );
   }
 

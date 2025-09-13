@@ -155,7 +155,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                     ],
                     
                     // Bouton de paiement si en attente
-                    if (widget.reservation.status == ReservationStatus.waitingPayment) ...[
+                    if (widget.reservation.status == ReservationStatus.confirmed) ...[
                       _buildPaymentSection(),
                     ],
                   ],
@@ -184,8 +184,54 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           _buildInfoRow('Véhicule', widget.reservation.vehicleName),
           _buildInfoRow('Départ', widget.reservation.departure),
           _buildInfoRow('Destination', widget.reservation.destination),
-          _buildInfoRow('Date', '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}'),
-          _buildInfoRow('Heure', widget.reservation.selectedTime),
+          // Afficher la date et heure selon qu'il s'agit d'une contre-offre ou non
+          if (widget.reservation.hasCounterOffer && widget.reservation.driverProposedDate != null && widget.reservation.driverProposedTime != null) ...[
+            Builder(
+              builder: (context) {
+                // Vérifier si la date a changé (comparer seulement jour/mois/année)
+                final selectedDateOnly = DateTime(
+                  widget.reservation.selectedDate.year,
+                  widget.reservation.selectedDate.month,
+                  widget.reservation.selectedDate.day,
+                );
+                final proposedDateOnly = DateTime(
+                  widget.reservation.driverProposedDate!.year,
+                  widget.reservation.driverProposedDate!.month,
+                  widget.reservation.driverProposedDate!.day,
+                );
+                final dateChanged = !selectedDateOnly.isAtSameMomentAs(proposedDateOnly);
+                
+                // Vérifier si l'heure a changé
+                final timeChanged = widget.reservation.selectedTime != widget.reservation.driverProposedTime;
+                
+                return Column(
+                  children: [
+                    // Afficher la date (barrée seulement si elle a changé)
+                    if (dateChanged) 
+                      _buildCounterOfferInfoRow('Date', 
+                        '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}',
+                        '${widget.reservation.driverProposedDate!.day}/${widget.reservation.driverProposedDate!.month}/${widget.reservation.driverProposedDate!.year}'
+                      )
+                    else 
+                      _buildInfoRow('Date', '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}'),
+                    
+                    // Afficher l'heure (barrée seulement si elle a changé)
+                    if (timeChanged) 
+                      _buildCounterOfferInfoRow('Heure', 
+                        widget.reservation.selectedTime,
+                        widget.reservation.driverProposedTime!
+                      )
+                    else 
+                      _buildInfoRow('Heure', widget.reservation.selectedTime),
+                  ],
+                );
+              },
+            ),
+          ] else ...[
+            // Réservation normale : afficher la date/heure du client
+            _buildInfoRow('Date', '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}'),
+            _buildInfoRow('Heure', widget.reservation.selectedTime),
+          ],
           _buildInfoRow('Prix', '${widget.reservation.totalPrice.toStringAsFixed(2)} €'),
           _buildInfoRow('Statut', widget.reservation.status.statusInFrench),
           
@@ -222,6 +268,54 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCounterOfferInfoRow(String label, String oldValue, String newValue) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                color: AppColors.textWeak,
+                fontSize: 14,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                Text(
+                  oldValue,
+                  style: const TextStyle(
+                    color: AppColors.textWeak,
+                    fontSize: 14,
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward, color: AppColors.accent, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    newValue,
+                    style: const TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

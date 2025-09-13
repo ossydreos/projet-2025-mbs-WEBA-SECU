@@ -589,61 +589,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Dialog de confirmation de déconnexion - STYLE GLASSMORPHIQUE
   void _showLogoutDialog() {
-    showDialog(
+    showGlassConfirmDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: GlassContainer(
-          borderRadius: BorderRadius.circular(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.logout,
-                color: Colors.redAccent,
-                size: 48,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Déconnexion',
-                style: TextStyle(
-                  color: AppColors.textStrong,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Voulez-vous vraiment vous déconnecter de votre compte ?',
-                style: TextStyle(
-                  color: AppColors.textWeak,
-                  fontSize: 16,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  GlassButton(
-                    label: 'Annuler',
-                    onPressed: () => Navigator.pop(context),
-                    primary: false,
-                  ),
-                  GlassButton(
-                    label: 'Déconnexion',
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _performLogout();
-                    },
-                    primary: true,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+      title: 'Déconnexion',
+      message: 'Voulez-vous vraiment vous déconnecter de votre compte ?',
+      confirmText: 'Déconnexion',
+      cancelText: 'Annuler',
+      icon: Icons.logout,
+      iconColor: Colors.redAccent,
+      onConfirm: () {
+        Navigator.pop(context);
+        _performLogout();
+      },
+      onCancel: () => Navigator.pop(context),
     );
   }
 

@@ -459,4 +459,217 @@ class GlassSheet extends StatelessWidget {
   }
 }
 
+/// Composant d'alerte uniforme avec style glassmorphique
+class GlassAlertDialog extends StatelessWidget {
+  final String title;
+  final String message;
+  final String confirmText;
+  final String cancelText;
+  final IconData icon;
+  final Color iconColor;
+  final VoidCallback? onConfirm;
+  final VoidCallback? onCancel;
+
+  const GlassAlertDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.confirmText,
+    required this.cancelText,
+    required this.icon,
+    required this.iconColor,
+    this.onConfirm,
+    this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: iconColor,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: TextStyle(
+                color: AppColors.textStrong,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: TextStyle(
+                color: AppColors.textWeak,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                GlassButton(
+                  label: cancelText,
+                  onPressed: onCancel ?? () => Navigator.pop(context),
+                  primary: false,
+                ),
+                GlassButton(
+                  label: confirmText,
+                  onPressed: onConfirm ?? () => Navigator.pop(context),
+                  primary: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Méthode utilitaire pour afficher une alerte de confirmation
+Future<bool?> showGlassConfirmDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+  required String confirmText,
+  required String cancelText,
+  required IconData icon,
+  required Color iconColor,
+  VoidCallback? onConfirm,
+  VoidCallback? onCancel,
+}) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) => GlassAlertDialog(
+      title: title,
+      message: message,
+      confirmText: confirmText,
+      cancelText: cancelText,
+      icon: icon,
+      iconColor: iconColor,
+      onConfirm: onConfirm,
+      onCancel: onCancel,
+    ),
+  );
+}
+
+/// Composant d'alerte pour les actions multiples avec style glassmorphique
+class GlassActionDialog extends StatelessWidget {
+  final String title;
+  final String message;
+  final List<GlassActionButton> actions;
+
+  const GlassActionDialog({
+    super.key,
+    required this.title,
+    required this.message,
+    required this.actions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                color: AppColors.textStrong,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: TextStyle(
+                color: AppColors.textWeak,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ...actions.map((action) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: action,
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Bouton d'action pour les alertes
+class GlassActionButton extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPressed;
+  final IconData? icon;
+  final Color? color;
+  final bool isPrimary;
+
+  const GlassActionButton({
+    super.key,
+    required this.label,
+    this.onPressed,
+    this.icon,
+    this.color,
+    this.isPrimary = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (isPrimary) {
+      return SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: onPressed,
+          icon: icon != null ? Icon(icon, size: 18) : const SizedBox.shrink(),
+          label: Text(label),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color ?? AppColors.accent,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+      );
+    }
+    
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: icon != null ? Icon(icon, size: 18, color: color) : const SizedBox.shrink(),
+        label: Text(label, style: TextStyle(color: color)),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: color,
+          side: BorderSide(color: color ?? AppColors.glassStroke),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+        ),
+      ),
+    );
+  }
+}
+
 // (Demo page retirée)

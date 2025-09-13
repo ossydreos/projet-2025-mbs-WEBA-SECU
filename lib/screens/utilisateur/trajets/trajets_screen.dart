@@ -429,16 +429,12 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   ],
                 ),
               ),
-              Flexible(
-                child: Text(
-                  '${reservation.totalPrice.toStringAsFixed(1)} €',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textStrong,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
+              Text(
+                '${reservation.totalPrice.toStringAsFixed(1)} €',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textStrong,
                 ),
               ),
             ],

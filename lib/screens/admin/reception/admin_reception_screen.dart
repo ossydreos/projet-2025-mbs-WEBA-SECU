@@ -185,7 +185,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('reservations')
-              .where('status', whereIn: ['pending', 'waitingPayment'])
               .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, snapshot) {
@@ -206,10 +205,25 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               return _buildEmptyState();
             }
 
-            final reservations = snapshot.data!.docs.map((doc) {
+            final allReservations = snapshot.data!.docs.map((doc) {
               final data = doc.data() as Map<String, dynamic>;
               return Reservation.fromMap({...data, 'id': doc.id});
             }).toList();
+
+            // Debug logs supprimés pour éviter le spam
+
+        // Filtrer côté client pour éviter les problèmes d'index Firestore
+        // Prendre toutes les réservations en attente ET toutes les confirmations (normales + contre-offres)
+        // Exclure les réservations inProgress (déjà payées)
+        final reservations = allReservations
+            .where((r) => r.status == ReservationStatus.pending ||
+                         r.status == ReservationStatus.confirmed)
+            .toList();
+
+
+            if (reservations.isEmpty) {
+              return _buildEmptyState();
+            }
 
             return ListView.builder(
               shrinkWrap: true,
@@ -310,7 +324,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     style: TextStyle(fontSize: 12, color: AppColors.textWeak),
                   ),
                   Text(
-                    '${reservation.totalPrice.toStringAsFixed(2)}€',
+                    '${(reservation.totalPrice ?? 0.0).toStringAsFixed(2)}€',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -403,27 +417,124 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     'Départ',
                     style: TextStyle(fontSize: 12, color: AppColors.textWeak),
                   ),
-                  Text(
-                    reservation.selectedTime,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.text,
+                  // Afficher l'heure avec contre-offre si applicable
+                  if (reservation.hasCounterOffer && reservation.driverProposedTime != null) ...[
+                    Builder(
+                      builder: (context) {
+                        final timeChanged = reservation.selectedTime != reservation.driverProposedTime;
+                        
+                        if (timeChanged) {
+                          return Row(
+                            children: [
+                              Text(
+                                reservation.selectedTime,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textWeak,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward, color: AppColors.accent, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                reservation.driverProposedTime!,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.accent,
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Text(
+                            reservation.selectedTime,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.text,
+                            ),
+                          );
+                        }
+                      },
                     ),
-                  ),
+                  ] else ...[
+                    Text(
+                      reservation.selectedTime,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Text(
                     'Arrivée',
                     style: TextStyle(fontSize: 12, color: AppColors.textWeak),
                   ),
-                  Text(
-                    reservation.estimatedArrival ?? '--:--',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.text,
+                  // Afficher l'heure d'arrivée avec contre-offre si applicable
+                  if (reservation.hasCounterOffer && reservation.driverProposedTime != null) ...[
+                    Builder(
+                      builder: (context) {
+                        final timeChanged = reservation.selectedTime != reservation.driverProposedTime;
+                        
+                        if (timeChanged) {
+                          // Calculer la nouvelle heure d'arrivée basée sur la nouvelle heure de départ
+                          final newArrivalTime = _calculateArrivalTime(
+                            reservation.driverProposedTime!,
+                            reservation.estimatedArrival,
+                            reservation.selectedTime,
+                          );
+                          
+                          return Row(
+                            children: [
+                              Text(
+                                reservation.estimatedArrival ?? '--:--',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textWeak,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.arrow_forward, color: AppColors.accent, size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                newArrivalTime,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.accent,
+                                ),
+                              ),
+                            ],
+                          );
+                        } else {
+                          return Text(
+                            reservation.estimatedArrival ?? '--:--',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.text,
+                            ),
+                          );
+                        }
+                      },
                     ),
-                  ),
+                  ] else ...[
+                    Text(
+                      reservation.estimatedArrival ?? '--:--',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -435,10 +546,61 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             children: [
               Icon(Icons.calendar_today, color: AppColors.textWeak, size: 16),
               const SizedBox(width: 8),
-              Text(
-                '${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year}',
-                style: TextStyle(fontSize: 14, color: AppColors.textWeak),
-              ),
+              // Afficher la date avec contre-offre si applicable
+              if (reservation.hasCounterOffer && reservation.driverProposedDate != null) ...[
+                // Vérifier si la date a changé
+                Builder(
+                  builder: (context) {
+                    final selectedDateOnly = DateTime(
+                      reservation.selectedDate.year,
+                      reservation.selectedDate.month,
+                      reservation.selectedDate.day,
+                    );
+                    final proposedDateOnly = DateTime(
+                      reservation.driverProposedDate!.year,
+                      reservation.driverProposedDate!.month,
+                      reservation.driverProposedDate!.day,
+                    );
+                    final dateChanged = !selectedDateOnly.isAtSameMomentAs(proposedDateOnly);
+                    
+                    if (dateChanged) {
+                      return Row(
+                        children: [
+                          Text(
+                            '${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year}',
+                            style: TextStyle(
+                              fontSize: 14, 
+                              color: AppColors.textWeak,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward, color: AppColors.accent, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${reservation.driverProposedDate!.day}/${reservation.driverProposedDate!.month}/${reservation.driverProposedDate!.year}',
+                            style: TextStyle(
+                              fontSize: 14, 
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      return Text(
+                        '${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year}',
+                        style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+                      );
+                    }
+                  },
+                ),
+              ] else ...[
+                Text(
+                  '${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year}',
+                  style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+                ),
+              ],
               const Spacer(),
               Icon(Icons.payment, color: AppColors.textWeak, size: 16),
               const SizedBox(width: 8),
@@ -515,7 +677,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Contre-offre: ${counterOffer!['newPrice'].toStringAsFixed(2)}€',
+                        'Contre-offre: ${(counterOffer!['newPrice'] ?? 0.0).toStringAsFixed(2)}€',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -563,7 +725,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           const SizedBox(height: 16),
 
           // Boutons d'action ou barre d'attente
-          if (reservation.status == ReservationStatus.waitingPayment) ...[
+          if (reservation.status == ReservationStatus.confirmed) ...[
             // Barre d'attente de paiement
             Container(
               width: double.infinity,
@@ -676,35 +838,16 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   // Méthode pour annuler toutes les réservations en attente de paiement
   Future<void> _cancelAllWaitingReservations() async {
     // Demander confirmation
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showGlassConfirmDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.bgElev,
-        title: const Text(
-          'Annuler toutes les réservations',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: const Text(
-          'Êtes-vous sûr de vouloir annuler toutes les réservations en attente de paiement ? Cette action est irréversible.',
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(
-              'Non',
-              style: TextStyle(color: AppColors.text),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(
-              'Oui, annuler tout',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
+      title: 'Annuler toutes les réservations',
+      message: 'Êtes-vous sûr de vouloir annuler toutes les réservations en attente de paiement ? Cette action est irréversible.',
+      confirmText: 'Oui, annuler tout',
+      cancelText: 'Non',
+      icon: Icons.cancel_outlined,
+      iconColor: Colors.redAccent,
+      onConfirm: () => Navigator.of(context).pop(true),
+      onCancel: () => Navigator.of(context).pop(false),
     );
 
     if (confirmed != true) return;
@@ -713,7 +856,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       // Récupérer toutes les réservations en attente de paiement
       final querySnapshot = await FirebaseFirestore.instance
           .collection('reservations')
-          .where('status', isEqualTo: 'waitingPayment')
+          .where('status', isEqualTo: ReservationStatus.confirmed.name)
           .get();
 
       if (querySnapshot.docs.isEmpty) {
@@ -814,24 +957,12 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         finalPrice = counterOffer['newPrice'];
       }
 
-      // Mettre à jour le statut vers waitingPayment (en attente de paiement)
+      // Mettre à jour le statut vers confirmed
       await _reservationService.updateReservationStatus(
         reservation.id,
-        ReservationStatus.waitingPayment,
+        ReservationStatus.confirmed,
       );
 
-      // ✅ AJOUT : Mettre à jour le prix si contre-offre
-      if (counterOffer != null) {
-        final updatedReservation = reservation.copyWith(
-          totalPrice: finalPrice,
-          status: ReservationStatus.waitingPayment,
-        );
-        await _reservationService.updateReservation(updatedReservation);
-
-        setState(() {
-          _pendingCounterOffers.remove(reservation.id);
-        });
-      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -871,35 +1002,27 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     return showDialog<RefusalAction>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Colors.black87,
-          title: Text(
-            'Action sur la réservation',
-            style: TextStyle(color: AppColors.textStrong),
-          ),
-          content: Text(
-            'Que souhaitez-vous faire avec cette réservation ?',
-            style: TextStyle(color: AppColors.text),
-          ),
+        return GlassActionDialog(
+          title: 'Action sur la réservation',
+          message: 'Que souhaitez-vous faire avec cette réservation ?',
           actions: [
-            TextButton(
+            GlassActionButton(
+              label: 'Annuler',
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Annuler',
-                style: TextStyle(color: AppColors.textWeak),
-              ),
+              color: AppColors.textWeak,
             ),
-            TextButton(
+            GlassActionButton(
+              label: 'Refuser',
               onPressed: () => Navigator.of(context).pop(RefusalAction.refuse),
-              child: const Text('Refuser', style: TextStyle(color: Colors.red)),
+              icon: Icons.close,
+              color: Colors.red,
             ),
-            ElevatedButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(RefusalAction.counterOffer),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-              ),
-              child: const Text('Contre-offre'),
+            GlassActionButton(
+              label: 'Contre-offre',
+              onPressed: () => Navigator.of(context).pop(RefusalAction.counterOffer),
+              icon: Icons.handshake,
+              color: AppColors.accent,
+              isPrimary: true,
             ),
           ],
         );
@@ -1218,24 +1341,26 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       // 🔥 BATCH pour garantir la cohérence des données
       final batch = FirebaseFirestore.instance.batch();
 
-      // 1️⃣ Sauvegarder la contre-offre
-      final counterOfferRef = FirebaseFirestore.instance
-          .collection('counter_offers')
-          .doc(); // Générer un ID automatique
-      batch.set(counterOfferRef, counterOffer);
-
-      // 2️⃣ Mettre à jour la réservation avec contreoffre: true
+      // 1️⃣ Mettre à jour la réservation avec les détails de la contre-offre
       final reservationRef = FirebaseFirestore.instance
           .collection('reservations')
           .doc(reservation.id);
       batch.update(reservationRef, {
-        'contreoffre': true, // 🆕 CHAMP AJOUTÉ
-        'status': 'waiting_payment', // En attente de paiement après contre-offre
+        'hasCounterOffer': true, // Indique qu'une contre-offre a été proposée
+        'driverProposedDate': Timestamp.fromDate(DateTime.utc(newDate.year, newDate.month, newDate.day)), // Date proposée par le chauffeur
+        'driverProposedTime': newTime, // Heure proposée par le chauffeur
+        'status': ReservationStatus.confirmed.name, // Confirmée avec contre-offre
         'lastUpdated': Timestamp.now(),
       });
 
-      // 3️⃣ Exécuter les deux opérations ensemble
+      // 2️⃣ Exécuter l'opération
       await batch.commit();
+
+      // 🔍 DEBUG: Vérifier que la mise à jour a bien eu lieu
+      print('🔥 Contre-offre envoyée pour réservation ${reservation.id}');
+      print('🔥 Statut mis à jour vers: ${ReservationStatus.confirmed.name}');
+      print('🔥 Champ hasCounterOffer mis à: true');
+      print('🔥 Date proposée: ${newDate.day}/${newDate.month} à $newTime');
 
       // 4️⃣ Garder aussi en local pour l'UI immédiate
       setState(() {
@@ -1278,11 +1403,17 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   bool _hasCounterOffer(String reservationId) {
-    return _pendingCounterOffers.containsKey(reservationId);
+    // Utiliser la nouvelle structure : vérifier hasCounterOffer dans la réservation
+    // Pour l'instant, on retourne false car on n'a pas accès à la liste des réservations ici
+    // Cette méthode sera mise à jour quand on aura la liste des réservations
+    return false;
   }
 
   Map<String, dynamic>? _getCounterOffer(String reservationId) {
-    return _pendingCounterOffers[reservationId];
+    // Utiliser la nouvelle structure : récupérer les détails de la contre-offre depuis la réservation
+    // Pour l'instant, on retourne null car on n'a pas accès à la liste des réservations ici
+    // Cette méthode sera mise à jour quand on aura la liste des réservations
+    return null;
   }
 
   void _handleNavigation(int index) {
@@ -1309,6 +1440,51 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       case 3: // Compte
         Navigator.pushReplacementNamed(context, '/admin/profile');
         break;
+    }
+  }
+
+  // Calculer la nouvelle heure d'arrivée basée sur la nouvelle heure de départ
+  String _calculateArrivalTime(String newDepartureTime, String originalArrivalTime, String originalDepartureTime) {
+    try {
+      // Parser les heures originales
+      final originalDepartureParts = originalDepartureTime.split(':');
+      final originalArrivalParts = originalArrivalTime.split(':');
+      
+      if (originalDepartureParts.length != 2 || originalArrivalParts.length != 2) {
+        return originalArrivalTime; // Retourner l'original si format invalide
+      }
+      
+      final originalDepartureHour = int.parse(originalDepartureParts[0]);
+      final originalDepartureMinute = int.parse(originalDepartureParts[1]);
+      final originalArrivalHour = int.parse(originalArrivalParts[0]);
+      final originalArrivalMinute = int.parse(originalArrivalParts[1]);
+      
+      // Calculer la durée du trajet en minutes
+      final originalDepartureMinutes = originalDepartureHour * 60 + originalDepartureMinute;
+      final originalArrivalMinutes = originalArrivalHour * 60 + originalArrivalMinute;
+      final tripDurationMinutes = originalArrivalMinutes - originalDepartureMinutes;
+      
+      // Parser la nouvelle heure de départ
+      final newDepartureParts = newDepartureTime.split(':');
+      if (newDepartureParts.length != 2) {
+        return originalArrivalTime; // Retourner l'original si format invalide
+      }
+      
+      final newDepartureHour = int.parse(newDepartureParts[0]);
+      final newDepartureMinute = int.parse(newDepartureParts[1]);
+      
+      // Calculer la nouvelle heure d'arrivée
+      final newDepartureMinutes = newDepartureHour * 60 + newDepartureMinute;
+      final newArrivalMinutes = newDepartureMinutes + tripDurationMinutes;
+      
+      // Convertir en heures et minutes
+      final newArrivalHour = (newArrivalMinutes ~/ 60) % 24;
+      final newArrivalMinute = newArrivalMinutes % 60;
+      
+      // Formater l'heure
+      return '${newArrivalHour.toString().padLeft(2, '0')}:${newArrivalMinute.toString().padLeft(2, '0')}';
+    } catch (e) {
+      return originalArrivalTime; // Retourner l'original en cas d'erreur
     }
   }
 }

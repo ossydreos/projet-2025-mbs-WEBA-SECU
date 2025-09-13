@@ -4,6 +4,7 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
 
 class AdminTrajetsScreen extends StatefulWidget {
   const AdminTrajetsScreen({super.key});
@@ -63,45 +64,15 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 ),
               ),
             ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(56),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: GlassContainer(
-                  padding: EdgeInsets.zero,
-                  borderRadius: BorderRadius.circular(12),
-                  showBorder: true,
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      color: AppColors.accent.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.accent, width: 2),
-                    ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: AppColors.textStrong,
-                    unselectedLabelColor: AppColors.textWeak,
-                    dividerColor: Colors.transparent,
-                    overlayColor: WidgetStateProperty.all(Colors.transparent),
-                    labelStyle: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                    ),
-                    tabs: const [
-                      Tab(text: 'À venir'),
-                      Tab(text: 'Terminés'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           ),
           body: Column(
             children: [
+              // Barre de navigation des onglets séparée
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: TrajetNav(_tabController),
+              ),
+              // Contenu des onglets
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -121,7 +92,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
   Widget _buildUpcomingTab() {
     return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getConfirmedReservationsStream(),
+      stream: _reservationService.getInProgressReservationsStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -525,10 +496,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         return Colors.orange;
       case ReservationStatus.confirmed:
         return Colors.green;
-      case ReservationStatus.counterOffered:
-        return Colors.blue;
-      case ReservationStatus.waitingPayment:
-        return Colors.purple;
+      // Les statuts counterOffered et waitingPayment n'existent plus
       case ReservationStatus.inProgress:
         return AppColors.accent;
       case ReservationStatus.completed:
@@ -544,10 +512,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         return 'En attente';
       case ReservationStatus.confirmed:
         return 'Confirmée';
-      case ReservationStatus.counterOffered:
-        return 'Contre-offre proposée';
-      case ReservationStatus.waitingPayment:
-        return 'En attente de paiement';
+      // Les statuts counterOffered et waitingPayment n'existent plus
       case ReservationStatus.inProgress:
         return 'En cours';
       case ReservationStatus.completed:
@@ -575,48 +540,19 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   }
 
   Future<void> _showCancelDialog(Reservation reservation) async {
-    return showDialog<void>(
+    final confirmed = await showGlassConfirmDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Theme(
-          data: AppTheme.glassDark,
-          child: AlertDialog(
-            backgroundColor: AppColors.glass,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppColors.glassStroke),
-            ),
-            title: Text(
-              'Annuler la course',
-              style: TextStyle(
-                color: AppColors.textStrong,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Text(
-              'Êtes-vous sûr de vouloir annuler cette course ? Cette action ne peut pas être annulée.',
-              style: TextStyle(color: AppColors.text),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Non', style: TextStyle(color: AppColors.textWeak)),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              _buildGlassActionButton(
-                label: 'Oui, annuler',
-                icon: Icons.warning,
-                color: AppColors.hot,
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _cancelConfirmedReservation(reservation);
-                },
-              ),
-            ],
-          ),
-        );
+      title: 'Annuler la course',
+      message: 'Êtes-vous sûr de vouloir annuler cette course ? Cette action ne peut pas être annulée.',
+      confirmText: 'Oui, annuler',
+      cancelText: 'Non',
+      icon: Icons.warning,
+      iconColor: AppColors.hot,
+      onConfirm: () {
+        Navigator.of(context).pop();
+        _cancelConfirmedReservation(reservation);
       },
+      onCancel: () => Navigator.of(context).pop(),
     );
   }
 

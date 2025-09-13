@@ -14,6 +14,7 @@ import 'package:my_mobility_services/data/services/admin_service.dart';
 import 'package:my_mobility_services/data/services/notification_service.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AccueilScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -55,6 +56,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     // Désactivé - pas de notification automatique
     // L'utilisateur verra directement le changement dans l'interface
   }
+
 
   @override
   bool get wantKeepAlive => true;
@@ -264,7 +266,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   }
 
   Widget _buildPendingReservationPanel(Reservation reservation) {
-    final isWaitingPayment = reservation.status == ReservationStatus.waitingPayment;
+    final isWaitingPayment = reservation.status == ReservationStatus.confirmed;
     
     return GlassContainer(
       margin: const EdgeInsets.all(0),
@@ -297,7 +299,9 @@ class _AccueilScreenState extends State<AccueilScreen>
                   children: [
                     Text(
                       isWaitingPayment 
-                          ? 'Réservation confirmée !'
+                          ? (reservation.hasCounterOffer 
+                              ? 'CONTRE-OFFRE DU CHAUFFEUR !'
+                              : 'Réservation confirmée !')
                           : 'Réservation en attente',
                       style: const TextStyle(
                         fontSize: 18,
@@ -308,7 +312,9 @@ class _AccueilScreenState extends State<AccueilScreen>
                     const SizedBox(height: 2),
                     Text(
                       isWaitingPayment 
-                          ? 'Validez et payez votre réservation'
+                          ? (reservation.hasCounterOffer 
+                              ? 'Le chauffeur a proposé une contre-offre. Validez et payez'
+                              : 'Validez et payez votre réservation')
                           : 'En attente de confirmation du chauffeur',
                       style: const TextStyle(fontSize: 14, color: Colors.white70),
                     ),
@@ -327,10 +333,14 @@ class _AccueilScreenState extends State<AccueilScreen>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  isWaitingPayment ? 'À payer' : 'En attente',
+                  isWaitingPayment 
+                      ? (reservation.hasCounterOffer ? 'Contre-offre' : 'À payer')
+                      : 'En attente',
                   style: TextStyle(
                     fontSize: 12,
-                    color: isWaitingPayment ? AppColors.accent : Colors.orange,
+                    color: isWaitingPayment 
+                        ? (reservation.hasCounterOffer ? Colors.orange : AppColors.accent)
+                        : Colors.orange,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -350,25 +360,22 @@ class _AccueilScreenState extends State<AccueilScreen>
                       size: 20,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      reservation.vehicleName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                    Expanded(
+                      child: Text(
+                        reservation.vehicleName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                    const Spacer(),
-                    Flexible(
-                      child: Text(
-                        '${reservation.totalPrice.toStringAsFixed(1)} €',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: AppColors.accent,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.end,
+                    Text(
+                      '${reservation.totalPrice.toStringAsFixed(1)} €',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -394,13 +401,76 @@ class _AccueilScreenState extends State<AccueilScreen>
                   children: [
                     const Icon(Icons.schedule, color: Colors.white70, size: 16),
                     const SizedBox(width: 8),
-                    Text(
-                      '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white70,
+                    // Affichage spécial pour les contre-offres
+                    if (isWaitingPayment && reservation.hasCounterOffer && reservation.driverProposedDate != null && reservation.driverProposedTime != null) ...[
+                      // Vérifier si la date a changé
+                      Builder(
+                        builder: (context) {
+                          // Vérifier si la date a changé (comparer seulement jour/mois/année)
+                          final selectedDateOnly = DateTime(
+                            reservation.selectedDate.year,
+                            reservation.selectedDate.month,
+                            reservation.selectedDate.day,
+                          );
+                          final proposedDateOnly = DateTime(
+                            reservation.driverProposedDate!.year,
+                            reservation.driverProposedDate!.month,
+                            reservation.driverProposedDate!.day,
+                          );
+                          final dateChanged = !selectedDateOnly.isAtSameMomentAs(proposedDateOnly);
+                          
+                          // Vérifier si l'heure a changé
+                          final timeChanged = reservation.selectedTime != reservation.driverProposedTime;
+                          
+                          if (dateChanged || timeChanged) {
+                            return Row(
+                              children: [
+                                // Ancienne heure barrée
+                                Text(
+                                  '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white70,
+                                    decoration: TextDecoration.lineThrough,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // Flèche
+                                const Icon(Icons.arrow_forward, color: AppColors.accent, size: 16),
+                                const SizedBox(width: 8),
+                                // Nouvelle heure en gras
+                                Text(
+                                  '${reservation.driverProposedDate!.day}/${reservation.driverProposedDate!.month} à ${reservation.driverProposedTime}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: AppColors.accent,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else {
+                            // Aucun changement, affichage normal
+                            return Text(
+                              '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.white70,
+                              ),
+                            );
+                          }
+                        },
                       ),
-                    ),
+                    ] else ...[
+                      // Affichage normal
+                      Text(
+                        '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
                 // Affichage de la note du client si elle existe
@@ -452,86 +522,89 @@ class _AccueilScreenState extends State<AccueilScreen>
                     ),
                   ),
                 ],
-                // Boutons de contact pour les réservations confirmées
-                if (reservation.status == ReservationStatus.confirmed || 
-                    reservation.status == ReservationStatus.inProgress) ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _makePhoneCall,
-                          icon: const Icon(Icons.phone, size: 18),
-                          label: const Text('Appeler'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accent,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _sendSMS,
-                          icon: const Icon(Icons.message, size: 18),
-                          label: const Text('Message'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.accent,
-                            side: BorderSide(color: AppColors.accent),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                
-                // Bouton de détail pour les réservations en attente de paiement
-                if (reservation.status == ReservationStatus.waitingPayment) ...[
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showReservationDetail(reservation),
-                      icon: const Icon(Icons.payment, size: 18),
-                      label: const Text('Voir les détails et payer'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
-          const SizedBox(height: 16),
-          GlassContainer(
-            padding: const EdgeInsets.all(12),
-            child: const Row(
+          // Message d'information seulement pour les réservations en attente
+          if (reservation.status == ReservationStatus.pending) ...[
+            const SizedBox(height: 16),
+            GlassContainer(
+              padding: const EdgeInsets.all(12),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue, size: 16),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Votre réservation est en cours de traitement. Vous ne pouvez pas faire une nouvelle réservation tant qu\'elle n\'est pas confirmée.',
+                      style: TextStyle(fontSize: 12, color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          
+          // Boutons d'action en dehors du container principal
+          if (reservation.status == ReservationStatus.confirmed) ...[
+            const SizedBox(height: 16),
+            Row(
               children: [
-                Icon(Icons.info_outline, color: Colors.blue, size: 16),
-                SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    'Votre réservation est en cours de traitement. Vous ne pouvez pas faire une nouvelle réservation tant qu\'elle n\'est pas confirmée.',
-                    style: TextStyle(fontSize: 12, color: Colors.blue),
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showReservationDetail(reservation),
+                    icon: const Icon(Icons.payment, size: 20),
+                    label: const Text('Voir les détails et payer'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Petit bouton carré rouge avec X
+                GestureDetector(
+                  onTap: () => _cancelReservation(reservation),
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
+          ] else if (reservation.status == ReservationStatus.pending) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _cancelReservation(reservation),
+                icon: const Icon(Icons.cancel, size: 20),
+                label: const Text('Annuler la réservation'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  side: const BorderSide(color: Colors.red),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+              ),
+            ),
+          ],
+          
           const SizedBox(height: 16),
           // Boutons de contact pour les réservations en attente
           Row(
@@ -687,10 +760,13 @@ class _AccueilScreenState extends State<AccueilScreen>
                   }
                   
                   final reservations = snapshot.data!;
-                  final pendingOrWaitingReservations = reservations
-                      .where((r) => r.status == ReservationStatus.pending || 
-                                   r.status == ReservationStatus.waitingPayment)
-                      .toList();
+                  
+                  // Debug logs supprimés pour éviter le spam
+                  
+        final pendingOrWaitingReservations = reservations
+            .where((r) => r.status == ReservationStatus.pending ||
+                         r.status == ReservationStatus.confirmed)
+            .toList();
                   
                   final hasPending = pendingOrWaitingReservations.isNotEmpty;
 
@@ -793,6 +869,54 @@ class _AccueilScreenState extends State<AccueilScreen>
         ),
       ),
     );
+  }
+
+  // Annuler une réservation
+  Future<void> _cancelReservation(Reservation reservation) async {
+    final confirmed = await showGlassConfirmDialog(
+      context: context,
+      title: 'Annuler la réservation',
+      message: 'Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.',
+      confirmText: 'Oui, annuler',
+      cancelText: 'Non',
+      icon: Icons.cancel_outlined,
+      iconColor: Colors.redAccent,
+      onConfirm: () => Navigator.of(context).pop(true),
+      onCancel: () => Navigator.of(context).pop(false),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('reservations')
+          .doc(reservation.id)
+          .update({
+        'status': 'cancelled',
+        'lastUpdated': Timestamp.now(),
+        'cancelledAt': Timestamp.now(),
+        'cancelledBy': 'client',
+        'cancellationReason': 'Annulé par le client',
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Réservation annulée avec succès'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de l\'annulation: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   // Afficher un message d'erreur

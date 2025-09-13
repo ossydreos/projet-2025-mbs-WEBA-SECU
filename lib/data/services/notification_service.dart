@@ -99,7 +99,7 @@ class NotificationService {
   Future<void> confirmPayment(String reservationId) async {
     try {
       await _firestore.collection('reservations').doc(reservationId).update({
-        'status': 'confirmed',
+        'status': 'inProgress', // ✅ CORRECTION : Passer en inProgress après paiement
         'lastUpdated': Timestamp.now(),
         'paymentConfirmedAt': Timestamp.now(),
       });

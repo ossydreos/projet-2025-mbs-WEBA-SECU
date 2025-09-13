@@ -151,7 +151,7 @@ class ReservationService {
     return _firestore
         .collection(_collection)
         .where('userId', isEqualTo: currentUser.uid)
-        .where('status', whereIn: ['confirmed', 'in_progress'])
+        .where('status', isEqualTo: 'inProgress')
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
@@ -246,6 +246,27 @@ class ReservationService {
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: ReservationStatus.confirmed.name)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          final reservations = <Reservation>[];
+          for (var doc in snapshot.docs) {
+            var reservation = Reservation.fromMap({
+              ...doc.data(),
+              'id': doc.id,
+            });
+            reservation = await _enrichReservationWithUserName(reservation);
+            reservations.add(reservation);
+          }
+          return reservations;
+        });
+  }
+
+  // ✅ Stream des réservations en cours (payées)
+  Stream<List<Reservation>> getInProgressReservationsStream() {
+    return _firestore
+        .collection(_collection)
+        .where('status', isEqualTo: ReservationStatus.inProgress.name)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .asyncMap((snapshot) async {

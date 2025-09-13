@@ -3,8 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 enum ReservationStatus {
   pending, // En attente
   confirmed, // Confirmée
-  counterOffered, // Contre-offre proposée
-  waitingPayment, // En attente de paiement
   inProgress, // En cours
   completed, // Terminée
   cancelled, // Annulée
@@ -18,10 +16,6 @@ extension ReservationStatusExtension on ReservationStatus {
         return 'En attente';
       case ReservationStatus.confirmed:
         return 'Confirmée';
-      case ReservationStatus.counterOffered:
-        return 'Contre-offre proposée';
-      case ReservationStatus.waitingPayment:
-        return 'En attente de paiement';
       case ReservationStatus.inProgress:
         return 'En cours';
       case ReservationStatus.completed:
@@ -50,7 +44,9 @@ class Reservation {
   final Map<String, dynamic>? departureCoordinates;
   final Map<String, dynamic>? destinationCoordinates;
   final String? clientNote; // Note du client pour le chauffeur
-  final bool contreoffre; // 🆕 Champ contre-offre ajouté
+  final bool hasCounterOffer; // Indique si une contre-offre a été proposée
+  final DateTime? driverProposedDate; // Date proposée par le chauffeur
+  final String? driverProposedTime; // Heure proposée par le chauffeur
 
   Reservation({
     required this.id,
@@ -70,7 +66,9 @@ class Reservation {
     this.departureCoordinates,
     this.destinationCoordinates,
     this.clientNote,
-    this.contreoffre = false, // 🆕 Valeur par défaut : false
+    this.hasCounterOffer = false, // Valeur par défaut : false
+    this.driverProposedDate,
+    this.driverProposedTime,
   });
 
   // Convertir en Map pour Firebase
@@ -93,7 +91,9 @@ class Reservation {
       'departureCoordinates': departureCoordinates,
       'destinationCoordinates': destinationCoordinates,
       'clientNote': clientNote,
-      'contreoffre': contreoffre, // 🆕 Ajouté dans le mapping
+      'hasCounterOffer': hasCounterOffer,
+      'driverProposedDate': driverProposedDate != null ? Timestamp.fromDate(driverProposedDate!) : null,
+      'driverProposedTime': driverProposedTime,
     };
   }
 
@@ -122,8 +122,15 @@ class Reservation {
       departureCoordinates: map['departureCoordinates'],
       destinationCoordinates: map['destinationCoordinates'],
       clientNote: map['clientNote'],
-      contreoffre:
-          map['contreoffre'] ?? false, // 🆕 Ajouté avec valeur par défaut
+      hasCounterOffer: map['hasCounterOffer'] ?? false,
+      driverProposedDate: map['driverProposedDate'] != null 
+          ? DateTime.utc(
+              (map['driverProposedDate'] as Timestamp).toDate().year,
+              (map['driverProposedDate'] as Timestamp).toDate().month,
+              (map['driverProposedDate'] as Timestamp).toDate().day,
+            )
+          : null,
+      driverProposedTime: map['driverProposedTime'],
     );
   }
 
@@ -146,7 +153,9 @@ class Reservation {
     Map<String, dynamic>? departureCoordinates,
     Map<String, dynamic>? destinationCoordinates,
     String? clientNote,
-    bool? contreoffre, // 🆕 Ajouté dans copyWith
+    bool? hasCounterOffer,
+    DateTime? driverProposedDate,
+    String? driverProposedTime,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -167,7 +176,9 @@ class Reservation {
       destinationCoordinates:
           destinationCoordinates ?? this.destinationCoordinates,
       clientNote: clientNote ?? this.clientNote,
-      contreoffre: contreoffre ?? this.contreoffre, // 🆕 Ajouté dans copyWith
+      hasCounterOffer: hasCounterOffer ?? this.hasCounterOffer,
+      driverProposedDate: driverProposedDate ?? this.driverProposedDate,
+      driverProposedTime: driverProposedTime ?? this.driverProposedTime,
     );
   }
 
@@ -178,10 +189,6 @@ class Reservation {
         return 'En attente';
       case ReservationStatus.confirmed:
         return 'Confirmée';
-      case ReservationStatus.counterOffered:
-        return 'Contre-offre proposée';
-      case ReservationStatus.waitingPayment:
-        return 'En attente de paiement';
       case ReservationStatus.inProgress:
         return 'En cours';
       case ReservationStatus.completed:
@@ -191,6 +198,4 @@ class Reservation {
     }
   }
 
-  // 🆕 Getter pour vérifier si une contre-offre a été envoyée
-  bool get hasCounterOffer => contreoffre;
 }
