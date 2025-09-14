@@ -3,10 +3,6 @@
 ## Crédits et Transparence IA
 
 > **⚠️ IMPORTANT** : Ce manuel technique et une partie du code source ont été générés avec l'assistance de **ChatGPT-5** pour optimiser la productivité et la qualité de la documentation.
-> 
-> **Adaptation humaine** : Tous les éléments générés ont été soigneusement adaptés, testés et validés par Youri Sanchez et Poumin Mali pour s'assurer de leur conformité avec les standards du projet et les bonnes pratiques de développement Flutter.
-> 
-> **🎯 OBJECTIF** : Cette approche hybride (IA + expertise humaine) permet d'accélérer le développement tout en maintenant la qualité et la cohérence du code.
 
 ### 🔄 Processus de Développement Hybride
 
@@ -20,35 +16,16 @@
 - Documentation technique et manuel utilisateur
 - Structure de base des services et modèles de données
 - Templates d'écrans et composants UI
-- Configuration Firebase et intégrations
-- Tests unitaires et de validation
 
-### 🛠️ Éléments Développés Manuellement
-
-- Logique métier spécifique au projet
-- Intégrations personnalisées
-- Optimisations de performance
-- Corrections de bugs et améliorations
-- Déploiement et configuration production
 
 ### 🚀 Approche de Développeur Moderne
 
-> **💡 PHILOSOPHIE** : En tant que développeurs modernes, nous utilisons tous les outils disponibles pour maximiser notre productivité et la qualité de notre code. L'IA n'est pas un remplacement de nos compétences, mais un amplificateur de notre expertise.
+> **PHILOSOPHIE** : En tant que développeurs modernes, nous utilisons tous les outils disponibles pour maximiser notre productivité et la qualité de notre code. L'IA n'est pas un remplacement de nos compétences, mais un amplificateur de notre expertise.
 
-> **🎯 AVANTAGES** : Cette approche nous permet de nous concentrer sur les aspects créatifs et stratégiques du développement tout en automatisant les tâches répétitives et la génération de code boilerplate.
+> **AVANTAGES** : Cette approche nous permet de nous concentrer sur les aspects créatifs et stratégiques du développement tout en automatisant les tâches répétitives.
 
-> **⚡ EFFICACITÉ** : L'utilisation de ChatGPT-5 nous permet de développer 3x plus rapidement tout en maintenant des standards de qualité élevés et une architecture propre.
+> **EFFICACITÉ** : L'utilisation de ChatGPT-5 nous permet de développer plus rapidement tout en maintenant des standards de qualité élevés et une architecture propre.
 
-### 🛠️ Stack Technologique Moderne
-
-- **IA Générative** : ChatGPT-5 pour la génération de code et documentation
-- **Framework** : Flutter 3.9+ avec Dart
-- **Backend** : Firebase (Auth, Firestore, Storage)
-- **Cartes** : Google Maps Flutter
-- **Design** : Glassmorphism et Material Design 3
-- **État** : StatefulWidget + StreamBuilder
-- **Tests** : Flutter Test + Integration Tests
-- **Déploiement** : CI/CD avec GitHub Actions
 
 ---
 
@@ -61,43 +38,16 @@
 
 ---
 
-## Technologies et versions
 
-### Framework principal
-- **Flutter** : SDK ^3.9.0
-- **Dart** : Version compatible avec Flutter 3.9.0
+### 🛠️ Stack Technologique Moderne
 
-### Backend et base de données
-- **Firebase Core** : ^4.0.0
-- **Cloud Firestore** : ^6.0.0 (Base de données NoSQL)
-- **Firebase Auth** : ^6.0.0 (Authentification)
+- **IA Générative** : ChatGPT-5 pour la génération de code et documentation
+- **Framework** : Flutter 3.9+ avec Dart
+- **Backend** : Firebase (Auth, Firestore, Storage)
+- **Cartes** : Google Maps Flutter
+- **Design** : Glassmorphism et Material Design 3
+- **Déploiement** : Android studio emulateur avec apk
 
-### Cartes et géolocalisation
-- **Google Maps Flutter** : ^2.9.0
-- **Flutter Map** : ^6.1.0
-- **Geolocator** : ^11.0.0
-- **Geocoding** : ^2.1.1
-- **Latlong2** : ^0.9.0
-
-### UI et design
-- **Google Fonts** : ^6.2.1 (Police Poppins)
-- **Font Awesome Flutter** : ^10.7.0
-- **Glassmorphism** : ^3.0.0
-- **Flutter SVG** : ^2.2.0
-
-### Utilitaires
-- **HTTP** : ^1.1.0
-- **Shared Preferences** : ^2.2.2
-- **Permission Handler** : ^11.3.1
-- **URL Launcher** : ^6.2.2
-- **Timezone** : ^0.9.2
-- **Country Code Picker** : ^3.0.0
-
-### Outils de développement
-- **Flutter Lints** : ^5.0.0
-- **Flutter Native Splash** : ^2.4.0
-
----
 
 ## Installation et déploiement
 
@@ -116,7 +66,7 @@
 ### Installation
 ```bash
 # Cloner le projet
-git clone [URL_DU_REPOSITORY]
+git clone https://github.com/esig-ge/projet-2025-mbs.git
 cd projet-2025-mbs
 
 # Installer les dépendances
@@ -282,7 +232,6 @@ vehicles/
 
 
 
-
 ### Services principaux
 - **ReservationService** : Gestion des réservations
 - **UserService** : Gestion des utilisateurs
@@ -298,139 +247,141 @@ vehicles/
 
 ### Authentification et comptes
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Interface création compte** | `lib/screens/log_screen/welcome_login_screen.dart` | Écran d'accueil avec options de connexion/inscription |
-| **Page connexion** | `lib/screens/log_screen/welcome_login_screen.dart` | Interface de connexion avec Firebase Auth |
-| **Rendre log in/sign up effectif** | `lib/data/services/user_service.dart` | Service d'authentification Firebase |
-| **Bouton rester connecté effectif** | `lib/data/services/session_service.dart` | Gestion de la persistance de session |
-| **Adapter messages d'erreur** | `lib/screens/log_screen/welcome_login_screen.dart` | Snackbars d'erreur personnalisées |
-| **Set up Google log in Facebook** | `lib/screens/log_screen/welcome_login_screen.dart` | Intégration des providers sociaux |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Interface création compte** | `lib/screens/log_screen/welcome_login_screen.dart` | 1-50 | Écran d'accueil avec options de connexion/inscription |
+| **Page connexion** | `lib/screens/log_screen/login_form.dart` | 81-166 | Interface de connexion avec Firebase Auth |
+| **Page inscription** | `lib/screens/log_screen/signup_form.dart` | 103-200 | Interface d'inscription avec validation |
+| **Rendre log in/sign up effectif** | `lib/data/services/user_service.dart` | 1-50 | Service d'authentification Firebase |
+| **Bouton rester connecté effectif** | `lib/data/services/session_service.dart` | 1-30 | Gestion de la persistance de session |
+| **Adapter messages d'erreur** | `lib/screens/log_screen/login_form.dart` | 125-156 | Snackbars d'erreur personnalisées |
 
 ### Réservation et localisation
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Choix de la date et de l'heure** | `lib/screens/utilisateur/reservation/scheduling_screen.dart` | Sélecteur de date/heure avec timezone |
-| **Sélection point départ/arrivée** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | Interface de recherche d'adresses |
-| **Liste de suggestions trajets** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | Autocomplétion des adresses |
-| **Montrer trajets favoris** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | Historique des adresses fréquentes |
-| **Position départ par défaut** | `lib/screens/utilisateur/reservation/acceuil_res_screen.dart` | Géolocalisation automatique |
-| **Bouton recentrer localisation** | `lib/screens/utilisateur/reservation/acceuil_res_screen.dart` | Recentrage sur position utilisateur |
-| **Affichage maps dès l'entrée** | `lib/screens/utilisateur/reservation/acceuil_res_screen.dart` | Carte Google Maps intégrée |
-| **Suggestion du pays localisé** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | Détection automatique du pays |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Choix de la date et de l'heure** | `lib/screens/utilisateur/reservation/scheduling_screen.dart` | 55-131 | Sélecteur de date/heure avec timezone |
+| **Sélection point départ/arrivée** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 1-100 | Interface de recherche d'adresses |
+| **Liste de suggestions trajets** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 200-400 | Autocomplétion des adresses |
+| **Montrer trajets favoris** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 500-600 | Historique des adresses fréquentes |
+| **Position départ par défaut** | `lib/screens/utilisateur/reservation/acceuil_res_screen.dart` | 1-100 | Géolocalisation automatique |
+| **Bouton recentrer localisation** | `lib/screens/utilisateur/reservation/acceuil_res_screen.dart` | 200-300 | Recentrage sur position utilisateur |
+| **Affichage maps dès l'entrée** | `lib/screens/utilisateur/reservation/acceuil_res_screen.dart` | 100-200 | Carte Google Maps intégrée |
+| **Suggestion du pays localisé** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 300-500 | Détection automatique du pays |
 
 ### 💰 Calcul et paiement
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Calcul du prix** | `lib/screens/utilisateur/reservation/booking_screen.dart` | Calcul basé sur distance et type véhicule |
-| **Afficher prix total par type** | `lib/screens/utilisateur/reservation/booking_screen.dart` | Affichage des prix pour chaque véhicule |
-| **Calculer km lors choix trajets** | `lib/data/services/directions_service.dart` | Service de calcul d'itinéraires |
-| **Multiplier km par prix/km** | `lib/screens/utilisateur/reservation/booking_screen.dart` | Logique de calcul des tarifs |
-| **Choix du véhicule** | `lib/screens/utilisateur/reservation/booking_screen.dart` | Sélection du type de véhicule |
-| **Donner taille véhicule** | `lib/data/models/vehicule_type.dart` | Modèle de données des véhicules |
-| **Système de paiement sécurisé** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | Interface de paiement |
-| **Sélectionner paiement par cash** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | Option de paiement en espèces |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Calcul du prix** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 208-271 | Calcul basé sur distance et type véhicule |
+| **Afficher prix total par type** | `lib/screens/utilisateur/reservation/booking_screen.dart` | 815-830 | Affichage des prix pour chaque véhicule |
+| **Calculer km lors choix trajets** | `lib/data/services/directions_service.dart` | 1-100 | Service de calcul d'itinéraires |
+| **Multiplier km par prix/km** | `lib/screens/utilisateur/reservation/booking_screen.dart` | 110-127 | Logique de calcul des tarifs |
+| **Choix du véhicule** | `lib/screens/utilisateur/reservation/booking_screen.dart` | 880-893 | Sélection du type de véhicule |
+| **Donner taille véhicule** | `lib/data/models/vehicule_type.dart` | 1-134 | Modèle de données des véhicules |
+| **Système de paiement sécurisé** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 273-350 | Interface de paiement |
+| **Sélectionner paiement par cash** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 40-50 | Option de paiement en espèces |
 
 ### 📅 Planification et suivi
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Date heure par défaut actuelle** | `lib/screens/utilisateur/reservation/scheduling_screen.dart` | Initialisation avec heure actuelle + 30min |
-| **Estimer heure d'arrivée** | `lib/screens/utilisateur/reservation/scheduling_screen.dart` | Calcul basé sur heure sélectionnée |
-| **Estimation temps de trajet** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | Affichage durée estimée |
-| **Bouton modifier heure/date/lieu** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | Redirection vers écrans de modification |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Date heure par défaut actuelle** | `lib/screens/utilisateur/reservation/scheduling_screen.dart` | 40-55 | Initialisation avec heure actuelle + 30min |
+| **Estimer heure d'arrivée** | `lib/screens/utilisateur/reservation/scheduling_screen.dart` | 55-96 | Calcul basé sur heure sélectionnée |
+| **Estimation temps de trajet** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 50-60 | Affichage durée estimée |
+| **Bouton modifier heure/date/lieu** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 400-500 | Redirection vers écrans de modification |
 
 ### 📱 Interface utilisateur
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Interface avant course** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | Affichage carte avec tracé |
-| **Affichage map avec tracé** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | Carte avec itinéraire tracé |
-| **Bouton raccourci supprimer adresse** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | Suppression rapide d'adresses |
-| **Page offres personnalisées** | `lib/screens/utilisateur/offres/offres_personnalisees_screen.dart` | Interface des offres spéciales |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Interface avant course** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | 1-100 | Affichage carte avec tracé |
+| **Affichage map avec tracé** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | 200-300 | Carte avec itinéraire tracé |
+| **Bouton raccourci supprimer adresse** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 600-700 | Suppression rapide d'adresses |
+| **Page offres personnalisées** | `lib/screens/utilisateur/offres/offres_personnalisees_screen.dart` | 1-50 | Interface des offres spéciales |
 
 ### 🚗 Gestion des véhicules
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Mettre à jour parc véhicules** | `lib/screens/admin/gestion/vehicle_management_screen.dart` | Interface admin de gestion |
-| **Rendre véhicule impossible** | `lib/screens/admin/gestion/vehicle_management_screen.dart` | Désactivation de véhicules |
-| **Véhicule lié à BDD** | `lib/data/services/vehicle_service.dart` | Service de gestion des véhicules |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Mettre à jour parc véhicules** | `lib/screens/admin/gestion/vehicle_management_screen.dart` | 1-100 | Interface admin de gestion |
+| **Rendre véhicule impossible** | `lib/screens/admin/gestion/vehicle_management_screen.dart` | 200-400 | Désactivation de véhicules |
+| **Véhicule lié à BDD** | `lib/data/services/vehicle_service.dart` | 1-50 | Service de gestion des véhicules |
 
 ### 📞 Communication
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Contact rapide au client** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | Boutons d'appel/SMS |
-| **Contact rapide au chauffeur** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | Communication avec chauffeur |
-| **Voir mode de paiement client** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | Affichage info paiement |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Contact rapide au client** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | 300-400 | Boutons d'appel/SMS |
+| **Contact rapide au chauffeur** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | 400-500 | Communication avec chauffeur |
+| **Voir mode de paiement client** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 200-300 | Affichage info paiement |
 
 ### 📊 Administration
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Planning des courses à venir** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | Vue admin des réservations |
-| **Pastille nav demande avec nb res** | `lib/screens/admin/reception/admin_reception_screen.dart` | Indicateur de demandes |
-| **Affichage nb res en attente** | `lib/screens/admin/reception/admin_reception_screen.dart` | Compteurs de statuts |
-| **Res accepter/refuser** | `lib/screens/admin/reception/admin_reception_screen.dart` | Actions sur réservations |
-| **Res avec récap complète** | `lib/screens/admin/reception/admin_reception_screen.dart` | Détails complets des réservations |
-| **Récap complet res confirmées** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | Détails des réservations confirmées |
-| **Bouton changer statut course** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | Modification statut (terminer/annuler) |
-| **Récap complet course terminée** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | Détails des courses terminées |
-| **Afficher que celles terminées** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | Filtrage par statut |
-| **Voir note client** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | Affichage des notes |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Planning des courses à venir** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 1-100 | Vue admin des réservations |
+| **Pastille nav demande avec nb res** | `lib/screens/admin/reception/admin_reception_screen.dart` | 1-50 | Indicateur de demandes |
+| **Affichage nb res en attente** | `lib/screens/admin/reception/admin_reception_screen.dart` | 100-200 | Compteurs de statuts |
+| **Res accepter/refuser** | `lib/screens/admin/reception/admin_reception_screen.dart` | 200-400 | Actions sur réservations |
+| **Res avec récap complète** | `lib/screens/admin/reception/admin_reception_screen.dart` | 400-600 | Détails complets des réservations |
+| **Récap complet res confirmées** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 300-500 | Détails des réservations confirmées |
+| **Bouton changer statut course** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 500-700 | Modification statut (terminer/annuler) |
+| **Récap complet course terminée** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 700-900 | Détails des courses terminées |
+| **Afficher que celles terminées** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 100-200 | Filtrage par statut |
+| **Voir note client** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 800-900 | Affichage des notes |
 
 ### 📈 Historique et suivi
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Historique trajets passés client** | `lib/screens/utilisateur/trajets/trajets_screen.dart` | Historique des réservations |
-| **Possibilité voir historique courses** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | Vue admin de l'historique |
-| **Trier historique trajet croissant** | `lib/screens/utilisateur/trajets/trajets_screen.dart` | Tri chronologique |
-| **Afficher info compte** | `lib/screens/utilisateur/profile/profile_screen.dart` | Profil utilisateur |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Historique trajets passés client** | `lib/screens/utilisateur/trajets/trajets_screen.dart` | 1-100 | Historique des réservations |
+| **Possibilité voir historique courses** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 900-1000 | Vue admin de l'historique |
+| **Trier historique trajet croissant** | `lib/screens/utilisateur/trajets/trajets_screen.dart` | 100-200 | Tri chronologique |
+| **Afficher info compte** | `lib/screens/utilisateur/profile/profile_screen.dart` | 1-100 | Profil utilisateur |
 
 
 ### ⚙️ Fonctionnalités avancées
 
-| Fonctionnalité | Fichier | Description |
-|---|---|---|
-| **Possible ajouter note** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | Champ de note pour chauffeur |
-| **Réservation impossible tant que pas accepté** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | Logique de validation |
-| **Changer état réservation** | `lib/data/services/reservation_service.dart` | Service de mise à jour statut |
-| **Annulation de la course** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | Fonction d'annulation |
-| **Bouton déconnexion** | `lib/screens/admin/profile/admin_profile_screen.dart` | Déconnexion admin |
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Possible ajouter note** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 45-50 | Champ de note pour chauffeur |
+| **Réservation impossible tant que pas accepté** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | 100-200 | Logique de validation |
+| **Changer état réservation** | `lib/data/services/reservation_service.dart` | 1-50 | Service de mise à jour statut |
+| **Annulation de la course** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | 200-300 | Fonction d'annulation |
+| **Bouton déconnexion** | `lib/screens/admin/profile/admin_profile_screen.dart` | 1-50 | Déconnexion admin |
+
+
+| Fonctionnalité | Fichier | Lignes | Description |
+|---|---|---|---|
+| **Point d'entrée principal** | `lib/widgets/authgate.dart` | 1-91 | Gestion authentification et redirection |
+| **Container utilisateur** | `lib/screens/utilisateur/reservation/home_shell.dart` | 1-108 | Navigation entre onglets utilisateur |
+| **Préchargement Google Maps** | `lib/screens/utilisateur/reservation/home_shell.dart` | 47-74 | Optimisation performance cartes |
+| **Gestion navigation** | `lib/screens/utilisateur/reservation/home_shell.dart` | 30-37 | Système de verrouillage navigation |
 
 ---
 
-## Points d'attention pour les développeurs
+## Configurations a prendre en compte
 
-### 🔧 Configuration requise
+### Configuration requise
 1. **Clés API Google Maps** : Configurer dans `lib/constants.dart`
 2. **Firebase** : Vérifier la configuration dans `lib/firebase/`
-3. **Permissions** : Android manifest configuré pour géolocalisation et appels
+3. **Permissions** : Android manifest configuré pour géolocalisation et appels, adapter pour plus d'autorisations
 
-### 🎨 Design System
+### Design System
 - Utiliser exclusivement les composants `GlassContainer`, `GlassButton`, etc.
 - Respecter la palette de couleurs `AppColors`
 - Police Poppins obligatoire via `AppConstants.defaultTextStyle`
 
-### 🗄️ Base de données
-- Structure Firestore bien définie
-- Gestion des rôles utilisateur (user/admin)
-- Statuts de réservation cohérents
 
-### 📱 Navigation
+### Navigation
 - Routes définies dans `main.dart`
 - Navigation conditionnelle selon le rôle utilisateur
 - Gestion des états de navigation
 
-### 🔐 Sécurité
+### Sécurité
 - Authentification Firebase
 - Validation des rôles utilisateur
 - Gestion des sessions persistantes
 
 ---
-
-*Ce manuel technique est maintenu à jour avec l'évolution du projet. Pour toute question, se référer aux commentaires dans le code ou contacter l'équipe de développement.*
