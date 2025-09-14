@@ -1,3 +1,19 @@
+/*
+ * My Mobility Services - Application Flutter
+ * 
+ * CRÉDITS IA : Ce projet utilise l'assistance de ChatGPT-5
+ * pour optimiser la productivité et la qualité du code.
+ * 
+ * ADAPTATION HUMAINE : Tous les éléments générés ont été adaptés, 
+ * testés et validés par l'équipe de développement.
+ * 
+ *  APPROCHE MODERNE : En tant que développeurs modernes, nous utilisons
+ * tous les outils disponibles pour maximiser notre productivité. L'IA est
+ * un amplificateur de notre expertise, pas un remplacement.
+ * 
+ * 📅 Dernière mise à jour : Janvier 2025
+ */
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -13,7 +29,6 @@ import 'screens/admin/gestion/admin_gestion_screen.dart';
 import 'screens/admin/gestion/vehicle_management_screen.dart';
 import 'screens/admin/trajets/admin_trajets_screen.dart';
 import 'screens/admin/profile/admin_profile_screen.dart';
-import 'data/services/vehicle_category_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,9 +36,6 @@ void main() async {
   // Initialiser les données de fuseau horaire pour toute l'application
   tz.initializeTimeZones();
   
-  // Initialiser les catégories de véhicules par défaut
-  final categoryService = VehicleCategoryService();
-  await categoryService.initializeDefaultCategories();
   
   runApp(const MyApp());
 }

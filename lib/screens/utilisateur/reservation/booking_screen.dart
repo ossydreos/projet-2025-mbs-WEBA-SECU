@@ -6,7 +6,6 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_screen.dart';
 import 'package:my_mobility_services/data/models/vehicule_type.dart';
-import 'package:my_mobility_services/data/models/vehicle_with_category_status.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
 
@@ -33,7 +32,7 @@ class BookingScreen extends StatefulWidget {
 class _BookingScreenState extends State<BookingScreen>
     with TickerProviderStateMixin {
   gmaps.GoogleMapController? _googleMapController;
-  VehicleWithCategoryStatus? _selectedVehicle;
+  VehiculeType? _selectedVehicle;
   int _selectedIndex = 0;
   late AnimationController _panelController;
   late Animation<double> _panelAnimation;
@@ -240,12 +239,7 @@ class _BookingScreenState extends State<BookingScreen>
     }
   }
 
-  void _selectVehicle(VehicleWithCategoryStatus vehicle) {
-    // Ne pas permettre la sélection des véhicules non sélectionnables
-    if (!vehicle.isSelectable) {
-      return;
-    }
-    
+  void _selectVehicle(VehiculeType vehicle) {
     setState(() {
       _selectedVehicle = vehicle;
     });
@@ -517,9 +511,9 @@ class _BookingScreenState extends State<BookingScreen>
 
                           // Liste des véhicules - STYLE BOLT avec StreamBuilder
                           Expanded(
-                            child: StreamBuilder<List<VehicleWithCategoryStatus>>(
-                              stream: _vehicleService.getVehiclesWithCategoryStatusStream(),
-                              initialData: <VehicleWithCategoryStatus>[],
+                            child: StreamBuilder<List<VehiculeType>>(
+                              stream: _vehicleService.getVehiclesStream(),
+                              initialData: <VehiculeType>[],
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting && snapshot.data == null) {
                                   return Center(
@@ -611,25 +605,9 @@ class _BookingScreenState extends State<BookingScreen>
                                   );
                                 }
 
-                                // Vérifier si le véhicule sélectionné est toujours sélectionnable
-                                if (_selectedVehicle != null) {
-                                  final currentVehicle = vehicles.firstWhere(
-                                    (v) => v.id == _selectedVehicle!.id,
-                                    orElse: () => _selectedVehicle!,
-                                  );
-                                  
-                                  if (!currentVehicle.isSelectable) {
-                                    // Désélectionner le véhicule si sa catégorie est devenue inactive
-                                    _selectedVehicle = null;
-                                  }
-                                }
-
-                                // Sélectionner le premier véhicule sélectionnable si aucun n'est sélectionné
-                                if (_selectedVehicle == null) {
-                                  final selectableVehicles = vehicles.where((v) => v.isSelectable).toList();
-                                  if (selectableVehicles.isNotEmpty) {
-                                    _selectedVehicle = selectableVehicles.first;
-                                  }
+                                // Sélectionner le premier véhicule si aucun n'est sélectionné
+                                if (_selectedVehicle == null && vehicles.isNotEmpty) {
+                                  _selectedVehicle = vehicles.first;
                                 }
 
                                 return ListView.builder(
@@ -640,7 +618,7 @@ class _BookingScreenState extends State<BookingScreen>
                                     final vehicle = vehicles[index];
                                     final isSelected = _selectedVehicle?.id == vehicle.id;
                                     final estimatedPrice = _vehicleService.calculateTripPrice(
-                                      vehicle.vehicle,
+                                      vehicle,
                                       _estimatedDistance,
                                     );
 
@@ -658,12 +636,8 @@ class _BookingScreenState extends State<BookingScreen>
                                           width: isSelected ? 2 : 1,
                                         ),
                                       ),
-                                      child: Opacity(
-                                        opacity: vehicle.isSelectable ? 1.0 : 0.5,
-                                        child: ListTile(
-                                          onTap: vehicle.isSelectable 
-                                              ? () => _selectVehicle(vehicle)
-                                              : null,
+                                      child: ListTile(
+                                        onTap: () => _selectVehicle(vehicle),
                                           contentPadding: const EdgeInsets.symmetric(
                                             horizontal: 12,
                                             vertical: 8,
@@ -692,9 +666,7 @@ class _BookingScreenState extends State<BookingScreen>
                                                     fontWeight: FontWeight.w600,
                                                     color: isSelected
                                                         ? AppColors.accent
-                                                        : (vehicle.isSelectable 
-                                                            ? Colors.white 
-                                                            : Colors.grey),
+                                                        : Colors.white,
                                                   ),
                                                 ),
                                               ),
@@ -744,7 +716,7 @@ class _BookingScreenState extends State<BookingScreen>
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                vehicle.categoryDisplayName,
+                                                vehicle.category.categoryInFrench,
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   color: _getVehicleColor(vehicle.category),
@@ -782,8 +754,7 @@ class _BookingScreenState extends State<BookingScreen>
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    );
+                                      );
                                   },
                                 );
                               },
@@ -832,7 +803,7 @@ class _BookingScreenState extends State<BookingScreen>
                                           ),
                                         ),
                                         Text(
-                                          _selectedVehicle!.categoryDisplayName,
+                                          _selectedVehicle!.category.categoryInFrench,
                                           style: TextStyle(
                                             fontSize: 12,
                                             color: AppColors.textStrong,
@@ -844,7 +815,7 @@ class _BookingScreenState extends State<BookingScreen>
                                   ),
                                   Flexible(
                                     child: Text(
-                                      '${_vehicleService.calculateTripPrice(_selectedVehicle!.vehicle, _estimatedDistance).toStringAsFixed(2)} €',
+                                      '${_vehicleService.calculateTripPrice(_selectedVehicle!, _estimatedDistance).toStringAsFixed(2)} €',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -910,7 +881,7 @@ class _BookingScreenState extends State<BookingScreen>
                                 child: ElevatedButton(
                                   onPressed: _selectedVehicle != null
                                       ? () {
-                                          if (_selectedVehicle != null && _selectedVehicle!.isSelectable) {
+                                          if (_selectedVehicle != null) {
                                             if (widget.fromSummary) {
                                               // Retourner au résumé avec les données mises à jour
                                               Navigator.pop(context, {

@@ -49,45 +49,6 @@ class UserService {
     return user?.isAdmin ?? false;
   }
 
-  // Mettre à jour le rôle d'un utilisateur
-  Future<void> updateUserRole(String uid, UserRole role) async {
-    try {
-      await _firestore.collection(_collection).doc(uid).update({
-        'role': role.name,
-        'updatedAt': Timestamp.now(),
-      });
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du rôle: $e');
-    }
-  }
-
-  // Obtenir tous les utilisateurs (pour admin)
-  Future<List<UserModel>> getAllUsers() async {
-    try {
-      final querySnapshot = await _firestore
-          .collection(_collection)
-          .orderBy('createdAt', descending: true)
-          .get();
-
-      return querySnapshot.docs
-          .map((doc) => UserModel.fromMap(doc.data()))
-          .toList();
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération des utilisateurs: $e');
-    }
-  }
-
-  // Désactiver/activer un utilisateur
-  Future<void> toggleUserStatus(String uid, bool isActive) async {
-    try {
-      await _firestore.collection(_collection).doc(uid).update({
-        'isActive': isActive,
-        'updatedAt': Timestamp.now(),
-      });
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du statut: $e');
-    }
-  }
 
   // Stream de l'utilisateur actuel
   Stream<UserModel?> getCurrentUserStream() {

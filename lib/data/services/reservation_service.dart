@@ -21,39 +21,7 @@ class ReservationService {
     }
   }
 
-  // Obtenir toutes les réservations d'un utilisateur
-  Future<List<Reservation>> getUserReservations(String userId) async {
-    try {
-      final querySnapshot = await _firestore
-          .collection(_collection)
-          .where('userId', isEqualTo: userId)
-          .orderBy('createdAt', descending: true)
-          .get();
 
-      return querySnapshot.docs
-          .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
-          .toList();
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération des réservations: $e');
-    }
-  }
-
-  // Obtenir une réservation par ID
-  Future<Reservation?> getReservationById(String reservationId) async {
-    try {
-      final doc = await _firestore
-          .collection(_collection)
-          .doc(reservationId)
-          .get();
-
-      if (doc.exists) {
-        return Reservation.fromMap({...doc.data()!, 'id': doc.id});
-      }
-      return null;
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération de la réservation: $e');
-    }
-  }
 
   // Mettre à jour le statut d'une réservation
   Future<void> updateReservationStatus(
@@ -85,14 +53,6 @@ class ReservationService {
     }
   }
 
-  // Supprimer une réservation
-  Future<void> deleteReservation(String reservationId) async {
-    try {
-      await _firestore.collection(_collection).doc(reservationId).delete();
-    } catch (e) {
-      throw Exception('Erreur lors de la suppression de la réservation: $e');
-    }
-  }
 
   // Obtenir les réservations en attente (pour les conducteurs/admin)
   Future<List<Reservation>> getPendingReservations() async {
@@ -160,6 +120,8 @@ class ReservationService {
               .toList(),
         );
   }
+
+
 
   // Stream des réservations terminées d'un utilisateur (pour l'onglet "Terminés")
   Stream<List<Reservation>> getUserCompletedReservationsStream() {
@@ -282,6 +244,7 @@ class ReservationService {
           return reservations;
         });
   }
+
 
   // ✅ Stream des réservations terminées (TOUTES - pour admin)
   Stream<List<Reservation>> getCompletedReservationsStream() {

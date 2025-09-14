@@ -37,8 +37,9 @@ class GlassmorphicCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
+            blurRadius: 20, 
             offset: const Offset(0, 8),
+            
           ),
           if (isSelected)
             BoxShadow(color: AppColors.accent.withOpacity(0.2), blurRadius: 25, offset: const Offset(0, 10)),

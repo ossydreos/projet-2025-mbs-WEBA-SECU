@@ -18,90 +18,7 @@ class ReservationDetailScreen extends StatefulWidget {
 
 class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   final NotificationService _notificationService = NotificationService();
-  List<Map<String, dynamic>> _counterOffers = [];
-  bool _isLoading = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadCounterOffers();
-  }
-
-  Future<void> _loadCounterOffers() async {
-    try {
-      final counterOffers = await _notificationService
-          .getCounterOffersForReservation(widget.reservation.id);
-      setState(() {
-        _counterOffers = counterOffers;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors du chargement: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _acceptCounterOffer(Map<String, dynamic> counterOffer) async {
-    try {
-      await _notificationService.acceptCounterOffer(
-        counterOffer['id'],
-        widget.reservation.id,
-      );
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contre-offre acceptée ! Vous pouvez maintenant payer.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _rejectCounterOffer(Map<String, dynamic> counterOffer) async {
-    try {
-      await _notificationService.rejectCounterOffer(counterOffer['id']);
-      
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contre-offre rejetée.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        _loadCounterOffers(); // Recharger la liste
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
 
   Future<void> _confirmPayment() async {
     try {
@@ -136,9 +53,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
         appBar: GlassAppBar(
           title: 'Détails de la réservation',
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
+        body: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,9 +63,11 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                     
                     const SizedBox(height: 20),
                     
-                    // Contre-offres si disponibles
-                    if (_counterOffers.isNotEmpty) ...[
-                      _buildCounterOffersSection(),
+                    // Message du chauffeur si contre-offre
+                    if (widget.reservation.hasCounterOffer && 
+                        widget.reservation.adminMessage != null && 
+                        widget.reservation.adminMessage!.isNotEmpty) ...[
+                      _buildDriverMessageSection(),
                       const SizedBox(height: 20),
                     ],
                     
@@ -323,47 +240,18 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     );
   }
 
-  Widget _buildCounterOffersSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Contre-offres reçues',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 12),
-        
-        ..._counterOffers.map((counterOffer) => _buildCounterOfferCard(counterOffer)),
-      ],
-    );
-  }
-
-  Widget _buildCounterOfferCard(Map<String, dynamic> counterOffer) {
-    final proposedDate = (counterOffer['proposedDate'] as Timestamp).toDate();
-    final proposedTime = counterOffer['proposedTime'] as String;
-    final message = counterOffer['adminMessage'] as String? ?? '';
-    
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+  Widget _buildDriverMessageSection() {
+    return GlassContainer(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.accent.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.accent.withOpacity(0.3)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.local_offer, color: AppColors.accent, size: 20),
+              Icon(Icons.message, color: AppColors.accent, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Nouvelle proposition',
+                'Message du chauffeur',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -374,46 +262,21 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           ),
           const SizedBox(height: 12),
           
-          _buildInfoRow('Nouvelle date', '${proposedDate.day}/${proposedDate.month}/${proposedDate.year}'),
-          _buildInfoRow('Nouvelle heure', proposedTime),
-          
-          if (message.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _buildInfoRow('Message', message),
-          ],
-          
-          const SizedBox(height: 16),
-          
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _acceptCounterOffer(counterOffer),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('Accepter'),
-                ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.accent.withOpacity(0.3)),
+            ),
+            child: Text(
+              widget.reservation.adminMessage!,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontStyle: FontStyle.italic,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _rejectCounterOffer(counterOffer),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text('Rejeter'),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),

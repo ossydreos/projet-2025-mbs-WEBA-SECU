@@ -47,6 +47,7 @@ class Reservation {
   final bool hasCounterOffer; // Indique si une contre-offre a été proposée
   final DateTime? driverProposedDate; // Date proposée par le chauffeur
   final String? driverProposedTime; // Heure proposée par le chauffeur
+  final String? adminMessage; // Message de l'admin pour la contre-offre
 
   Reservation({
     required this.id,
@@ -69,6 +70,7 @@ class Reservation {
     this.hasCounterOffer = false, // Valeur par défaut : false
     this.driverProposedDate,
     this.driverProposedTime,
+    this.adminMessage,
   });
 
   // Convertir en Map pour Firebase
@@ -94,6 +96,7 @@ class Reservation {
       'hasCounterOffer': hasCounterOffer,
       'driverProposedDate': driverProposedDate != null ? Timestamp.fromDate(driverProposedDate!) : null,
       'driverProposedTime': driverProposedTime,
+      'adminMessage': adminMessage,
     };
   }
 
@@ -131,6 +134,7 @@ class Reservation {
             )
           : null,
       driverProposedTime: map['driverProposedTime'],
+      adminMessage: map['adminMessage'],
     );
   }
 
@@ -156,6 +160,7 @@ class Reservation {
     bool? hasCounterOffer,
     DateTime? driverProposedDate,
     String? driverProposedTime,
+    String? adminMessage,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -179,6 +184,7 @@ class Reservation {
       hasCounterOffer: hasCounterOffer ?? this.hasCounterOffer,
       driverProposedDate: driverProposedDate ?? this.driverProposedDate,
       driverProposedTime: driverProposedTime ?? this.driverProposedTime,
+      adminMessage: adminMessage ?? this.adminMessage,
     );
   }
 

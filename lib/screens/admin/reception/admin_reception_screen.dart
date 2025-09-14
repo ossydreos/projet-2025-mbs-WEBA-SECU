@@ -28,8 +28,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   int _selectedIndex = 0;
 
-  // Map pour stocker temporairement les contre-offres en cours
-  final Map<String, Map<String, dynamic>> _pendingCounterOffers = {};
 
   @override
   Widget build(BuildContext context) {
@@ -269,8 +267,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   Widget _buildReservationCard(Reservation reservation) {
-    final hasCounterOffer = _hasCounterOffer(reservation.id);
-    final counterOffer = _getCounterOffer(reservation.id);
+    final hasCounterOffer = reservation.hasCounterOffer ?? false;
 
     return GlassContainer(
       padding: const EdgeInsets.all(16),
@@ -677,7 +674,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Contre-offre: ${(counterOffer!['newPrice'] ?? 0.0).toStringAsFixed(2)}€',
+                        'Contre-offre proposée',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -705,11 +702,11 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       ),
                     ],
                   ),
-                  if (counterOffer['message'] != null &&
-                      counterOffer['message'].isNotEmpty) ...[
+                  if (reservation.adminMessage != null &&
+                      reservation.adminMessage!.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
-                      counterOffer['message'],
+                      reservation.adminMessage!,
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.text,
@@ -950,13 +947,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
   Future<void> _confirmReservation(Reservation reservation) async {
     try {
-      final counterOffer = _getCounterOffer(reservation.id);
-      double finalPrice = reservation.totalPrice;
-
-      if (counterOffer != null) {
-        finalPrice = counterOffer['newPrice'];
-      }
-
       // Mettre à jour le statut vers confirmed
       await _reservationService.updateReservationStatus(
         reservation.id,
@@ -1339,34 +1329,18 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     String message,
   ) async {
     try {
-      // Créer l'objet contre-offre
-      final counterOffer = {
-        'reservationId': reservation.id,
-        'adminId': _auth.currentUser?.uid,
-        'proposedDate': Timestamp.fromDate(newDate),
-        'proposedTime': newTime,
-        'adminMessage': message,
-        'status': 'pending', // pending, accepted, rejected
-        'createdAt': Timestamp.now(),
-      };
-
-      // 🔥 BATCH pour garantir la cohérence des données
-      final batch = FirebaseFirestore.instance.batch();
-
-      // 1️⃣ Mettre à jour la réservation avec les détails de la contre-offre
-      final reservationRef = FirebaseFirestore.instance
+      // 🔥 Mettre à jour directement la réservation avec les détails de la contre-offre
+      await FirebaseFirestore.instance
           .collection('reservations')
-          .doc(reservation.id);
-      batch.update(reservationRef, {
+          .doc(reservation.id)
+          .update({
         'hasCounterOffer': true, // Indique qu'une contre-offre a été proposée
         'driverProposedDate': Timestamp.fromDate(DateTime.utc(newDate.year, newDate.month, newDate.day)), // Date proposée par le chauffeur
         'driverProposedTime': newTime, // Heure proposée par le chauffeur
+        'adminMessage': message, // Message de l'admin
         'status': ReservationStatus.confirmed.name, // Confirmée avec contre-offre
         'lastUpdated': Timestamp.now(),
       });
-
-      // 2️⃣ Exécuter l'opération
-      await batch.commit();
 
       // 🔍 DEBUG: Vérifier que la mise à jour a bien eu lieu
       print('🔥 Contre-offre envoyée pour réservation ${reservation.id}');
@@ -1374,15 +1348,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       print('🔥 Champ hasCounterOffer mis à: true');
       print('🔥 Date proposée: ${newDate.day}/${newDate.month} à $newTime');
 
-      // 4️⃣ Garder aussi en local pour l'UI immédiate
-      setState(() {
-        _pendingCounterOffers[reservation.id] = {
-          'newDate': newDate,
-          'newTime': newTime,
-          'message': message,
-          'timestamp': DateTime.now(),
-        };
-      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1414,19 +1379,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     }
   }
 
-  bool _hasCounterOffer(String reservationId) {
-    // Utiliser la nouvelle structure : vérifier hasCounterOffer dans la réservation
-    // Pour l'instant, on retourne false car on n'a pas accès à la liste des réservations ici
-    // Cette méthode sera mise à jour quand on aura la liste des réservations
-    return false;
-  }
-
-  Map<String, dynamic>? _getCounterOffer(String reservationId) {
-    // Utiliser la nouvelle structure : récupérer les détails de la contre-offre depuis la réservation
-    // Pour l'instant, on retourne null car on n'a pas accès à la liste des réservations ici
-    // Cette méthode sera mise à jour quand on aura la liste des réservations
-    return null;
-  }
 
   void _handleNavigation(int index) {
     if (index == _selectedIndex) return;
