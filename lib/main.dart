@@ -10,6 +10,7 @@
  *  APPROCHE MODERNE : En tant que développeurs modernes, nous utilisons
  * tous les outils disponibles pour maximiser notre productivité. L'IA est
  * un amplificateur de notre expertise, pas un remplacement.
+ * 
  */
 
 import 'package:flutter/material.dart';

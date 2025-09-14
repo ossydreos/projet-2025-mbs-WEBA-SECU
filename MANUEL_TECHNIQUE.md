@@ -2,23 +2,23 @@
 
 ## Crédits et Transparence IA
 
-> **⚠️ IMPORTANT** : Ce manuel technique et une partie du code source ont été générés avec l'assistance de **ChatGPT-5** pour optimiser la productivité et la qualité de la documentation.
+> **IMPORTANT** : Ce manuel technique et une partie du code source ont été générés avec l'assistance de **ChatGPT-5** pour optimiser la productivité et la qualité de la documentation.
 
-### 🔄 Processus de Développement Hybride
+### Processus de Développement Hybride
 
 1. **Génération IA** : Utilisation de ChatGPT-5 pour la génération initiale de code et documentation
 2. **Révision humaine** : Analyse et adaptation par l'équipe de développement
 3. **Tests et validation** : Vérification du fonctionnement et de la conformité
 4. **Intégration** : Mise en production après validation complète
 
-### 📋 Éléments Générés par IA
+### Éléments Générés par IA
 
 - Documentation technique et manuel utilisateur
 - Structure de base des services et modèles de données
 - Templates d'écrans et composants UI
 
 
-### 🚀 Approche de Développeur Moderne
+### Approche de Développeur Moderne
 
 > **PHILOSOPHIE** : En tant que développeurs modernes, nous utilisons tous les outils disponibles pour maximiser notre productivité et la qualité de notre code. L'IA n'est pas un remplacement de nos compétences, mais un amplificateur de notre expertise.
 
@@ -39,7 +39,7 @@
 ---
 
 
-### 🛠️ Stack Technologique Moderne
+### Stack Technologique Moderne
 
 - **IA Générative** : ChatGPT-5 pour la génération de code et documentation
 - **Framework** : Flutter 3.9+ avec Dart
@@ -353,7 +353,7 @@ vehicles/
 | **Affichage maps dès l'entrée** | `lib/screens/utilisateur/reservation/acceuil_res_screen.dart` | 100-200 | Carte Google Maps intégrée |
 | **Suggestion du pays localisé** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 300-500 | Détection automatique du pays |
 
-### 💰 Calcul et paiement
+### Calcul et paiement
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -366,7 +366,7 @@ vehicles/
 | **Système de paiement sécurisé** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 273-350 | Interface de paiement |
 | **Sélectionner paiement par cash** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 40-50 | Option de paiement en espèces |
 
-### 📅 Planification et suivi
+### Planification et suivi
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -375,7 +375,7 @@ vehicles/
 | **Estimation temps de trajet** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 50-60 | Affichage durée estimée |
 | **Bouton modifier heure/date/lieu** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 400-500 | Redirection vers écrans de modification |
 
-### 📱 Interface utilisateur
+### Interface utilisateur
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -384,7 +384,7 @@ vehicles/
 | **Bouton raccourci supprimer adresse** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 600-700 | Suppression rapide d'adresses |
 | **Page offres personnalisées** | `lib/screens/utilisateur/offres/offres_personnalisees_screen.dart` | 1-50 | Interface des offres spéciales |
 
-### 🚗 Gestion des véhicules
+### Gestion des véhicules
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -392,7 +392,7 @@ vehicles/
 | **Rendre véhicule impossible** | `lib/screens/admin/gestion/vehicle_management_screen.dart` | 200-400 | Désactivation de véhicules |
 | **Véhicule lié à BDD** | `lib/data/services/vehicle_service.dart` | 1-50 | Service de gestion des véhicules |
 
-### 📞 Communication
+### Communication
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -400,7 +400,7 @@ vehicles/
 | **Contact rapide au chauffeur** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | 400-500 | Communication avec chauffeur |
 | **Voir mode de paiement client** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 200-300 | Affichage info paiement |
 
-### 📊 Administration
+### Administration
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -415,7 +415,7 @@ vehicles/
 | **Afficher que celles terminées** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 100-200 | Filtrage par statut |
 | **Voir note client** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 800-900 | Affichage des notes |
 
-### 📈 Historique et suivi
+### Historique et suivi
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -425,7 +425,7 @@ vehicles/
 | **Afficher info compte** | `lib/screens/utilisateur/profile/profile_screen.dart` | 1-100 | Profil utilisateur |
 
 
-### ⚙️ Fonctionnalités avancées
+### Fonctionnalités avancées
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|

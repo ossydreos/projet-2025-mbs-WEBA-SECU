@@ -1,24 +1,24 @@
-# README / Manuel Technique - My Mobility Services
+# Manuel Technique - My Mobility Services
 
 ## Crédits et Transparence IA
 
-> **⚠️ IMPORTANT** : Ce manuel technique et une partie du code source ont été générés avec l'assistance de **ChatGPT-5** pour optimiser la productivité et la qualité de la documentation.
+> **IMPORTANT** : Ce manuel technique et une partie du code source ont été générés avec l'assistance de **ChatGPT-5** pour optimiser la productivité et la qualité de la documentation.
 
-### 🔄 Processus de Développement Hybride
+### Processus de Développement Hybride
 
 1. **Génération IA** : Utilisation de ChatGPT-5 pour la génération initiale de code et documentation
 2. **Révision humaine** : Analyse et adaptation par l'équipe de développement
 3. **Tests et validation** : Vérification du fonctionnement et de la conformité
 4. **Intégration** : Mise en production après validation complète
 
-### 📋 Éléments Générés par IA
+### Éléments Générés par IA
 
 - Documentation technique et manuel utilisateur
 - Structure de base des services et modèles de données
 - Templates d'écrans et composants UI
 
 
-### 🚀 Approche de Développeur Moderne
+### Approche de Développeur Moderne
 
 > **PHILOSOPHIE** : En tant que développeurs modernes, nous utilisons tous les outils disponibles pour maximiser notre productivité et la qualité de notre code. L'IA n'est pas un remplacement de nos compétences, mais un amplificateur de notre expertise.
 
@@ -39,7 +39,7 @@
 ---
 
 
-### 🛠️ Stack Technologique Moderne
+### Stack Technologique Moderne
 
 - **IA Générative** : ChatGPT-5 pour la génération de code et documentation
 - **Framework** : Flutter 3.9+ avec Dart
@@ -63,33 +63,117 @@
 2. Les clés API Google Maps sont configurées dans `lib/constants.dart`
 3. Les options Firebase sont dans `lib/firebase/firebase_options.dart`
 
-### Installation
-```bash
-# Cloner le projet
-git clone https://github.com/esig-ge/projet-2025-mbs.git
-cd projet-2025-mbs
 
-# Installer les dépendances
-flutter pub get
+## Tutoriel d'installation de A à Z
 
-# Générer les fichiers de configuration
-flutter packages pub run build_runner build
+### **Étape 1 : Télécharger l'application**
 
-# Lancer l'application
-flutter run
-```
+#### **Option A : Depuis GitHub (Recommandé)**
+1. Allez sur le repository GitHub : `https://github.com/esig-ge/projet-2025-mbs`
+2. Cliquez sur l'onglet **"Releases"** (à droite de "Code")
+3. Téléchargez le fichier **`app-release.apk`** de la dernière version
+4. Sauvegardez le fichier dans un dossier facilement accessible (ex: Bureau)
 
-### Déploiement
-```bash
-# Build Android
-flutter build apk --release
+#### **Option B : Depuis le dossier fourni**
+1. Ouvrez le dossier fourni par l'équipe
+2. Localisez le fichier **`app-release.apk`**
+3. Copiez-le dans un dossier facilement accessible
 
-# Build iOS
-flutter build ios --release
+---
 
-# Build Web
-flutter build web --release
-```
+### **Étape 2 : Installation d'Android Studio**
+
+#### **2.1 Télécharger Android Studio**
+1. Allez sur : `https://developer.android.com/studio`
+2. Cliquez sur **"Download Android Studio"**
+3. Acceptez les conditions d'utilisation
+4. Téléchargez la version pour votre système (Windows/Mac/Linux)
+
+#### **2.2 Installer Android Studio**
+1. **Windows** : Exécutez le fichier `.exe` téléchargé
+2. **Mac** : Ouvrez le fichier `.dmg` et glissez Android Studio dans Applications
+3. **Linux** : Extrayez le fichier `.tar.gz` et suivez les instructions
+
+#### **2.3 Configuration initiale**
+1. Lancez Android Studio
+2. Suivez l'assistant de configuration :
+   - Acceptez les licences Android SDK
+   - Choisissez "Standard" pour le type d'installation
+   - Laissez les paramètres par défaut
+3. Attendez la fin du téléchargement des composants (peut prendre 10-15 minutes)
+
+---
+
+### **Étape 3 : Créer un émulateur Android**
+
+#### **3.1 Ouvrir le gestionnaire d'émulateurs**
+1. Dans Android Studio, cliquez sur **"More Actions"** (ou les 3 points)
+2. Sélectionnez **"Virtual Device Manager"** (ou AVD Manager)
+
+#### **3.2 Créer un nouvel émulateur**
+1. Cliquez sur **"Create Device"**
+2. Choisissez un appareil (ex: **Pixel 6** ou **Pixel 7**)
+3. Cliquez sur **"Next"**
+
+#### **3.3 Sélectionner l'image système**
+1. Choisissez **"API 34"** (Android 14) ou **"API 33"** (Android 13)
+2. Si pas téléchargé, cliquez sur **"Download"** à côté de l'API
+3. Cliquez sur **"Next"**
+
+#### **3.4 Configuration finale**
+1. Nommez votre émulateur (ex: "Pixel_6_Android_14")
+2. Laissez les paramètres par défaut
+3. Cliquez sur **"Finish"**
+
+---
+
+### **Étape 4 : Lancer l'émulateur et installer l'APK**
+
+#### **4.1 Démarrer l'émulateur**
+1. Dans le Virtual Device Manager, cliquez sur **Play** à côté de votre émulateur
+2. Attendez que l'émulateur se lance complètement (2-3 minutes)
+3. L'émulateur Android s'ouvrira dans une nouvelle fenêtre
+
+#### **4.2 Installer l'application**
+1. **Glissez-déposez** le fichier `app-release.apk` directement dans l'émulateur
+2. OU : Cliquez sur l'icône **📁** dans la barre latérale de l'émulateur
+3. Naviguez vers votre fichier APK et double-cliquez dessus
+4. Suivez les instructions d'installation
+
+#### **4.3 Lancer l'application**
+1. Dans l'émulateur, trouvez l'icône **"My Mobility Services"**
+2. Cliquez dessus pour lancer l'application
+3. L'application se lancera avec l'écran de connexion
+
+---
+
+### **Dépannage courant**
+
+#### **Problème : L'émulateur ne démarre pas**
+- **Solution** : Vérifiez que la virtualisation est activée dans le BIOS
+- **Windows** : Activez Hyper-V ou VirtualBox
+- **Mac** : Aucune action requise
+- **Linux** : Installez KVM
+
+#### **Problème : L'APK ne s'installe pas**
+- **Solution** : Activez "Sources inconnues" dans les paramètres Android
+- Allez dans **Paramètres > Sécurité > Sources inconnues** et activez
+
+#### **Problème : L'application se ferme au lancement**
+- **Solution** : Vérifiez que l'émulateur a au moins 4GB de RAM
+- Redémarrez l'émulateur et réessayez
+
+---
+
+### **Résumé des étapes**
+1. Télécharger l'APK depuis GitHub ou le dossier fourni
+2. Installer Android Studio
+3. Créer un émulateur Android
+4. Lancer l'émulateur
+5. Glisser-déposer l'APK dans l'émulateur
+6. Lancer l'application
+
+**Félicitations ! Vous pouvez maintenant utiliser My Mobility Services !**
 
 ---
 
@@ -269,7 +353,7 @@ vehicles/
 | **Affichage maps dès l'entrée** | `lib/screens/utilisateur/reservation/acceuil_res_screen.dart` | 100-200 | Carte Google Maps intégrée |
 | **Suggestion du pays localisé** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 300-500 | Détection automatique du pays |
 
-### 💰 Calcul et paiement
+### Calcul et paiement
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -282,7 +366,7 @@ vehicles/
 | **Système de paiement sécurisé** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 273-350 | Interface de paiement |
 | **Sélectionner paiement par cash** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 40-50 | Option de paiement en espèces |
 
-### 📅 Planification et suivi
+### Planification et suivi
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -291,7 +375,7 @@ vehicles/
 | **Estimation temps de trajet** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 50-60 | Affichage durée estimée |
 | **Bouton modifier heure/date/lieu** | `lib/screens/utilisateur/reservation/trip_summary_screen.dart` | 400-500 | Redirection vers écrans de modification |
 
-### 📱 Interface utilisateur
+### Interface utilisateur
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -300,7 +384,7 @@ vehicles/
 | **Bouton raccourci supprimer adresse** | `lib/screens/utilisateur/reservation/localisation_recherche_screen.dart` | 600-700 | Suppression rapide d'adresses |
 | **Page offres personnalisées** | `lib/screens/utilisateur/offres/offres_personnalisees_screen.dart` | 1-50 | Interface des offres spéciales |
 
-### 🚗 Gestion des véhicules
+### Gestion des véhicules
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -308,7 +392,7 @@ vehicles/
 | **Rendre véhicule impossible** | `lib/screens/admin/gestion/vehicle_management_screen.dart` | 200-400 | Désactivation de véhicules |
 | **Véhicule lié à BDD** | `lib/data/services/vehicle_service.dart` | 1-50 | Service de gestion des véhicules |
 
-### 📞 Communication
+### Communication
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -316,7 +400,7 @@ vehicles/
 | **Contact rapide au chauffeur** | `lib/screens/utilisateur/reservation/reservation_detail_screen.dart` | 400-500 | Communication avec chauffeur |
 | **Voir mode de paiement client** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 200-300 | Affichage info paiement |
 
-### 📊 Administration
+### Administration
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -331,7 +415,7 @@ vehicles/
 | **Afficher que celles terminées** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 100-200 | Filtrage par statut |
 | **Voir note client** | `lib/screens/admin/trajets/admin_trajets_screen.dart` | 800-900 | Affichage des notes |
 
-### 📈 Historique et suivi
+### Historique et suivi
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -341,7 +425,7 @@ vehicles/
 | **Afficher info compte** | `lib/screens/utilisateur/profile/profile_screen.dart` | 1-100 | Profil utilisateur |
 
 
-### ⚙️ Fonctionnalités avancées
+### Fonctionnalités avancées
 
 | Fonctionnalité | Fichier | Lignes | Description |
 |---|---|---|---|
@@ -384,4 +468,3 @@ vehicles/
 - Validation des rôles utilisateur
 - Gestion des sessions persistantes
 
----
