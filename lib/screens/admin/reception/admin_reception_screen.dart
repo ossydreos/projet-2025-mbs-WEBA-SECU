@@ -1133,15 +1133,21 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     final DateTime? picked = await showDatePicker(
                       context: context,
                       initialDate: selectedDate,
-                      firstDate: DateTime.now(),
+                      firstDate: DateTime(2020), // Date très ancienne pour permettre toutes les dates
                       lastDate: DateTime.now().add(const Duration(days: 365)),
                       builder: (context, child) {
                         return Theme(
                           data: Theme.of(context).copyWith(
-                            colorScheme: ColorScheme.dark(
+                            colorScheme: const ColorScheme.dark(
                               primary: AppColors.accent,
-                              surface: Colors.grey[900]!,
+                              onPrimary: Colors.white,
+                              surface: AppColors.bgElev,
+                              onSurface: Colors.white,
+                              secondary: AppColors.accent,
+                              onSecondary: Colors.white,
                             ),
+                            dialogBackgroundColor: AppColors.bgElev,
+                            cardColor: AppColors.bgElev,
                           ),
                           child: child!,
                         );
@@ -1202,10 +1208,16 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       builder: (context, child) {
                         return Theme(
                           data: Theme.of(context).copyWith(
-                            colorScheme: ColorScheme.dark(
+                            colorScheme: const ColorScheme.dark(
                               primary: AppColors.accent,
-                              surface: Colors.grey[900]!,
+                              onPrimary: Colors.white,
+                              surface: AppColors.bgElev,
+                              onSurface: Colors.white,
+                              secondary: AppColors.accent,
+                              onSecondary: Colors.white,
                             ),
+                            dialogBackgroundColor: AppColors.bgElev,
+                            cardColor: AppColors.bgElev,
                           ),
                           child: child!,
                         );

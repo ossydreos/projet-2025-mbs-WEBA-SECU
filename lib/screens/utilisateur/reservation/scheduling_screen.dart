@@ -152,7 +152,11 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
               onPrimary: Colors.white,
               surface: AppColors.bgElev,
               onSurface: Colors.white,
+              secondary: AppColors.accent,
+              onSecondary: Colors.white,
             ),
+            dialogBackgroundColor: AppColors.bgElev,
+            cardColor: AppColors.bgElev,
           ),
           child: child!,
         );
@@ -179,7 +183,11 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
               onPrimary: Colors.white,
               surface: AppColors.bgElev,
               onSurface: Colors.white,
+              secondary: AppColors.accent,
+              onSecondary: Colors.white,
             ),
+            dialogBackgroundColor: AppColors.bgElev,
+            cardColor: AppColors.bgElev,
             timePickerTheme: const TimePickerThemeData(
               hourMinuteTextStyle: TextStyle(
                 fontSize: 24,
