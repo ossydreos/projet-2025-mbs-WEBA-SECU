@@ -617,12 +617,15 @@ class _BookingScreenState extends State<BookingScreen>
                                   itemBuilder: (context, index) {
                                     final vehicle = vehicles[index];
                                     final isSelected = _selectedVehicle?.id == vehicle.id;
+                                    final isActive = vehicle.isActive;
                                     final estimatedPrice = _vehicleService.calculateTripPrice(
                                       vehicle,
                                       _estimatedDistance,
                                     );
 
-                                    return Container(
+                                    return Opacity(
+                                      opacity: isActive ? 1.0 : 0.5,
+                                      child: Container(
                                       margin: const EdgeInsets.only(bottom: 8),
                                       decoration: BoxDecoration(
                                         color: isSelected
@@ -637,7 +640,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                       ),
                                       child: ListTile(
-                                        onTap: () => _selectVehicle(vehicle),
+                                        onTap: isActive ? () => _selectVehicle(vehicle) : null,
                                           contentPadding: const EdgeInsets.symmetric(
                                             horizontal: 12,
                                             vertical: 8,
@@ -754,7 +757,8 @@ class _BookingScreenState extends State<BookingScreen>
                                             ),
                                           ),
                                         ),
-                                      );
+                                      ),
+                                    );
                                   },
                                 );
                               },
