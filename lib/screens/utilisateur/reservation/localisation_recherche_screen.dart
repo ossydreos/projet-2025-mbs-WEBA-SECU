@@ -1233,6 +1233,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
+                    Text(
+                      'powered by OpenStreetMap',
+                      style: TextStyle(
+                        color: AppColors.text.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ],
                 ),
               ),
