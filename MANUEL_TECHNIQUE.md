@@ -337,7 +337,7 @@ vehicles/
 | **Page connexion** | `lib/screens/log_screen/login_form.dart` | 81-166 | Interface de connexion avec Firebase Auth |
 | **Page inscription** | `lib/screens/log_screen/signup_form.dart` | 103-200 | Interface d'inscription avec validation |
 | **Rendre log in/sign up effectif** | `lib/data/services/user_service.dart` | 1-50 | Service d'authentification Firebase |
-| **Bouton rester connecté effectif** | `lib/data/services/session_service.dart` | 1-30 | Gestion de la persistance de session |
+| **Gestion des sessions utilisateur** | `lib/data/services/session_service.dart` | 1-52 | Validation et gestion des sessions utilisateur |
 | **Adapter messages d'erreur** | `lib/screens/log_screen/login_form.dart` | 125-156 | Snackbars d'erreur personnalisées |
 
 ### Réservation et localisation

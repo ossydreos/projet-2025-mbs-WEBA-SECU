@@ -49,49 +49,6 @@ class Suggestion {
     this.placeId,
   });
 
-  factory Suggestion.fromJson(Map<String, dynamic> json) {
-    final displayName = json['display_name'] ?? '';
-    final parts = displayName.split(',');
-    final shortName = parts.isNotEmpty ? parts[0].trim() : displayName;
-    final address = parts.length > 1
-        ? parts.skip(1).join(',').trim()
-        : displayName;
-
-    // Déterminer l'icône basée sur le type
-    IconData iconData = Icons.location_on;
-    if (json['type'] != null) {
-      switch (json['type']) {
-        case 'aerodrome':
-        case 'airport':
-          iconData = Icons.flight;
-          break;
-        case 'railway':
-        case 'station':
-          iconData = Icons.train;
-          break;
-        case 'city':
-        case 'town':
-        case 'village':
-          iconData = Icons.location_city;
-          break;
-        default:
-          iconData = Icons.location_on;
-      }
-    }
-
-    return Suggestion(
-      displayName: displayName,
-      shortName: shortName,
-      address: address,
-      coordinates: LatLng(
-        double.parse(json['lat'].toString()),
-        double.parse(json['lon'].toString()),
-      ),
-      icon: iconData,
-      distance: _calculateDistance(json),
-      placeId: null,
-    );
-  }
 
   // Google Places prediction → Suggestion (sans coordonnées, récupérées via Place Details)
   factory Suggestion.fromPlaces(Map<String, dynamic> json) {
@@ -112,10 +69,6 @@ class Suggestion {
     );
   }
 
-  static String _calculateDistance(Map<String, dynamic> json) {
-    // Calcul simplifié - vous pouvez améliorer avec la géolocalisation réelle
-    return "${(100 + (json.hashCode % 100)).abs().toStringAsFixed(1)} km";
-  }
 }
 
 class _Debouncer {
@@ -591,7 +544,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+        try {
+          permission = await Geolocator.requestPermission();
+        } catch (e) {
+          print('Erreur lors de la demande de permission dans localisation_recherche: $e');
+          setState(() {
+            _currentPositionLatLng = null;
+          });
+          return;
+        }
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
@@ -601,9 +562,18 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         return;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        );
+      } catch (e) {
+        print('Erreur lors de l\'obtention de la position dans localisation_recherche: $e');
+        setState(() {
+          _currentPositionLatLng = null;
+        });
+        return;
+      }
       final currentLatLng = LatLng(position.latitude, position.longitude);
 
       String? addressLine;

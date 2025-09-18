@@ -143,18 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Gestion de la navigation
   void _handleNavigation(int index) {
     if (index == 2) return; // Déjà sur la page profil
-
-    if (widget.onNavigate != null) {
-      widget.onNavigate!(index);
-      return;
-    } else {
-      // Sinon, fallback routes
-      if (index == 0) {
-        Navigator.pushReplacementNamed(context, '/home');
-      } else if (index == 1) {
-        Navigator.pushReplacementNamed(context, '/trajets');
-      }
-    }
+    widget.onNavigate?.call(index);
   }
 
   /// Contenu principal avec padding pour éviter le chevauchement
@@ -219,10 +208,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Informations personnelles',
-                  style: Theme.of(context).textTheme.titleLarge,
+                Expanded(
+                  child: Text(
+                    'Informations personnelles',
+                    style: Theme.of(context).textTheme.titleLarge,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
                     // TODO: Implémenter la navigation vers l'écran de modification
@@ -278,6 +271,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Icône avec container glass comme dans le menu
           Container(
@@ -295,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(width: 16),
 
-          // Textes avec même style que le menu
+          // Textes avec même style que le menu - CORRIGÉ POUR OVERFLOW
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -312,6 +306,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   value,
                   style: TextStyle(fontSize: 13, color: AppColors.textWeak),
+                  softWrap: true,
+                  overflow: TextOverflow.visible,
+                  maxLines: null, // Permet plusieurs lignes
                 ),
               ],
             ),

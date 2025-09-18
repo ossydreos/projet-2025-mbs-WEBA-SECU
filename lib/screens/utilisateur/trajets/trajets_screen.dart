@@ -49,11 +49,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       _selectedIndex = index;
     });
 
-    // Demander au shell de changer d'onglet si disponible
-    if (widget.onNavigate != null) {
-      widget.onNavigate!(index);
-      return;
-    }
+    widget.onNavigate?.call(index);
   }
 
   @override

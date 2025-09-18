@@ -35,7 +35,6 @@ class LoginFormState extends State<LoginForm> {
   final SessionService _sessionService = SessionService();
 
   // UI state
-  var _rememberMe = false;
   var _obscure = true;
   var _autovalidate = AutovalidateMode.disabled;
   var _isLoading = false;
@@ -109,11 +108,8 @@ class LoginFormState extends State<LoginForm> {
 
       final uid = cred.user?.uid;
       if (uid != null) {
-        // Sauvegarder la préférence "Rester connecté" localement
-        await _sessionService.setRememberMe(_rememberMe);
-        
-        // Mettre à jour les préférences dans Firestore
-        await _sessionService.updateUserSessionPreferences(uid, _rememberMe);
+        // Mettre à jour la dernière connexion
+        await _sessionService.updateLastLogin(uid);
       }
 
       if (!mounted) return;
@@ -229,15 +225,6 @@ class LoginFormState extends State<LoginForm> {
 
               Row(
                 children: [
-                  Checkbox(
-                    value: _rememberMe,
-                    onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                    activeColor: AppColors.accent,
-                    side: const BorderSide(
-                      color: Color.fromRGBO(255, 255, 255, 0.6),
-                    ),
-                  ),
-                  Text('Remember me', style: txt.copyWith(color: Colors.white)),
                   const Spacer(),
                   TextButton(
                     onPressed: () {

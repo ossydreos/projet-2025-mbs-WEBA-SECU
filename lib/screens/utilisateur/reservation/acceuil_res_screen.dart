@@ -63,19 +63,7 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
-
-    if (widget.onNavigate != null) {
-      widget.onNavigate!(index);
-    } else {
-      switch (index) {
-        case 1:
-          Navigator.pushReplacementNamed(context, '/trajets');
-          break;
-        case 2:
-          Navigator.pushReplacementNamed(context, '/profile');
-          break;
-      }
-    }
+    widget.onNavigate?.call(index);
   }
 
   Future<void> _getUserLocation() async {
@@ -99,7 +87,20 @@ class _AccueilScreenState extends State<AccueilScreen>
 
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
+        try {
+          permission = await Geolocator.requestPermission();
+        } catch (e) {
+          // Sur iOS, requestPermission() peut lever une exception
+          print('Erreur lors de la demande de permission: $e');
+          if (!mounted) return;
+          setState(() {
+            _locationError = 'Permission de localisation non disponible';
+            _isLoadingLocation = false;
+          });
+          _addDefaultLocationMarker();
+          return;
+        }
+        
         if (permission == LocationPermission.denied) {
           if (!mounted) return;
           setState(() {
@@ -121,14 +122,27 @@ class _AccueilScreenState extends State<AccueilScreen>
         return;
       }
 
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
-      );
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+          timeLimit: const Duration(seconds: 10),
+        );
+      } catch (e) {
+        // Sur iOS, getCurrentPosition peut échouer même avec les permissions
+        print('Erreur lors de l\'obtention de la position: $e');
+        if (!mounted) return;
+        setState(() {
+          _locationError = 'Impossible d\'obtenir la position actuelle';
+          _isLoadingLocation = false;
+        });
+        _addDefaultLocationMarker();
+        return;
+      }
 
       if (!mounted) return;
       setState(() {
-        _userLocation = LatLng(position.latitude, position.longitude);
+        _userLocation = LatLng(position!.latitude, position!.longitude);
         _isLoadingLocation = false;
       });
 

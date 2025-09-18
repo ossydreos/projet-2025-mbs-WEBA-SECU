@@ -45,32 +45,7 @@ class _HomeShellState extends State<HomeShell> {
         body: Stack(
           children: [
             // Préchargement Google Map invisible (1x1) pour initialiser le moteur dès l'ouverture
-            Positioned(
-              left: 0,
-              top: 0,
-              child: Opacity(
-                opacity: 0.0,
-                child: SizedBox(
-                  width: 1,
-                  height: 1,
-                  child: gmaps.GoogleMap(
-                    initialCameraPosition: const gmaps.CameraPosition(
-                      target: gmaps.LatLng(48.8566, 2.3522),
-                      zoom: 3.0,
-                    ),
-                    onMapCreated: (controller) {
-                      controller.setMapStyle(darkMapStyle);
-                    },
-                    myLocationEnabled: false,
-                    myLocationButtonEnabled: false,
-                    compassEnabled: false,
-                    mapToolbarEnabled: false,
-                    zoomControlsEnabled: false,
-                    liteModeEnabled: false,
-                  ),
-                ),
-              ),
-            ),
+            
             // Contenu persistant avec IndexedStack
             IndexedStack(
               index: _currentIndex,
