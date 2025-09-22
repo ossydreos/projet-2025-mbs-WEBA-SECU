@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
-import '../../../l10n/generated/app_localizations.dart';
 
 class AdminGestionScreen extends StatefulWidget {
   final Function(int)? onNavigate;
   final bool showBottomBar;
 
-  const AdminGestionScreen({super.key, this.onNavigate, this.showBottomBar = true});
+  const AdminGestionScreen({
+    super.key,
+    this.onNavigate,
+    this.showBottomBar = true,
+  });
 
   @override
   State<AdminGestionScreen> createState() => _AdminGestionScreenState();
@@ -22,7 +25,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: AppLocalizations.of(context).management,
+          title: 'Gestion',
           actions: [
             Container(
               margin: const EdgeInsets.only(right: 16),
@@ -33,7 +36,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                 border: Border.all(color: AppColors.accent),
               ),
               child: Text(
-                AppLocalizations.of(context).admin,
+                'ADMIN',
                 style: TextStyle(
                   color: AppColors.accent,
                   fontWeight: FontWeight.bold,
@@ -67,51 +70,45 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildSection(
-              title: AppLocalizations.of(context).fleetManagement,
+              title: 'Gestion de flotte',
               icon: Icons.directions_car,
               children: [
                 _buildMenuItem(
                   icon: Icons.category,
-                  title: AppLocalizations.of(context).manageVehicles,
-                  subtitle: AppLocalizations.of(context).manageVehiclesSubtitle,
+                  title: 'Gérer les véhicules',
+                  subtitle: 'Ajouter, modifier, activer ou désactiver',
                   onTap: () => _navigateToVehicleManagement(),
                 ),
               ],
             ),
             const SizedBox(height: 24),
             _buildSection(
-              title: AppLocalizations.of(context).promoCodes,
+              title: 'Codes promotionnels',
               icon: Icons.local_offer,
               children: [
                 _buildMenuItem(
-                  icon: Icons.add_circle,
-                  title: AppLocalizations.of(context).createPromoCode,
-                  subtitle: AppLocalizations.of(context).createPromoCodeSubtitle,
-                  onTap: () => _showCreatePromoDialog(),
-                ),
-                _buildMenuItem(
-                  icon: Icons.list,
-                  title: AppLocalizations.of(context).activeCodes,
-                  subtitle: AppLocalizations.of(context).activeCodesSubtitle,
+                  icon: Icons.local_offer,
+                  title: 'Codes promotionnels',
+                  subtitle: 'Créer, activer/désactiver et supprimer',
                   onTap: () => _showPromoCodesList(),
                 ),
               ],
             ),
             const SizedBox(height: 24),
             _buildSection(
-              title: AppLocalizations.of(context).administration,
+              title: 'Administration',
               icon: Icons.admin_panel_settings,
               children: [
                 _buildMenuItem(
                   icon: Icons.people,
-                  title: AppLocalizations.of(context).userManagement,
-                  subtitle: AppLocalizations.of(context).userManagementSubtitle,
+                  title: 'Gestion des utilisateurs',
+                  subtitle: 'Activer/désactiver les comptes',
                   onTap: () => _showUserManagement(),
                 ),
                 _buildMenuItem(
                   icon: Icons.analytics,
-                  title: AppLocalizations.of(context).statistics,
-                  subtitle: AppLocalizations.of(context).statisticsSubtitle,
+                  title: 'Statistiques',
+                  subtitle: 'Consulter les indicateurs',
                   onTap: () => _showStatistics(),
                 ),
               ],
@@ -252,12 +249,8 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     Navigator.pushNamed(context, '/admin/vehicle-management');
   }
 
-  void _showCreatePromoDialog() {
-    _showFeatureDialog('Créer un code promo');
-  }
-
   void _showPromoCodesList() {
-    _showFeatureDialog('Codes promotionnels');
+    Navigator.pushNamed(context, '/admin/promo/active');
   }
 
   void _showUserManagement() {

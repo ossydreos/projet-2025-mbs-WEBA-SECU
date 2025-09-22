@@ -27,17 +27,18 @@ import 'l10n/generated/app_localizations.dart';
 // Import des écrans admin
 import 'screens/admin/reception/admin_reception_screen.dart';
 import 'screens/admin/gestion/admin_gestion_screen.dart';
-import 'screens/admin/gestion/vehicle_management_screen.dart';
+import 'screens/admin/gestion/vehicules/vehicle_gestion_screen.dart';
 import 'screens/admin/trajets/admin_trajets_screen.dart';
 import 'screens/admin/profile/admin_profile_screen.dart';
+import 'screens/admin/gestion/code_promo/codePromo_cree_screen.dart';
+import 'screens/admin/gestion/code_promo/codePromo_actif_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initialiser les données de fuseau horaire pour toute l'application
   tz.initializeTimeZones();
-  
-  
+
   runApp(const MyApp());
 }
 
@@ -50,7 +51,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'My Mobility Services',
       theme: AppTheme.glassDark,
-      
+
       // Configuration de l'internationalisation
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -58,14 +59,17 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      locale: const Locale('en', ''), // ← FORCE L'ANGLAIS POUR VOIR LA DIFFÉRENCE
+      locale: const Locale(
+        'en',
+        '',
+      ), // ← FORCE L'ANGLAIS POUR VOIR LA DIFFÉRENCE
       supportedLocales: const [
         Locale('en', ''), // Anglais (par défaut)
         Locale('fr', ''), // Français
       ],
+
       // La langue sera automatiquement détectée selon l'appareil
       // Si langue non supportée → fallback vers l'anglais
-      
       home: const Authgate(),
       onGenerateRoute: (settings) {
         Widget page;
@@ -93,10 +97,16 @@ class MyApp extends StatelessWidget {
             page = const AdminGestionScreen();
             break;
           case '/admin/vehicle-management':
-            page = const VehicleManagementScreen();
+            page = VehicleManagementScreen();
             break;
           case '/admin/profile':
             page = const AdminProfileScreen();
+            break;
+          case '/admin/promo/create':
+            page = const CreatePromoCodeScreen();
+            break;
+          case '/admin/promo/active':
+            page = ActivePromoCodesScreen();
             break;
           default:
             page = const HomeShell();

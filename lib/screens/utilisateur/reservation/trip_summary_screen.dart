@@ -6,6 +6,8 @@ import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/data/models/promo_code.dart';
+import 'package:my_mobility_services/data/services/promo_code_service.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/localisation_recherche_screen.dart';
@@ -45,7 +47,12 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
   bool _isCreatingReservation = false;
   double _calculatedPrice = 0.0;
   final TextEditingController _noteController = TextEditingController();
-  
+  final TextEditingController _promoController = TextEditingController();
+  PromoCode? _appliedPromo;
+  double _discountAmount = 0.0;
+  bool _applyingPromo = false;
+  final PromoCodeService _promoService = PromoCodeService();
+
   // Variables pour les données modifiables
   late String _currentDeparture;
   late String _currentDestination;
@@ -124,30 +131,33 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     _currentDestinationCoordinates = widget.destinationCoordinates;
     _estimatedArrival = widget.estimatedArrival;
     _currentVehicleName = widget.vehicleName;
-    
+
     _calculatePrice();
   }
 
   @override
   void dispose() {
     _noteController.dispose();
+    _promoController.dispose();
     super.dispose();
   }
 
   // Mettre à jour avec une nouvelle route
-  Future<void> _updateWithNewRoute(String departure, String destination, LatLng? departureCoords, LatLng? destinationCoords) async {
+  Future<void> _updateWithNewRoute(
+    String departure,
+    String destination,
+    LatLng? departureCoords,
+    LatLng? destinationCoords,
+  ) async {
     setState(() {
       _currentDeparture = departure;
       _currentDestination = destination;
       _currentDepartureCoordinates = departureCoords;
       _currentDestinationCoordinates = destinationCoords;
     });
-    
+
     // Calculer le prix et l'heure d'arrivée en parallèle
-    await Future.wait([
-      _calculatePrice(),
-      _updateEstimatedArrival(),
-    ]);
+    await Future.wait([_calculatePrice(), _updateEstimatedArrival()]);
   }
 
   // Méthode pour gérer le retour de BookingScreen
@@ -159,7 +169,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           _currentVehicleName = result['vehicleName'];
         });
       }
-      
+
       await _updateWithNewRoute(
         result['departure'],
         result['destination'],
@@ -171,18 +181,19 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
   // Méthode pour mettre à jour l'heure d'arrivée estimée
   Future<void> _updateEstimatedArrival() async {
-    if (_currentDepartureCoordinates != null && _currentDestinationCoordinates != null) {
+    if (_currentDepartureCoordinates != null &&
+        _currentDestinationCoordinates != null) {
       try {
         // Calculer la durée du trajet avec les nouvelles coordonnées
         final directions = await DirectionsService.getDirections(
           origin: _currentDepartureCoordinates!,
           destination: _currentDestinationCoordinates!,
         );
-        
+
         if (directions != null && directions.containsKey('durationValue')) {
           final durationSeconds = directions['durationValue'] as int;
           final durationMinutes = (durationSeconds / 60).round();
-          
+
           // Calculer l'heure d'arrivée en ajoutant la durée à l'heure de départ
           final departureTime = DateTime(
             widget.selectedDate.year,
@@ -191,12 +202,15 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
             widget.selectedTime.hour,
             widget.selectedTime.minute,
           );
-          
-          final arrivalTime = departureTime.add(Duration(minutes: durationMinutes));
+
+          final arrivalTime = departureTime.add(
+            Duration(minutes: durationMinutes),
+          );
           final arrivalTimeOfDay = TimeOfDay.fromDateTime(arrivalTime);
-          
+
           setState(() {
-            _estimatedArrival = '${arrivalTimeOfDay.hour.toString().padLeft(2, '0')}:${arrivalTimeOfDay.minute.toString().padLeft(2, '0')}';
+            _estimatedArrival =
+                '${arrivalTimeOfDay.hour.toString().padLeft(2, '0')}:${arrivalTimeOfDay.minute.toString().padLeft(2, '0')}';
           });
         }
       } catch (e) {
@@ -256,7 +270,11 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
       if (mounted) {
         setState(() {
-          _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} €';
+          final total = (_calculatedPrice - _discountAmount).clamp(
+            0,
+            double.infinity,
+          );
+          _totalPrice = '${total.toStringAsFixed(2)} €';
         });
       }
     } catch (e) {
@@ -268,6 +286,51 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           _totalPrice = '15,00 €';
         });
       }
+    }
+  }
+
+  Future<void> _applyPromo() async {
+    final code = _promoController.text.trim();
+    if (code.isEmpty) return;
+    setState(() => _applyingPromo = true);
+    try {
+      final promo = await _promoService.getByCode(code);
+      if (promo == null) {
+        throw Exception('Code invalide');
+      }
+      final usable = await _promoService.isUsable(promo);
+      if (!usable) {
+        throw Exception('Code non utilisable');
+      }
+      double discount;
+      if (promo.type == DiscountType.percent) {
+        discount = (_calculatedPrice * promo.value / 100.0);
+      } else {
+        discount = promo.value;
+      }
+      setState(() {
+        _appliedPromo = promo;
+        _discountAmount = discount;
+        final total = (_calculatedPrice - _discountAmount).clamp(
+          0,
+          double.infinity,
+        );
+        _totalPrice = '${total.toStringAsFixed(2)} €';
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Code promo appliqué')));
+    } catch (e) {
+      setState(() {
+        _appliedPromo = null;
+        _discountAmount = 0.0;
+        _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} €';
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+    } finally {
+      if (mounted) setState(() => _applyingPromo = false);
     }
   }
 
@@ -310,7 +373,10 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         selectedTime: _formatTime(widget.selectedTime),
         estimatedArrival: _estimatedArrival,
         paymentMethod: _paymentMethod,
-        totalPrice: _calculatedPrice,
+        totalPrice: (_calculatedPrice - _discountAmount).clamp(
+          0,
+          double.infinity,
+        ),
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
         departureCoordinates: _currentDepartureCoordinates != null
@@ -328,22 +394,38 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         clientNote: _noteController.text.trim().isNotEmpty
             ? _noteController.text.trim()
             : null,
+        promoCode: _appliedPromo?.code,
+        discountAmount: _discountAmount == 0.0 ? null : _discountAmount,
       );
 
       // Sauvegarder dans Firebase
       print(
         '💾 Sauvegarde de la réservation avec le véhicule: $_currentVehicleName',
       );
+      if (_appliedPromo != null) {
+        try {
+          await _promoService.redeemIfValid(_appliedPromo!.id);
+        } catch (e) {
+          // ignorer l'erreur de redeem pour ne pas bloquer la réservation
+        }
+      }
+
       final reservationId = await _reservationService.createReservation(
         reservation,
       );
       print('✅ Réservation créée avec l\'ID: $reservationId');
 
-      // Afficher le succès
+      // Afficher le succès (ajoute le code promo s'il est utilisé)
       if (mounted) {
+        final baseMsg = AppLocalizations.of(
+          context,
+        ).reservationCreatedSuccess(reservationId);
+        final promoMsg = _appliedPromo != null
+            ? '\nCode promo utilisé: ${_appliedPromo!.code}'
+            : '';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).reservationCreatedSuccess(reservationId)),
+            content: Text('$baseMsg$promoMsg'),
             backgroundColor: AppColors.accent,
           ),
         );
@@ -355,7 +437,11 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).reservationCreationError(e.toString())),
+            content: Text(
+              AppLocalizations.of(
+                context,
+              ).reservationCreationError(e.toString()),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -446,8 +532,10 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                           vehicleName: _currentVehicleName,
                                           departure: _currentDeparture,
                                           destination: _currentDestination,
-                                          departureCoordinates: _currentDepartureCoordinates,
-                                          destinationCoordinates: _currentDestinationCoordinates,
+                                          departureCoordinates:
+                                              _currentDepartureCoordinates,
+                                          destinationCoordinates:
+                                              _currentDestinationCoordinates,
                                         ),
                                       ),
                                     );
@@ -519,16 +607,21 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                     final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => LocationSearchScreen(
-                                          initialDeparture: widget.departure,
-                                          initialDestination: widget.destination,
-                                          departureCoordinates: widget.departureCoordinates,
-                                          destinationCoordinates: widget.destinationCoordinates,
-                                          fromSummary: true,
-                                        ),
+                                        builder: (context) =>
+                                            LocationSearchScreen(
+                                              initialDeparture:
+                                                  widget.departure,
+                                              initialDestination:
+                                                  widget.destination,
+                                              departureCoordinates:
+                                                  widget.departureCoordinates,
+                                              destinationCoordinates:
+                                                  widget.destinationCoordinates,
+                                              fromSummary: true,
+                                            ),
                                       ),
                                     );
-                                    
+
                                     // Si on revient de BookingScreen avec des données mises à jour
                                     if (result != null) {
                                       await _handleBookingScreenReturn(result);
@@ -657,7 +750,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                       ),
 
                       const SizedBox(height: 16),
-                      
+
                       // ETA
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -725,13 +818,15 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                         builder: (context) => BookingScreen(
                                           departure: _currentDeparture,
                                           destination: _currentDestination,
-                                          departureCoordinates: _currentDepartureCoordinates,
-                                          destinationCoordinates: _currentDestinationCoordinates,
+                                          departureCoordinates:
+                                              _currentDepartureCoordinates,
+                                          destinationCoordinates:
+                                              _currentDestinationCoordinates,
                                           fromSummary: true,
                                         ),
                                       ),
                                     );
-                                    
+
                                     // Si l'utilisateur a changé de véhicule, mettre à jour
                                     if (result != null) {
                                       await _handleBookingScreenReturn(result);
@@ -903,6 +998,52 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                             ),
                             const SizedBox(height: 16),
 
+                            // Champ code promo + bouton Appliquer
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _promoController,
+                                    textCapitalization:
+                                        TextCapitalization.characters,
+                                    decoration: InputDecoration(
+                                      filled: true,
+                                      fillColor: Colors.white.withOpacity(0.08),
+                                      hintText: 'Code promo',
+                                      hintStyle: TextStyle(
+                                        color: AppColors.textWeak,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: _applyingPromo
+                                      ? null
+                                      : _applyPromo,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.accent,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: _applyingPromo
+                                      ? const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Text('Appliquer'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+
                             Row(
                               children: [
                                 // Logo méthode de paiement
@@ -1019,15 +1160,16 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Non',
-                style: TextStyle(color: AppColors.text),
-              ),
+              child: Text('Non', style: TextStyle(color: AppColors.text)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context); // Fermer la boîte de dialogue
-                Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/home',
+                  (route) => false,
+                );
               },
               child: Text(
                 'Oui, annuler',
@@ -1055,7 +1197,10 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.apple, color: Colors.white),
-                title: Text(AppLocalizations.of(context).applePay, style: const TextStyle(color: Colors.white)),
+                title: Text(
+                  AppLocalizations.of(context).applePay,
+                  style: const TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Apple Pay';
@@ -1065,7 +1210,10 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.credit_card, color: Colors.white),
-                title: Text(AppLocalizations.of(context).bankCard, style: const TextStyle(color: Colors.white)),
+                title: Text(
+                  AppLocalizations.of(context).bankCard,
+                  style: const TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Carte bancaire';
@@ -1074,8 +1222,14 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.account_balance_wallet, color: Colors.white),
-                title: Text(AppLocalizations.of(context).cash, style: const TextStyle(color: Colors.white)),
+                leading: const Icon(
+                  Icons.account_balance_wallet,
+                  color: Colors.white,
+                ),
+                title: Text(
+                  AppLocalizations.of(context).cash,
+                  style: const TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Espèces';

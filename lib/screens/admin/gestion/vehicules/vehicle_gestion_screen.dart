@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/vehicule_type.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
-import '../../../l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 
 class VehicleManagementScreen extends StatefulWidget {
   const VehicleManagementScreen({super.key});
 
   @override
-  State<VehicleManagementScreen> createState() => _VehicleManagementScreenState();
+  State<VehicleManagementScreen> createState() =>
+      _VehicleManagementScreenState();
 }
 
 class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
@@ -95,7 +96,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           // En-tête avec statistiques
           _buildStatsHeader(),
           const SizedBox(height: 24),
-          
+
           // Liste des véhicules
           _buildVehiclesList(),
         ],
@@ -108,11 +109,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.category_outlined,
-            size: 80,
-            color: AppColors.textWeak,
-          ),
+          Icon(Icons.category_outlined, size: 80, color: AppColors.textWeak),
           const SizedBox(height: 16),
           Text(
             'Aucun véhicule',
@@ -125,10 +122,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           const SizedBox(height: 8),
           Text(
             'Commencez par ajouter un véhicule',
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textWeak,
-            ),
+            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
           ),
           const SizedBox(height: 24),
           GlassButton(
@@ -180,7 +174,12 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
@@ -193,13 +192,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
             color: AppColors.textStrong,
           ),
         ),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.textWeak,
-          ),
-        ),
+        Text(title, style: TextStyle(fontSize: 12, color: AppColors.textWeak)),
       ],
     );
   }
@@ -220,7 +213,8 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
         StreamBuilder<List<VehiculeType>>(
           stream: _vehicleService.getVehiclesStream(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting && snapshot.data == null) {
+            if (snapshot.connectionState == ConnectionState.waiting &&
+                snapshot.data == null) {
               return const Center(
                 child: CircularProgressIndicator(color: AppColors.accent),
               );
@@ -237,7 +231,9 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
 
             final vehicles = snapshot.data ?? [];
             return Column(
-              children: vehicles.map((vehicle) => _buildVehicleCard(vehicle)).toList(),
+              children: vehicles
+                  .map((vehicle) => _buildVehicleCard(vehicle))
+                  .toList(),
             );
           },
         ),
@@ -257,22 +253,18 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: vehicle.isActive 
+                color: vehicle.isActive
                     ? AppColors.accent.withOpacity(0.2)
                     : Colors.grey.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: vehicle.isActive 
-                      ? AppColors.accent
-                      : Colors.grey,
+                  color: vehicle.isActive ? AppColors.accent : Colors.grey,
                   width: 1,
                 ),
               ),
               child: Icon(
                 vehicle.icon,
-                color: vehicle.isActive 
-                    ? AppColors.accent
-                    : Colors.grey,
+                color: vehicle.isActive ? AppColors.accent : Colors.grey,
                 size: 24,
               ),
             ),
@@ -291,7 +283,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: vehicle.isActive 
+                            color: vehicle.isActive
                                 ? AppColors.textStrong
                                 : Colors.grey,
                           ),
@@ -305,7 +297,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: vehicle.isActive 
+                          color: vehicle.isActive
                               ? Colors.green.withOpacity(0.2)
                               : Colors.red.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(8),
@@ -326,7 +318,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                     '${vehicle.capacityDisplay} • ${vehicle.luggageDisplay}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: vehicle.isActive 
+                      color: vehicle.isActive
                           ? AppColors.textWeak
                           : Colors.grey,
                     ),
@@ -350,11 +342,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
               children: [
                 IconButton(
                   onPressed: () => _showEditVehicleDialog(vehicle),
-                  icon: Icon(
-                    Icons.edit,
-                    color: AppColors.accent,
-                    size: 18,
-                  ),
+                  icon: Icon(Icons.edit, color: AppColors.accent, size: 18),
                   tooltip: 'Modifier',
                   padding: const EdgeInsets.all(8),
                   constraints: const BoxConstraints(
@@ -378,11 +366,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                 ),
                 IconButton(
                   onPressed: () => _showDeleteVehicleDialog(vehicle),
-                  icon: Icon(
-                    Icons.delete,
-                    color: Colors.red,
-                    size: 18,
-                  ),
+                  icon: Icon(Icons.delete, color: Colors.red, size: 18),
                   tooltip: 'Supprimer',
                   padding: const EdgeInsets.all(8),
                   constraints: const BoxConstraints(
@@ -409,19 +393,29 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
   void _showVehicleDialog({VehiculeType? vehicle}) {
     final isEditing = vehicle != null;
     final nameController = TextEditingController(text: vehicle?.name ?? '');
-    final descriptionController = TextEditingController(text: vehicle?.description ?? '');
-    final priceController = TextEditingController(text: vehicle?.pricePerKm.toString() ?? '');
-    final maxPassengersController = TextEditingController(text: vehicle?.maxPassengers.toString() ?? '4');
-    final maxLuggageController = TextEditingController(text: vehicle?.maxLuggage.toString() ?? '2');
-    final imageUrlController = TextEditingController(text: vehicle?.imageUrl ?? '');
-    VehicleCategory selectedCategory = vehicle?.category ?? VehicleCategory.economique;
+    final descriptionController = TextEditingController(
+      text: vehicle?.description ?? '',
+    );
+    final priceController = TextEditingController(
+      text: vehicle?.pricePerKm.toString() ?? '',
+    );
+    final maxPassengersController = TextEditingController(
+      text: vehicle?.maxPassengers.toString() ?? '4',
+    );
+    final maxLuggageController = TextEditingController(
+      text: vehicle?.maxLuggage.toString() ?? '2',
+    );
+    final imageUrlController = TextEditingController(
+      text: vehicle?.imageUrl ?? '',
+    );
+    VehicleCategory selectedCategory =
+        vehicle?.category ?? VehicleCategory.economique;
     IconData selectedIcon = vehicle?.icon ?? Icons.directions_car_outlined;
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
-          
           return Dialog(
             backgroundColor: Colors.transparent,
             child: GlassContainer(
@@ -440,13 +434,15 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Nom du véhicule
                     TextField(
                       controller: nameController,
                       decoration: InputDecoration(
                         labelText: AppLocalizations.of(context).vehicleName,
-                        hintText: AppLocalizations.of(context).vehicleNameExample,
+                        hintText: AppLocalizations.of(
+                          context,
+                        ).vehicleNameExample,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -454,21 +450,23 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Description
                     TextField(
                       controller: descriptionController,
                       maxLines: 2,
                       decoration: InputDecoration(
                         labelText: 'Description',
-                        hintText: AppLocalizations.of(context).vehicleDescriptionHint,
+                        hintText: AppLocalizations.of(
+                          context,
+                        ).vehicleDescriptionHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Catégorie
                     DropdownButtonFormField<VehicleCategory>(
                       value: selectedCategory,
@@ -491,7 +489,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Prix par kilomètre
                     TextField(
                       controller: priceController,
@@ -505,7 +503,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Capacité passagers et bagages
                     Row(
                       children: [
@@ -539,7 +537,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // URL de l'image
                     TextField(
                       controller: imageUrlController,
@@ -552,7 +550,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Sélection d'icône
                     Text(
                       'Icône du véhicule',
@@ -565,50 +563,57 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
-                      children: [
-                        Icons.directions_car_outlined,
-                        Icons.airport_shuttle,
-                        Icons.directions_car,
-                        Icons.motorcycle,
-                        Icons.bus_alert,
-                        Icons.local_taxi,
-                        Icons.two_wheeler,
-                        Icons.directions_bus,
-                      ].map((icon) => GestureDetector(
-                        onTap: () {
-                          print('Icon tapped: $icon');
-                          setState(() {
-                            selectedIcon = icon;
-                            print('Selected icon updated to: $selectedIcon');
-                          });
-                        },
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: selectedIcon == icon 
-                                ? AppColors.accent.withOpacity(0.2)
-                                : Colors.grey.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: selectedIcon == icon 
-                                  ? AppColors.accent
-                                  : Colors.grey,
-                              width: 2,
-                            ),
-                          ),
-                          child: Icon(
-                            icon,
-                            color: selectedIcon == icon 
-                                ? AppColors.accent
-                                : Colors.grey,
-                            size: 24,
-                          ),
-                        ),
-                      )).toList(),
+                      children:
+                          [
+                                Icons.directions_car_outlined,
+                                Icons.airport_shuttle,
+                                Icons.directions_car,
+                                Icons.motorcycle,
+                                Icons.bus_alert,
+                                Icons.local_taxi,
+                                Icons.two_wheeler,
+                                Icons.directions_bus,
+                              ]
+                              .map(
+                                (icon) => GestureDetector(
+                                  onTap: () {
+                                    print('Icon tapped: $icon');
+                                    setState(() {
+                                      selectedIcon = icon;
+                                      print(
+                                        'Selected icon updated to: $selectedIcon',
+                                      );
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: selectedIcon == icon
+                                          ? AppColors.accent.withOpacity(0.2)
+                                          : Colors.grey.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: selectedIcon == icon
+                                            ? AppColors.accent
+                                            : Colors.grey,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      icon,
+                                      color: selectedIcon == icon
+                                          ? AppColors.accent
+                                          : Colors.grey,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
                     ),
                     const SizedBox(height: 24),
-                    
+
                     // Boutons
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -640,7 +645,11 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: Text(isEditing ? AppLocalizations.of(context).modify : AppLocalizations.of(context).create),
+                          child: Text(
+                            isEditing
+                                ? AppLocalizations.of(context).modify
+                                : AppLocalizations.of(context).create,
+                          ),
                         ),
                       ],
                     ),
@@ -684,7 +693,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           icon: icon,
           isActive: true, // Toujours actif lors de la modification
         );
-        
+
         final success = await _vehicleService.updateVehicle(updatedVehicle);
         if (success) {
           Navigator.pop(context);
@@ -707,7 +716,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           isActive: true, // Toujours actif lors de la création
           createdAt: DateTime.now(),
         );
-        
+
         final id = await _vehicleService.createVehicle(newVehicle);
         if (id != null) {
           Navigator.pop(context);
@@ -726,7 +735,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
       final success = await _vehicleService.updateVehicle(
         vehicle.copyWith(isActive: !vehicle.isActive),
       );
-      
+
       if (success) {
         _showSuccessSnackBar(
           'Véhicule ${vehicle.isActive ? 'désactivé' : 'activé'} avec succès',
@@ -750,11 +759,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.warning,
-                color: Colors.red,
-                size: 48,
-              ),
+              Icon(Icons.warning, color: Colors.red, size: 48),
               const SizedBox(height: 16),
               Text(
                 'Supprimer le véhicule',
@@ -837,19 +842,13 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
 
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
   }
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 }

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 enum ReservationStatus {
@@ -27,7 +26,7 @@ extension ReservationStatusExtension on ReservationStatus {
         return localizations.reservationStatusCancelled;
     }
   }
-  
+
   // Version legacy pour compatibilité
   String get statusInFrench {
     switch (this) {
@@ -67,6 +66,9 @@ class Reservation {
   final DateTime? driverProposedDate; // Date proposée par le chauffeur
   final String? driverProposedTime; // Heure proposée par le chauffeur
   final String? adminMessage; // Message de l'admin pour la contre-offre
+  // Promo
+  final String? promoCode; // code appliqué
+  final double? discountAmount; // montant de la remise en devise
 
   Reservation({
     required this.id,
@@ -90,6 +92,8 @@ class Reservation {
     this.driverProposedDate,
     this.driverProposedTime,
     this.adminMessage,
+    this.promoCode,
+    this.discountAmount,
   });
 
   // Convertir en Map pour Firebase
@@ -113,9 +117,13 @@ class Reservation {
       'destinationCoordinates': destinationCoordinates,
       'clientNote': clientNote,
       'hasCounterOffer': hasCounterOffer,
-      'driverProposedDate': driverProposedDate != null ? Timestamp.fromDate(driverProposedDate!) : null,
+      'driverProposedDate': driverProposedDate != null
+          ? Timestamp.fromDate(driverProposedDate!)
+          : null,
       'driverProposedTime': driverProposedTime,
       'adminMessage': adminMessage,
+      'promoCode': promoCode,
+      'discountAmount': discountAmount,
     };
   }
 
@@ -145,11 +153,15 @@ class Reservation {
       destinationCoordinates: map['destinationCoordinates'],
       clientNote: map['clientNote'],
       hasCounterOffer: map['hasCounterOffer'] ?? false,
-      driverProposedDate: map['driverProposedDate'] != null 
+      driverProposedDate: map['driverProposedDate'] != null
           ? (map['driverProposedDate'] as Timestamp).toDate()
           : null,
       driverProposedTime: map['driverProposedTime'],
       adminMessage: map['adminMessage'],
+      promoCode: map['promoCode'],
+      discountAmount: (map['discountAmount'] ?? 0.0) == 0.0
+          ? null
+          : (map['discountAmount'] as num).toDouble(),
     );
   }
 
@@ -176,6 +188,8 @@ class Reservation {
     DateTime? driverProposedDate,
     String? driverProposedTime,
     String? adminMessage,
+    String? promoCode,
+    double? discountAmount,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -200,6 +214,8 @@ class Reservation {
       driverProposedDate: driverProposedDate ?? this.driverProposedDate,
       driverProposedTime: driverProposedTime ?? this.driverProposedTime,
       adminMessage: adminMessage ?? this.adminMessage,
+      promoCode: promoCode ?? this.promoCode,
+      discountAmount: discountAmount ?? this.discountAmount,
     );
   }
 
@@ -218,5 +234,4 @@ class Reservation {
         return 'Annulée';
     }
   }
-
 }
