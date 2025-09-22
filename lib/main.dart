@@ -20,6 +20,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.dart';
 
 import 'package:my_mobility_services/widgets/authgate.dart';
+import 'package:my_mobility_services/data/services/global_notification_service.dart';
 import 'firebase/firebase_options.dart';
 import 'theme/glassmorphism_theme.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -32,6 +33,7 @@ import 'screens/admin/trajets/admin_trajets_screen.dart';
 import 'screens/admin/profile/admin_profile_screen.dart';
 import 'screens/admin/gestion/code_promo/codePromo_cree_screen.dart';
 import 'screens/admin/gestion/code_promo/codePromo_actif_screen.dart';
+import 'widgets/admin/test_notification_demo.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,6 +69,13 @@ class MyApp extends StatelessWidget {
       // La langue sera automatiquement détectée selon l'appareil
       // Si langue non supportée → fallback vers l'anglais
       home: const Authgate(),
+      builder: (context, child) {
+        // Initialiser le service de notification globale
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          GlobalNotificationService().initialize(context);
+        });
+        return child!;
+      },
       onGenerateRoute: (settings) {
         Widget page;
         switch (settings.name) {
@@ -103,6 +112,9 @@ class MyApp extends StatelessWidget {
             break;
           case '/admin/promo/active':
             page = ActivePromoCodesScreen();
+            break;
+          case '/admin/demo/notification':
+            page = const TestNotificationDemo();
             break;
           default:
             page = const HomeShell();

@@ -8,10 +8,10 @@ class ReservationService {
 
   // Collection Firestore
   static const String _collection = 'reservations';
-  
+
   // Cache pour les noms d'utilisateurs
   static final Map<String, String> _userNameCache = <String, String>{};
-  
+
   // Méthode pour vider le cache (utile lors de la déconnexion)
   static void clearUserNameCache() {
     _userNameCache.clear();
@@ -28,8 +28,6 @@ class ReservationService {
       throw Exception('Erreur lors de la création de la réservation: $e');
     }
   }
-
-
 
   // Mettre à jour le statut d'une réservation
   Future<void> updateReservationStatus(
@@ -61,6 +59,21 @@ class ReservationService {
     }
   }
 
+  // Mettre à jour un champ spécifique d'une réservation
+  Future<void> updateReservationField(
+    String reservationId,
+    String fieldName,
+    dynamic value,
+  ) async {
+    try {
+      await _firestore.collection(_collection).doc(reservationId).update({
+        fieldName: value,
+        'lastUpdated': Timestamp.now(),
+      });
+    } catch (e) {
+      throw Exception('Erreur lors de la mise à jour du champ $fieldName: $e');
+    }
+  }
 
   // Obtenir les réservations en attente (pour les conducteurs/admin) avec pagination
   Future<List<Reservation>> getPendingReservations({
@@ -81,7 +94,12 @@ class ReservationService {
       final querySnapshot = await query.get();
 
       return querySnapshot.docs
-          .map((doc) => Reservation.fromMap({...doc.data() as Map<String, dynamic>, 'id': doc.id}))
+          .map(
+            (doc) => Reservation.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
           .toList();
     } catch (e) {
       throw Exception(
@@ -137,8 +155,6 @@ class ReservationService {
               .toList(),
         );
   }
-
-
 
   // Stream des réservations terminées d'un utilisateur (pour l'onglet "Terminés")
   Stream<List<Reservation>> getUserCompletedReservationsStream() {
@@ -213,11 +229,11 @@ class ReservationService {
     String? userId,
   }) {
     Query query = _firestore.collection(_collection);
-    
+
     if (userId != null) {
       query = query.where('userId', isEqualTo: userId);
     }
-    
+
     query = query
         .where('status', isEqualTo: status.name)
         .orderBy('createdAt', descending: true);
@@ -266,5 +282,4 @@ class ReservationService {
       userId: currentUser.uid,
     );
   }
-
 }

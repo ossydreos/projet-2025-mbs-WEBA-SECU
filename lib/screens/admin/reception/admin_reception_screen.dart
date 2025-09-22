@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/services/notification_service.dart';
+import 'package:my_mobility_services/data/services/notification_manager.dart';
+import 'package:my_mobility_services/widgets/admin/pending_reservations_widget.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class AdminReceptionScreen extends StatefulWidget {
@@ -27,7 +29,7 @@ enum RefusalAction { refuse, counterOffer }
 
 class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final NotificationManager _notificationManager = NotificationManager();
   int _selectedIndex = 0;
   DateTime _lastSeenReservationAt = DateTime.now();
   StreamSubscription<QuerySnapshot>? _newResSubscription;
@@ -38,14 +40,8 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: AppLocalizations.of(context).inbox,
+          title: 'Boîte de réception',
           actions: [
-            // Bouton de test pour créer des réservations
-            IconButton(
-              onPressed: _createTestReservation,
-              icon: Icon(Icons.science, color: AppColors.accent),
-              tooltip: 'Créer réservation de test',
-            ),
             // Bouton pour annuler toutes les réservations en attente de paiement
             IconButton(
               onPressed: _cancelAllWaitingReservations,
@@ -94,6 +90,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   @override
   void dispose() {
     _newResSubscription?.cancel();
+    _notificationManager.dispose();
     super.dispose();
   }
 
@@ -124,28 +121,67 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     final from = data['departure'] as String? ?? '';
     final to = data['destination'] as String? ?? '';
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.accent,
-        duration: const Duration(seconds: 5),
-        content: Row(
-          children: [
-            const Icon(Icons.notifications_active, color: Colors.black),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Nouvelle demande: $userName\n$from → $to',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+
+    // Créer un objet Reservation à partir des données
+    final reservation = Reservation.fromMap({
+      'id': data['id'] ?? '',
+      'userId': data['userId'] ?? '',
+      'userName': userName,
+      'vehicleName': data['vehicleName'] ?? '',
+      'departure': from,
+      'destination': to,
+      'selectedDate': (data['selectedDate'] as Timestamp).toDate(),
+      'selectedTime': data['selectedTime'] ?? '',
+      'estimatedArrival': data['estimatedArrival'] ?? '',
+      'paymentMethod': data['paymentMethod'] ?? '',
+      'totalPrice': (data['totalPrice'] ?? 0.0).toDouble(),
+      'status': ReservationStatus.pending,
+      'createdAt': (data['createdAt'] as Timestamp).toDate(),
+      'departureCoordinates': data['departureCoordinates'],
+      'destinationCoordinates': data['destinationCoordinates'],
+      'clientNote': data['clientNote'],
+      'hasCounterOffer': data['hasCounterOffer'] ?? false,
+      'driverProposedDate': data['driverProposedDate'] != null
+          ? (data['driverProposedDate'] as Timestamp).toDate()
+          : null,
+      'driverProposedTime': data['driverProposedTime'],
+      'adminMessage': data['adminMessage'],
+      'promoCode': data['promoCode'],
+      'discountAmount': data['discountAmount']?.toDouble(),
+    });
+
+    // Afficher la notification style Uber avec gestion des priorités
+    _notificationManager.showGlobalNotification(
+      context,
+      reservation,
+      onAccept: () => _acceptReservation(reservation.id),
+      onDecline: () => _showRefusalOptions(reservation),
+      onCounterOffer: () => _showCounterOfferDialog(reservation),
     );
+  }
+
+  Future<void> _acceptReservation(String reservationId) async {
+    try {
+      await _reservationService.updateReservationStatus(
+        reservationId,
+        ReservationStatus.confirmed,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Réservation acceptée !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Widget _buildContent() {
@@ -157,11 +193,99 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           children: [
             _buildStatsCards(),
             const SizedBox(height: 24),
+            _buildTestNotificationButton(),
+            const SizedBox(height: 24),
+            const PendingReservationsWidget(),
+            const SizedBox(height: 24),
             _buildPendingReservations(),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildTestNotificationButton() {
+    return GlassContainer(
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          onPressed: _showTestNotification,
+          icon: const Icon(Icons.notifications_active),
+          label: const Text('Créer réservation test'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.accent,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showTestNotification() async {
+    try {
+      // Créer une vraie réservation de test dans Firebase
+      final testReservation = Reservation(
+        id: '', // Sera généré par le service
+        userId: 'test_user_${DateTime.now().millisecondsSinceEpoch}',
+        userName: 'Jean Dupont (Test)',
+        vehicleName: 'Berline Premium',
+        departure: 'Gare de Lausanne, 1003 Lausanne',
+        destination: 'Aéroport de Genève, 1215 Le Grand-Saconnex',
+        selectedDate: DateTime.now().add(const Duration(hours: 2)),
+        selectedTime: '14:30',
+        estimatedArrival: '15:15',
+        paymentMethod: 'Carte bancaire',
+        totalPrice: 45.50,
+        status: ReservationStatus.pending,
+        createdAt: DateTime.now(),
+        clientNote: 'Merci de venir à l\'entrée principale - TEST',
+      );
+
+      // Créer la réservation dans Firebase
+      final reservationId = await _reservationService.createReservation(
+        testReservation,
+      );
+
+      // Mettre à jour l'ID de la réservation
+      final reservationWithId = testReservation.copyWith(id: reservationId);
+
+      // Afficher la notification
+      _notificationManager.showGlobalNotification(
+        context,
+        reservationWithId,
+        onAccept: () => _acceptReservation(reservationId),
+        onDecline: () => _showRefusalOptions(reservationWithId),
+        onCounterOffer: () => _showCounterOfferDialog(reservationWithId),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la création du test: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showRefusalOptions(Reservation reservation) async {
+    final action = await _showRefusalDialog();
+    if (action == null) return;
+
+    switch (action) {
+      case RefusalAction.refuse:
+        await _refuseReservation(reservation);
+        break;
+      case RefusalAction.counterOffer:
+        await _showCounterOfferDialog(reservation);
+        break;
+    }
   }
 
   Widget _buildStatsCards() {
@@ -992,53 +1116,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           SnackBar(
             content: Text(
               AppLocalizations.of(context).errorCancelling(e.toString()),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
-  // Méthode pour créer une réservation de test
-  void _createTestReservation() async {
-    try {
-      final now = TimeOfDay.now();
-      final testReservation = Reservation(
-        id: '',
-        userId: 'test_user_123',
-        userName: 'Marie Martin',
-        vehicleName: 'Berline Économique',
-        departure: 'Place de la République, Paris',
-        destination: 'Gare du Nord, Paris',
-        selectedDate: DateTime.now().add(const Duration(days: 1)),
-        selectedTime:
-            '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-        estimatedArrival:
-            '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 13).toString().padLeft(2, '0')}',
-        paymentMethod: 'Espèces',
-        totalPrice: 6.0,
-        status: ReservationStatus.pending,
-        createdAt: DateTime.now(),
-        clientNote: 'Test de réservation avec note client',
-      );
-
-      await _reservationService.createReservation(testReservation);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).testReservationCreated),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${AppLocalizations.of(context).errorUnknownError}: $e',
             ),
             backgroundColor: Colors.red,
           ),
