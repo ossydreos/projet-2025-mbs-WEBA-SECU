@@ -4,6 +4,7 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
 
 class AdminTrajetsScreen extends StatefulWidget {
@@ -41,7 +42,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: GlassAppBar(
-            title: 'Courses',
+            title: AppLocalizations.of(context).courses,
             actions: [
               Container(
                 margin: const EdgeInsets.only(right: 16),
@@ -55,7 +56,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   border: Border.all(color: AppColors.accent),
                 ),
                 child: Text(
-                  'ADMIN',
+                  AppLocalizations.of(context).admin,
                   style: TextStyle(
                     color: AppColors.accent,
                     fontWeight: FontWeight.bold,
@@ -111,7 +112,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   Icon(Icons.error_outline, size: 64, color: AppColors.hot),
                   const SizedBox(height: 16),
                   Text(
-                    'Erreur de chargement',
+                    AppLocalizations.of(context).loadingError,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -146,7 +147,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucune course à venir',
+                    AppLocalizations.of(context).noUpcomingRides,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -156,7 +157,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Les courses confirmées apparaîtront ici',
+                    AppLocalizations.of(context).upcomingRidesWillAppear,
                     style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
                 ],
@@ -197,7 +198,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   Icon(Icons.error_outline, size: 64, color: AppColors.hot),
                   const SizedBox(height: 16),
                   Text(
-                    'Erreur de chargement',
+                    AppLocalizations.of(context).loadingError,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -232,7 +233,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucune course terminée',
+                    AppLocalizations.of(context).noCompletedRides,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -242,7 +243,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'L\'historique des courses apparaîtra ici',
+                    AppLocalizations.of(context).rideHistoryWillAppear,
                     style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
                 ],
@@ -280,7 +281,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               children: [
                 Expanded(
                   child: Text(
-                    reservation.userName ?? 'Utilisateur',
+                    reservation.userName ?? AppLocalizations.of(context).user,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -320,7 +321,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
             _buildLocationRow(
               icon: Icons.location_on,
               iconColor: Colors.green,
-              label: 'Départ',
+              label: AppLocalizations.of(context).departure,
               // CORRECTION: Utilisez les bonnes propriétés
               address: reservation.departure,
             ),
@@ -328,7 +329,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
             _buildLocationRow(
               icon: Icons.flag,
               iconColor: AppColors.hot,
-              label: 'Destination',
+              label: AppLocalizations.of(context).destination,
               // CORRECTION: Utilisez les bonnes propriétés
               address: reservation.destination,
             ),
@@ -336,7 +337,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
             _buildLocationRow(
               icon: Icons.schedule,
               iconColor: AppColors.accent,
-              label: 'Horaire',
+              label: AppLocalizations.of(context).schedule,
               address:
                   '${reservation.selectedDate} à ${reservation.selectedTime}',
             ),
@@ -389,7 +390,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 children: [
                   Expanded(
                     child: _buildGlassActionButton(
-                      label: 'Terminer',
+                      label: AppLocalizations.of(context).finish,
                       icon: Icons.check_circle,
                       color: Colors.green,
                       onPressed: () => _completeReservation(reservation),
@@ -398,7 +399,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildGlassActionButton(
-                      label: 'Annuler',
+                      label: AppLocalizations.of(context).cancel,
                       icon: Icons.cancel,
                       color: AppColors.hot,
                       onPressed: () => _showCancelDialog(reservation),
@@ -542,10 +543,10 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   Future<void> _showCancelDialog(Reservation reservation) async {
     final confirmed = await showGlassConfirmDialog(
       context: context,
-      title: 'Annuler la course',
-      message: 'Êtes-vous sûr de vouloir annuler cette course ? Cette action ne peut pas être annulée.',
-      confirmText: 'Oui, annuler',
-      cancelText: 'Non',
+      title: AppLocalizations.of(context).cancelRide,
+      message: AppLocalizations.of(context).cancelRideConfirmation,
+      confirmText: AppLocalizations.of(context).yesCancel,
+      cancelText: AppLocalizations.of(context).no,
       icon: Icons.warning,
       iconColor: AppColors.hot,
       onConfirm: () {

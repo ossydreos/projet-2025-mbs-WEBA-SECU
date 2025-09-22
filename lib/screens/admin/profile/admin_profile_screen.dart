@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart'; // Import du nouveau thème
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/widgets/authgate.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class AdminProfileScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -43,7 +44,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           child: Scaffold(
             backgroundColor: Colors.transparent,
             appBar: GlassAppBar(
-              title: 'Compte',
+              title: AppLocalizations.of(context).account,
               actions: [
                 Container(
                   margin: const EdgeInsets.only(right: 16),
@@ -57,7 +58,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     border: Border.all(color: AppColors.accent),
                   ),
                   child: Text(
-                    'ADMIN',
+                    AppLocalizations.of(context).admin,
                     style: TextStyle(
                       color: AppColors.accent,
                       fontWeight: FontWeight.bold,
@@ -118,7 +119,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              user.displayName ?? user.email?.split('@')[0] ?? 'Administrateur',
+              user.displayName ?? user.email?.split('@')[0] ?? AppLocalizations.of(context).administrator,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -139,7 +140,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                 border: Border.all(color: AppColors.accent),
               ),
               child: Text(
-                'ADMINISTRATEUR',
+                AppLocalizations.of(context).administrator.toUpperCase(),
                 style: TextStyle(
                   color: AppColors.accent,
                   fontWeight: FontWeight.bold,
@@ -177,7 +178,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Se déconnecter',
+                            AppLocalizations.of(context).logout,
                             style: TextStyle(
                               color: Colors.redAccent,
                               fontWeight: FontWeight.w500,
@@ -199,7 +200,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  'Se déconnecter de votre compte administrateur.',
+                  AppLocalizations.of(context).adminLogoutDescription,
                   style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                 ),
               ),
@@ -214,9 +215,9 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   void _showLogoutDialog() {
     showGlassConfirmDialog(
       context: context,
-      title: 'Déconnexion',
-      message: 'Voulez-vous vraiment vous déconnecter de votre compte administrateur ?',
-      confirmText: 'Déconnexion',
+      title: AppLocalizations.of(context).disconnection,
+      message: AppLocalizations.of(context).adminLogoutConfirmation,
+      confirmText: AppLocalizations.of(context).disconnection,
       cancelText: 'Annuler',
       icon: Icons.logout,
       iconColor: Colors.redAccent,
@@ -231,7 +232,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   void _performLogout() async {
     try {
       await _auth.signOut();
-      print('Déconnexion admin réussie');
+      print('Admin logout successful');
 
       if (mounted) {
         Navigator.pushAndRemoveUntil(
@@ -241,11 +242,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         );
       }
     } catch (e) {
-      print('Erreur lors de la déconnexion: $e');
+      print('Error during logout: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la déconnexion: $e'),
+            content: Text(AppLocalizations.of(context).logoutError(e.toString())),
             backgroundColor: AppColors.hot,
           ),
         );

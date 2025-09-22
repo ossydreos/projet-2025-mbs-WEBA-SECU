@@ -3,6 +3,7 @@ import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/notification_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class ReservationDetailScreen extends StatefulWidget {
   final Reservation reservation;
@@ -26,8 +27,8 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Paiement confirmé ! Votre course est confirmée.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).paymentConfirmed),
             backgroundColor: Colors.green,
           ),
         );
@@ -37,7 +38,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text('${AppLocalizations.of(context).errorUnknownError}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -51,7 +52,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: 'Détails de la réservation',
+          title: AppLocalizations.of(context).reservationDetails,
         ),
         body: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
@@ -89,7 +90,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Réservation #${widget.reservation.id.substring(0, 8)}',
+            AppLocalizations.of(context).reservationNumber(widget.reservation.id.substring(0, 8)),
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -98,9 +99,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           ),
           const SizedBox(height: 12),
           
-          _buildInfoRow('Véhicule', widget.reservation.vehicleName),
-          _buildInfoRow('Départ', widget.reservation.departure),
-          _buildInfoRow('Destination', widget.reservation.destination),
+          _buildInfoRow(AppLocalizations.of(context).vehicle, widget.reservation.vehicleName),
+          _buildInfoRow(AppLocalizations.of(context).departure, widget.reservation.departure),
+          _buildInfoRow(AppLocalizations.of(context).destination, widget.reservation.destination),
           // Afficher la date et heure selon qu'il s'agit d'une contre-offre ou non
           if (widget.reservation.hasCounterOffer && widget.reservation.driverProposedDate != null && widget.reservation.driverProposedTime != null) ...[
             Builder(
@@ -125,36 +126,36 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                   children: [
                     // Afficher la date (barrée seulement si elle a changé)
                     if (dateChanged) 
-                      _buildCounterOfferInfoRow('Date', 
+                      _buildCounterOfferInfoRow(AppLocalizations.of(context).date, 
                         '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}',
                         '${widget.reservation.driverProposedDate!.day}/${widget.reservation.driverProposedDate!.month}/${widget.reservation.driverProposedDate!.year}'
                       )
                     else 
-                      _buildInfoRow('Date', '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}'),
+                      _buildInfoRow(AppLocalizations.of(context).date, '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}'),
                     
                     // Afficher l'heure (barrée seulement si elle a changé)
                     if (timeChanged) 
-                      _buildCounterOfferInfoRow('Heure', 
+                      _buildCounterOfferInfoRow(AppLocalizations.of(context).time, 
                         widget.reservation.selectedTime,
                         widget.reservation.driverProposedTime!
                       )
                     else 
-                      _buildInfoRow('Heure', widget.reservation.selectedTime),
+                      _buildInfoRow(AppLocalizations.of(context).time, widget.reservation.selectedTime),
                   ],
                 );
               },
             ),
           ] else ...[
             // Réservation normale : afficher la date/heure du client
-            _buildInfoRow('Date', '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}'),
-            _buildInfoRow('Heure', widget.reservation.selectedTime),
+            _buildInfoRow(AppLocalizations.of(context).date, '${widget.reservation.selectedDate.day}/${widget.reservation.selectedDate.month}/${widget.reservation.selectedDate.year}'),
+            _buildInfoRow(AppLocalizations.of(context).time, widget.reservation.selectedTime),
           ],
-          _buildInfoRow('Prix', '${widget.reservation.totalPrice.toStringAsFixed(2)} €'),
-          _buildInfoRow('Statut', widget.reservation.status.statusInFrench),
+          _buildInfoRow(AppLocalizations.of(context).price, '${widget.reservation.totalPrice.toStringAsFixed(2)} €'),
+          _buildInfoRow(AppLocalizations.of(context).status, widget.reservation.status.getLocalizedStatus(context)),
           
           if (widget.reservation.clientNote != null) ...[
             const SizedBox(height: 8),
-            _buildInfoRow('Note', widget.reservation.clientNote!),
+            _buildInfoRow(AppLocalizations.of(context).note, widget.reservation.clientNote!),
           ],
         ],
       ),
@@ -251,7 +252,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
               Icon(Icons.message, color: AppColors.accent, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Message du chauffeur',
+                AppLocalizations.of(context).driverMessage,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -293,8 +294,8 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             children: [
               Icon(Icons.payment, color: AppColors.accent, size: 24),
               const SizedBox(width: 8),
-              const Text(
-                'Paiement',
+              Text(
+                AppLocalizations.of(context).payment,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -305,8 +306,8 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           ),
           const SizedBox(height: 12),
           
-          const Text(
-            'Votre réservation a été confirmée par le chauffeur. Vous pouvez maintenant procéder au paiement.',
+              Text(
+                AppLocalizations.of(context).paymentDescription,
             style: TextStyle(
               color: AppColors.textWeak,
               fontSize: 14,
@@ -319,9 +320,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             children: [
               Icon(Icons.info_outline, color: Colors.blue, size: 20),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Paiement en espèces à la fin du trajet',
+                  AppLocalizations.of(context).cashPayment,
                   style: TextStyle(
                     color: Colors.blue,
                     fontSize: 14,
@@ -339,7 +340,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: _confirmPayment,
               icon: const Icon(Icons.check_circle, size: 20),
-              label: const Text('Confirmer le paiement'),
+              label: Text(AppLocalizations.of(context).confirmPayment),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,

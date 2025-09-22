@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:my_mobility_services/constants.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class DirectionsService {
   static const String _baseUrl = 'https://maps.googleapis.com/maps/api/directions/json';
@@ -45,6 +47,11 @@ class DirectionsService {
       
       return null;
     } catch (e) {
+      developer.log(
+        'Erreur lors de la récupération des directions: $e',
+        name: 'DirectionsService',
+        error: e,
+      );
       return null;
     }
   }
@@ -64,24 +71,74 @@ class DirectionsService {
       if (directions != null) {
         final durationMinutes = (directions['durationValue'] / 60).round();
         
-        // Retourner la durée du trajet
+        // Retourner la durée du trajet (format international)
         if (durationMinutes < 60) {
-          return 'Temps estimé ${durationMinutes} min';
+          return '${durationMinutes} min';
         } else {
           final hours = durationMinutes ~/ 60;
           final minutes = durationMinutes % 60;
           if (minutes == 0) {
-            return 'Temps estimé ${hours}h';
+            return '${hours}h';
           } else {
-            return 'Temps estimé ${hours}h ${minutes}min';
+            return '${hours}h ${minutes}min';
           }
         }
       }
       
       // Fallback si l'API ne fonctionne pas
-      return 'Temps estimé 15 min';
+      developer.log(
+        'Impossible de récupérer le temps de trajet, utilisation du fallback',
+        name: 'DirectionsService',
+      );
+      return '15 min';
     } catch (e) {
-      return 'Temps estimé 15 min';
+      developer.log(
+        'Erreur lors du calcul du temps de trajet: $e',
+        name: 'DirectionsService',
+        error: e,
+      );
+      return '15 min';
+    }
+  }
+
+  // Obtenir le temps de trajet formaté avec localisation (nécessite un BuildContext)
+  static Future<String> getLocalizedEstimatedArrivalTime({
+    required LatLng origin,
+    required LatLng destination,
+    required context,
+  }) async {
+    try {
+      final directions = await getDirections(
+        origin: origin,
+        destination: destination,
+      );
+
+      if (directions != null) {
+        final durationMinutes = (directions['durationValue'] / 60).round();
+        
+        // Utiliser le helper de localisation
+        final hours = durationMinutes ~/ 60;
+        final minutes = durationMinutes % 60;
+        if (hours > 0) {
+          return '${hours}h ${minutes}min';
+        } else {
+          return '${minutes}min';
+        }
+      }
+      
+      // Fallback localisé
+      developer.log(
+        'Impossible de récupérer le temps de trajet, utilisation du fallback',
+        name: 'DirectionsService',
+      );
+      return '15min';
+    } catch (e) {
+      developer.log(
+        'Erreur lors du calcul du temps de trajet: $e',
+        name: 'DirectionsService',
+        error: e,
+      );
+      return '15min';
     }
   }
 

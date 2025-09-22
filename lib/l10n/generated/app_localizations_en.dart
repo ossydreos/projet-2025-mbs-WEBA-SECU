@@ -1,0 +1,1383 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appTitle => 'My Mobility Services';
+
+  @override
+  String get welcome => 'Welcome';
+
+  @override
+  String get login => 'Sign in';
+
+  @override
+  String get signup => 'Sign up';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get forgotPassword => 'Forgot password?';
+
+  @override
+  String get home => 'Home';
+
+  @override
+  String get reservations => 'Reservations';
+
+  @override
+  String get trips => 'Trips';
+
+  @override
+  String get profile => 'Profile';
+
+  @override
+  String get offers => 'Offers';
+
+  @override
+  String get departure => 'Departure';
+
+  @override
+  String get destination => 'Destination';
+
+  @override
+  String get selectVehicle => 'Select vehicle';
+
+  @override
+  String get bookNow => 'Book now';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get confirm => 'Confirm';
+
+  @override
+  String get loading => 'Loading...';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get settings => 'Settings';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get reservationStatusPending => 'Pending';
+
+  @override
+  String get reservationStatusConfirmed => 'Confirmed';
+
+  @override
+  String get reservationStatusInProgress => 'In progress';
+
+  @override
+  String get reservationStatusCompleted => 'Completed';
+
+  @override
+  String get reservationStatusCancelled => 'Cancelled';
+
+  @override
+  String get vehicleCategoryLuxe => 'Luxury';
+
+  @override
+  String get vehicleCategoryVan => 'Van';
+
+  @override
+  String get vehicleCategoryEconomique => 'Economy';
+
+  @override
+  String get userRoleUser => 'User';
+
+  @override
+  String get userRoleAdmin => 'Administrator';
+
+  @override
+  String get errorInvalidEmail => 'Invalid email';
+
+  @override
+  String get errorInvalidPhoneNumber => 'Invalid phone number';
+
+  @override
+  String get errorEmptyField => 'This field cannot be empty';
+
+  @override
+  String get errorPasswordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get errorPasswordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get errorNetworkError => 'Network connection error';
+
+  @override
+  String get errorUnknownError => 'An unknown error occurred';
+
+  @override
+  String get successReservationCreated => 'Reservation created successfully';
+
+  @override
+  String get successReservationUpdated => 'Reservation updated';
+
+  @override
+  String get successProfileUpdated => 'Profile updated';
+
+  @override
+  String get successPasswordChanged => 'Password changed';
+
+  @override
+  String get welcomeMessage => 'Welcome 👋';
+
+  @override
+  String get getStarted => 'Get started';
+
+  @override
+  String get orSignUpWith => 'or sign up with';
+
+  @override
+  String get orSignInWith => 'or sign in with';
+
+  @override
+  String get googleSoon => 'Google: coming soon';
+
+  @override
+  String get appleSoon => 'Apple: coming soon';
+
+  @override
+  String get facebookSoon => 'Facebook: coming soon';
+
+  @override
+  String get logIn => 'Sign in';
+
+  @override
+  String get personalInfo => 'Personal information';
+
+  @override
+  String get editInfo => 'Edit information';
+
+  @override
+  String get fullName => 'Full name';
+
+  @override
+  String get phoneNumber => 'Phone number';
+
+  @override
+  String get menu => 'Menu';
+
+  @override
+  String get myReservations => 'My reservations';
+
+  @override
+  String get history => 'History';
+
+  @override
+  String get payments => 'Payments';
+
+  @override
+  String get help => 'Help';
+
+  @override
+  String get location => 'Location';
+
+  @override
+  String get savedAddresses => 'Saved addresses';
+
+  @override
+  String get manageFavorites => 'Manage favorite places';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get user => 'User';
+
+  @override
+  String get notProvided => 'Not provided';
+
+  @override
+  String get defaultCountryCode => '+1';
+
+  @override
+  String get admin => 'ADMIN';
+
+  @override
+  String get administrator => 'Administrator';
+
+  @override
+  String get loadingError => 'Loading error';
+
+  @override
+  String get noUpcomingRides => 'No upcoming rides';
+
+  @override
+  String get upcomingRidesWillAppear => 'Confirmed rides will appear here';
+
+  @override
+  String get noCompletedRides => 'No completed rides';
+
+  @override
+  String get rideHistoryWillAppear => 'Ride history will appear here';
+
+  @override
+  String get schedule => 'Schedule';
+
+  @override
+  String get finish => 'Finish';
+
+  @override
+  String get adminLogoutSuccess => 'Admin logout successful';
+
+  @override
+  String get disconnectButton => 'Disconnect';
+
+  @override
+  String get disconnection => 'Disconnection';
+
+  @override
+  String get guest => 'Guest';
+
+  @override
+  String get reviewPlannedTrip => 'Review your planned trip';
+
+  @override
+  String get dateAndTime => 'Date and time';
+
+  @override
+  String get modify => 'Modify';
+
+  @override
+  String get route => 'Route';
+
+  @override
+  String get pickupAddress => 'Pickup address';
+
+  @override
+  String get dropoffAddress => 'Drop-off address';
+
+  @override
+  String get estimatedArrival => 'Estimated arrival';
+
+  @override
+  String get pickupTime => 'Pickup time';
+
+  @override
+  String get estimatedDuration => 'Estimated duration';
+
+  @override
+  String get distance => 'Distance';
+
+  @override
+  String get vehicle => 'Vehicle';
+
+  @override
+  String get passengers => 'Passengers';
+
+  @override
+  String get luggage => 'Luggage';
+
+  @override
+  String get paymentMethod => 'Payment method';
+
+  @override
+  String get totalPrice => 'Total price';
+
+  @override
+  String get bookTrip => 'Book trip';
+
+  @override
+  String get applePay => 'Apple Pay';
+
+  @override
+  String get bankCard => 'Bank card';
+
+  @override
+  String get cash => 'Cash';
+
+  @override
+  String get locationServicesDisabled => 'Location services are disabled';
+
+  @override
+  String get locationPermissionNotAvailable =>
+      'Location permission not available';
+
+  @override
+  String get locationPermissionDenied => 'Location permission denied';
+
+  @override
+  String get locationPermissionDeniedPermanently =>
+      'Location permission permanently denied';
+
+  @override
+  String get unableToGetCurrentPosition => 'Unable to get current position';
+
+  @override
+  String get reservationPending => 'Reservation pending';
+
+  @override
+  String get validateAndPayReservation => 'Validate and pay reservation';
+
+  @override
+  String get waitingDriverConfirmation => 'Waiting for driver confirmation';
+
+  @override
+  String get counterOffer => 'Counter offer';
+
+  @override
+  String get toPay => 'To pay';
+
+  @override
+  String get waitingConfirmation => 'Waiting for confirmation';
+
+  @override
+  String get adminPhoneNotAvailable => 'Admin phone not available';
+
+  @override
+  String get call => 'Call';
+
+  @override
+  String get message => 'Message';
+
+  @override
+  String get viewDetailsAndPay => 'View details and pay';
+
+  @override
+  String get cancelReservationButton => 'Cancel reservation';
+
+  @override
+  String get cancelReservationConfirmation =>
+      'Are you sure you want to cancel this reservation?';
+
+  @override
+  String get yesCancel => 'Yes, cancel';
+
+  @override
+  String get client => 'client';
+
+  @override
+  String get reservationCancelledSuccess =>
+      'Reservation cancelled successfully';
+
+  @override
+  String errorCancelling(String error) {
+    return 'Error cancelling: $error';
+  }
+
+  @override
+  String get paymentConfirmed => 'Payment confirmed';
+
+  @override
+  String get reservationDetails => 'Reservation details';
+
+  @override
+  String reservationNumber(String number) {
+    return 'Reservation #$number';
+  }
+
+  @override
+  String get note => 'Note';
+
+  @override
+  String get driverMessage => 'Driver message';
+
+  @override
+  String get payment => 'Payment';
+
+  @override
+  String get paymentDescription =>
+      'Payment will be made directly to the driver';
+
+  @override
+  String get cashPayment => 'Cash payment';
+
+  @override
+  String get confirmPayment => 'Confirm payment';
+
+  @override
+  String reservationCreatedSuccess(String id) {
+    return 'Reservation created successfully! ID: $id';
+  }
+
+  @override
+  String reservationCreationError(String error) {
+    return 'Error creating reservation: $error';
+  }
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get featureComingSoon => 'Feature coming soon';
+
+  @override
+  String get logoutConfirmation => 'Are you sure you want to log out?';
+
+  @override
+  String get logoutSuccess => 'Logout successful';
+
+  @override
+  String logoutError(String error) {
+    return 'Logout error: $error';
+  }
+
+  @override
+  String get inbox => 'Inbox';
+
+  @override
+  String get cancelAllReservations => 'Cancel all reservations';
+
+  @override
+  String get noReservationsWaitingPayment =>
+      'No reservations waiting for payment';
+
+  @override
+  String reservationsCancelledSuccess(int count) {
+    return 'Reservations cancelled successfully: $count';
+  }
+
+  @override
+  String get testReservationCreated => 'Test reservation created';
+
+  @override
+  String get reservationAction => 'Reservation action';
+
+  @override
+  String get reservationRefused => 'Reservation refused';
+
+  @override
+  String get propose => 'Propose';
+
+  @override
+  String get courses => 'Courses';
+
+  @override
+  String get cancelRide => 'Cancel ride';
+
+  @override
+  String get cancelRideConfirmation =>
+      'Are you sure you want to cancel this ride?';
+
+  @override
+  String get management => 'Management';
+
+  @override
+  String get fleetManagement => 'Fleet management';
+
+  @override
+  String get manageVehicles => 'Manage vehicles';
+
+  @override
+  String get manageVehiclesSubtitle => 'Add, edit or remove vehicles';
+
+  @override
+  String get promoCodes => 'Promo codes';
+
+  @override
+  String get createPromoCode => 'Create promo code';
+
+  @override
+  String get createPromoCodeSubtitle => 'Create discount codes';
+
+  @override
+  String get activeCodes => 'Active codes';
+
+  @override
+  String get activeCodesSubtitle => 'View and manage active codes';
+
+  @override
+  String get administration => 'Administration';
+
+  @override
+  String get userManagement => 'User management';
+
+  @override
+  String get userManagementSubtitle => 'Manage users and permissions';
+
+  @override
+  String get statistics => 'Statistics';
+
+  @override
+  String get statisticsSubtitle => 'View app statistics';
+
+  @override
+  String get vehicleManagement => 'Vehicle management';
+
+  @override
+  String get addVehicle => 'Add vehicle';
+
+  @override
+  String get firstName => 'First name';
+
+  @override
+  String get lastName => 'Last name';
+
+  @override
+  String get address => 'Address';
+
+  @override
+  String get city => 'City';
+
+  @override
+  String get postalCode => 'Postal code';
+
+  @override
+  String get country => 'Country';
+
+  @override
+  String get accountSettings => 'Account settings';
+
+  @override
+  String get changePassword => 'Change password';
+
+  @override
+  String get currentPassword => 'Current password';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get confirmNewPassword => 'Confirm new password';
+
+  @override
+  String get paymentInfo => 'Payment information';
+
+  @override
+  String get addPaymentMethod => 'Add payment method';
+
+  @override
+  String get defaultPaymentMethod => 'Default payment method';
+
+  @override
+  String get billingAddress => 'Billing address';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get defaultPickupLocation => 'Default pickup location';
+
+  @override
+  String get defaultDestination => 'Default destination';
+
+  @override
+  String get preferredVehicleType => 'Preferred vehicle type';
+
+  @override
+  String get helpAndSupport => 'Help and support';
+
+  @override
+  String get reportIssue => 'Report an issue';
+
+  @override
+  String get sendFeedback => 'Send feedback';
+
+  @override
+  String get contactUs => 'Contact us';
+
+  @override
+  String get aboutApp => 'About the app';
+
+  @override
+  String get version => 'Version';
+
+  @override
+  String get buildNumber => 'Build number';
+
+  @override
+  String get developer => 'Developer';
+
+  @override
+  String get legal => 'Legal';
+
+  @override
+  String get licenses => 'Licenses';
+
+  @override
+  String get signInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get signInWithApple => 'Sign in with Apple';
+
+  @override
+  String get signInWithFacebook => 'Sign in with Facebook';
+
+  @override
+  String get orContinueWith => 'Or continue with';
+
+  @override
+  String get dontHaveAccount => 'Don\'t have an account?';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account?';
+
+  @override
+  String get createAccount => 'Create account';
+
+  @override
+  String get signInInstead => 'Sign in instead';
+
+  @override
+  String get skipForNow => 'Skip for now';
+
+  @override
+  String get continueAsGuest => 'Continue as guest';
+
+  @override
+  String get enableLocation => 'Enable location';
+
+  @override
+  String get allowLocationAccess => 'Allow location access';
+
+  @override
+  String get locationRequired =>
+      'Location access is required for the app to work properly';
+
+  @override
+  String get enableInSettings => 'Enable in settings';
+
+  @override
+  String get bookingConfirmation => 'Booking confirmation';
+
+  @override
+  String get tripBooked => 'Trip booked successfully';
+
+  @override
+  String get bookingReference => 'Booking reference';
+
+  @override
+  String get driverAssigned => 'Driver assigned';
+
+  @override
+  String get cancelReservation => 'Cancel reservation';
+
+  @override
+  String get cancellationReason => 'Cancellation reason';
+
+  @override
+  String get refundPolicy => 'Refund policy';
+
+  @override
+  String get rateTrip => 'Rate trip';
+
+  @override
+  String get rateYourTrip => 'Rate your trip';
+
+  @override
+  String get howWasYourTrip => 'How was your trip?';
+
+  @override
+  String get additionalComments => 'Additional comments';
+
+  @override
+  String get submitReview => 'Submit review';
+
+  @override
+  String get submitRating => 'Submit rating';
+
+  @override
+  String get tripCompleted => 'Trip completed';
+
+  @override
+  String get thankYouForRiding => 'Thank you for riding with us!';
+
+  @override
+  String get receiptSent => 'Receipt sent to your email';
+
+  @override
+  String get emergencyMode => 'Emergency mode';
+
+  @override
+  String get emergencyContacts => 'Emergency contacts';
+
+  @override
+  String get callEmergency => 'Call emergency';
+
+  @override
+  String get shareLocation => 'Share location';
+
+  @override
+  String get emergencyContact => 'Emergency contact';
+
+  @override
+  String get shareTrip => 'Share trip';
+
+  @override
+  String get tripShared => 'Trip shared successfully';
+
+  @override
+  String get maintenance => 'Maintenance';
+
+  @override
+  String get appUnderMaintenance => 'App is under maintenance';
+
+  @override
+  String get backSoon => 'We\'ll be back soon';
+
+  @override
+  String get networkError => 'Network error';
+
+  @override
+  String get noInternetConnection => 'No internet connection';
+
+  @override
+  String get checkConnection => 'Please check your connection';
+
+  @override
+  String get sessionExpired => 'Session expired';
+
+  @override
+  String get pleaseSignInAgain => 'Please sign in again';
+
+  @override
+  String get updateAvailable => 'Update available';
+
+  @override
+  String get newVersionAvailable => 'A new version of the app is available';
+
+  @override
+  String get updateNow => 'Update now';
+
+  @override
+  String get updateLater => 'Update later';
+
+  @override
+  String get permissionRequired => 'Permission required';
+
+  @override
+  String get cameraPermission => 'Camera permission';
+
+  @override
+  String get storagePermission => 'Storage permission';
+
+  @override
+  String get microphonePermission => 'Microphone permission';
+
+  @override
+  String get grantPermission => 'Grant permission';
+
+  @override
+  String get uploadPhoto => 'Upload photo';
+
+  @override
+  String get takePhoto => 'Take photo';
+
+  @override
+  String get chooseFromGallery => 'Choose from gallery';
+
+  @override
+  String get removePhoto => 'Remove photo';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get searchResults => 'Search results';
+
+  @override
+  String get noResults => 'No results found';
+
+  @override
+  String get tryDifferentKeywords => 'Try different keywords';
+
+  @override
+  String get filter => 'Filter';
+
+  @override
+  String get sortBy => 'Sort by';
+
+  @override
+  String get filterResults => 'Filter results';
+
+  @override
+  String get clearFilters => 'Clear filters';
+
+  @override
+  String get map => 'Map';
+
+  @override
+  String get list => 'List';
+
+  @override
+  String get switchToMapView => 'Switch to map view';
+
+  @override
+  String get switchToListView => 'Switch to list view';
+
+  @override
+  String get nearby => 'Nearby';
+
+  @override
+  String get popular => 'Popular';
+
+  @override
+  String get recommended => 'Recommended';
+
+  @override
+  String get recent => 'Recent';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get shareApp => 'Share app';
+
+  @override
+  String get inviteFriends => 'Invite friends';
+
+  @override
+  String get referralCode => 'Referral code';
+
+  @override
+  String get tutorial => 'Tutorial';
+
+  @override
+  String get howToUse => 'How to use';
+
+  @override
+  String get tips => 'Tips';
+
+  @override
+  String get gettingStarted => 'Getting started';
+
+  @override
+  String get feedback => 'Feedback';
+
+  @override
+  String get rating => 'Rating';
+
+  @override
+  String get review => 'Review';
+
+  @override
+  String get testimonials => 'Testimonials';
+
+  @override
+  String get promotion => 'Promotion';
+
+  @override
+  String get discount => 'Discount';
+
+  @override
+  String get coupon => 'Coupon';
+
+  @override
+  String get offer => 'Offer';
+
+  @override
+  String get specialOffer => 'Special offer';
+
+  @override
+  String get loyalty => 'Loyalty';
+
+  @override
+  String get points => 'Points';
+
+  @override
+  String get rewards => 'Rewards';
+
+  @override
+  String get membership => 'Membership';
+
+  @override
+  String get archive => 'Archive';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get clearHistory => 'Clear history';
+
+  @override
+  String get sync => 'Sync';
+
+  @override
+  String get syncing => 'Syncing...';
+
+  @override
+  String get syncComplete => 'Sync complete';
+
+  @override
+  String get syncFailed => 'Sync failed';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get online => 'Online';
+
+  @override
+  String get workingOffline => 'Working offline';
+
+  @override
+  String get connectionRestored => 'Connection restored';
+
+  @override
+  String get battery => 'Battery';
+
+  @override
+  String get batteryLow => 'Battery low';
+
+  @override
+  String get batterySaver => 'Battery saver';
+
+  @override
+  String get optimizeBattery => 'Optimize battery';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get privacy => 'Privacy';
+
+  @override
+  String get dataProtection => 'Data protection';
+
+  @override
+  String get encryption => 'Encryption';
+
+  @override
+  String get backup => 'Backup';
+
+  @override
+  String get restore => 'Restore';
+
+  @override
+  String get backupComplete => 'Backup complete';
+
+  @override
+  String get restoreComplete => 'Restore complete';
+
+  @override
+  String get theme => 'Theme';
+
+  @override
+  String get lightMode => 'Light mode';
+
+  @override
+  String get darkMode => 'Dark mode';
+
+  @override
+  String get systemTheme => 'System theme';
+
+  @override
+  String get customTheme => 'Custom theme';
+
+  @override
+  String get accessibility => 'Accessibility';
+
+  @override
+  String get fontSize => 'Font size';
+
+  @override
+  String get contrast => 'Contrast';
+
+  @override
+  String get voiceOver => 'Voice over';
+
+  @override
+  String get date => 'Date';
+
+  @override
+  String get time => 'Time';
+
+  @override
+  String get price => 'Price';
+
+  @override
+  String get status => 'Status';
+
+  @override
+  String get actions => 'Actions';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get view => 'View';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get back => 'Back';
+
+  @override
+  String get next => 'Next';
+
+  @override
+  String get previous => 'Previous';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get morning => 'Morning';
+
+  @override
+  String get afternoon => 'Afternoon';
+
+  @override
+  String get evening => 'Evening';
+
+  @override
+  String get night => 'Night';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String get tomorrow => 'Tomorrow';
+
+  @override
+  String get yesterday => 'Yesterday';
+
+  @override
+  String get thisWeek => 'This week';
+
+  @override
+  String get thisMonth => 'This month';
+
+  @override
+  String get monday => 'Monday';
+
+  @override
+  String get tuesday => 'Tuesday';
+
+  @override
+  String get wednesday => 'Wednesday';
+
+  @override
+  String get thursday => 'Thursday';
+
+  @override
+  String get friday => 'Friday';
+
+  @override
+  String get saturday => 'Saturday';
+
+  @override
+  String get sunday => 'Sunday';
+
+  @override
+  String get january => 'January';
+
+  @override
+  String get february => 'February';
+
+  @override
+  String get march => 'March';
+
+  @override
+  String get april => 'April';
+
+  @override
+  String get may => 'May';
+
+  @override
+  String get june => 'June';
+
+  @override
+  String get july => 'July';
+
+  @override
+  String get august => 'August';
+
+  @override
+  String get september => 'September';
+
+  @override
+  String get october => 'October';
+
+  @override
+  String get november => 'November';
+
+  @override
+  String get december => 'December';
+
+  @override
+  String get noReservations => 'No reservations';
+
+  @override
+  String get noReservationsMessage => 'You don\'t have any reservations yet';
+
+  @override
+  String get noTrips => 'No trips';
+
+  @override
+  String get noTripsMessage => 'You don\'t have any trips yet';
+
+  @override
+  String get pickupLocation => 'Pickup location';
+
+  @override
+  String get dropoffLocation => 'Drop-off location';
+
+  @override
+  String get selectDate => 'Select date';
+
+  @override
+  String get selectTime => 'Select time';
+
+  @override
+  String get estimatedPrice => 'Estimated price';
+
+  @override
+  String get vehicleDetails => 'Vehicle details';
+
+  @override
+  String get vehicleCapacity => 'Capacity';
+
+  @override
+  String get vehicleFeatures => 'Features';
+
+  @override
+  String get pricePerKm => 'Price per km';
+
+  @override
+  String get creditCard => 'Credit card';
+
+  @override
+  String get paypal => 'PayPal';
+
+  @override
+  String get driverInfo => 'Driver information';
+
+  @override
+  String get driverName => 'Driver name';
+
+  @override
+  String get driverPhone => 'Driver phone';
+
+  @override
+  String get vehicleInfo => 'Vehicle information';
+
+  @override
+  String get tripStatus => 'Trip status';
+
+  @override
+  String get tripDetails => 'Trip details';
+
+  @override
+  String get tripHistory => 'Trip history';
+
+  @override
+  String get notificationSettings => 'Notification settings';
+
+  @override
+  String get pushNotifications => 'Push notifications';
+
+  @override
+  String get emailNotifications => 'Email notifications';
+
+  @override
+  String get support => 'Support';
+
+  @override
+  String get contactSupport => 'Contact support';
+
+  @override
+  String get faq => 'FAQ';
+
+  @override
+  String get termsOfService => 'Terms of service';
+
+  @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get locationServices => 'Location services';
+
+  @override
+  String get searchLocation => 'Search location';
+
+  @override
+  String get currentLocation => 'Current location';
+
+  @override
+  String get recentLocations => 'Recent locations';
+
+  @override
+  String get savedLocations => 'Saved locations';
+
+  @override
+  String get addComment => 'Add comment';
+
+  @override
+  String get dashboard => 'Dashboard';
+
+  @override
+  String get users => 'Users';
+
+  @override
+  String get vehicles => 'Vehicles';
+
+  @override
+  String get reports => 'Reports';
+
+  @override
+  String get analytics => 'Analytics';
+
+  @override
+  String get addUser => 'Add user';
+
+  @override
+  String get editUser => 'Edit user';
+
+  @override
+  String get deleteUser => 'Delete user';
+
+  @override
+  String get editVehicle => 'Edit vehicle';
+
+  @override
+  String get deleteVehicle => 'Delete vehicle';
+
+  @override
+  String get reservationManagement => 'Reservation management';
+
+  @override
+  String get pendingReservations => 'Pending reservations';
+
+  @override
+  String get confirmedReservations => 'Confirmed reservations';
+
+  @override
+  String get completedReservations => 'Completed reservations';
+
+  @override
+  String get totalTrips => 'Total trips';
+
+  @override
+  String get totalRevenue => 'Total revenue';
+
+  @override
+  String get activeUsers => 'Active users';
+
+  @override
+  String get averageRating => 'Average rating';
+
+  @override
+  String get exportData => 'Export data';
+
+  @override
+  String get importData => 'Import data';
+
+  @override
+  String get backupData => 'Backup data';
+
+  @override
+  String get systemSettings => 'System settings';
+
+  @override
+  String get appSettings => 'App settings';
+
+  @override
+  String get serverSettings => 'Server settings';
+
+  @override
+  String get estimatedTime => 'Estimated time 15 min';
+
+  @override
+  String get availableVehicles => 'Available vehicles';
+
+  @override
+  String get loadingVehicles => 'Loading vehicles...';
+
+  @override
+  String get pleaseRetry => 'Please retry';
+
+  @override
+  String get noVehicleAvailable => 'No vehicle available';
+
+  @override
+  String get pleaseRetryLater => 'Please retry later';
+
+  @override
+  String get backToSummary => 'Back to summary';
+
+  @override
+  String planVehicle(String vehicle) {
+    return 'Plan $vehicle';
+  }
+
+  @override
+  String get logoutDescription => 'Disconnect from your account.';
+
+  @override
+  String get featureComingSoonDescription =>
+      'This feature will be available soon.';
+
+  @override
+  String get adminLogoutDescription =>
+      'Disconnect from your administrator account.';
+
+  @override
+  String get adminLogoutConfirmation =>
+      'Do you really want to disconnect from your administrator account?';
+
+  @override
+  String get vehicleName => 'Vehicle name';
+
+  @override
+  String get vehicleNameExample => 'e.g. Economy Sedan';
+
+  @override
+  String get vehicleDescriptionHint => 'Vehicle description';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get pricePerKmEuro => 'Price per kilometer (€)';
+
+  @override
+  String get priceExample => 'e.g. 1.50';
+
+  @override
+  String get create => 'Create';
+
+  @override
+  String get reservationConfirmedSuccess =>
+      'Reservation confirmed successfully!';
+
+  @override
+  String sendError(String error) {
+    return '❌ Sending error: $error';
+  }
+
+  @override
+  String get welcomeSubtitle =>
+      'Book your driver in seconds — modern, smooth and reliable.';
+}

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:latlong2/latlong.dart';
@@ -342,7 +343,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Réservation créée avec succès ! ID: $reservationId'),
+            content: Text(AppLocalizations.of(context).reservationCreatedSuccess(reservationId)),
             backgroundColor: AppColors.accent,
           ),
         );
@@ -354,7 +355,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la création de la réservation: $e'),
+            content: Text(AppLocalizations.of(context).reservationCreationError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -399,8 +400,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Passez en revue votre trajet planifié',
+                    Text(
+                      AppLocalizations.of(context).reviewPlannedTrip,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -426,8 +427,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                           children: [
                             Row(
                               children: [
-                                const Text(
-                                  'Date and time',
+                                Text(
+                                  AppLocalizations.of(context).dateAndTime,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -502,8 +503,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                           children: [
                             Row(
                               children: [
-                                const Text(
-                                  'Itinéraire',
+                                Text(
+                                  AppLocalizations.of(context).route,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -1054,7 +1055,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.apple, color: Colors.white),
-                title: const Text('Apple Pay', style: TextStyle(color: Colors.white)),
+                title: Text(AppLocalizations.of(context).applePay, style: const TextStyle(color: Colors.white)),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Apple Pay';
@@ -1064,7 +1065,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.credit_card, color: Colors.white),
-                title: const Text('Carte bancaire', style: TextStyle(color: Colors.white)),
+                title: Text(AppLocalizations.of(context).bankCard, style: const TextStyle(color: Colors.white)),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Carte bancaire';
@@ -1074,7 +1075,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.account_balance_wallet, color: Colors.white),
-                title: const Text('Espèces', style: TextStyle(color: Colors.white)),
+                title: Text(AppLocalizations.of(context).cash, style: const TextStyle(color: Colors.white)),
                 onTap: () {
                   setState(() {
                     _paymentMethod = 'Espèces';

@@ -8,6 +8,7 @@ import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_
 import 'package:my_mobility_services/data/models/vehicule_type.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class BookingScreen extends StatefulWidget {
   final String departure;
@@ -43,7 +44,7 @@ class _BookingScreenState extends State<BookingScreen>
   // Service et données des véhicules
   final VehicleService _vehicleService = VehicleService();
   double _estimatedDistance = 0.0; // Distance estimée en km
-  String _estimatedArrival = 'Arrivée d\'ici 10:13'; // Estimation d'arrivée
+  String _estimatedArrival = 'Estimated arrival 10:13'; // Will be translated dynamically
   List<gmaps.LatLng> _routePoints = []; // Points de la route réelle
 
   @override
@@ -122,7 +123,7 @@ class _BookingScreenState extends State<BookingScreen>
     } else {
       // Distance par défaut si pas de coordonnées
       _estimatedDistance = 5.0;
-      _estimatedArrival = 'Temps estimé 15 min';
+      _estimatedArrival = AppLocalizations.of(context).estimatedTime;
     }
   }
 
@@ -477,7 +478,7 @@ class _BookingScreenState extends State<BookingScreen>
                             child: Row(
                               children: [
                                 Text(
-                                  'Véhicules disponibles',
+                                  AppLocalizations.of(context).availableVehicles,
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w600,
@@ -525,7 +526,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                         const SizedBox(height: 16),
                                         Text(
-                                          'Chargement des véhicules...',
+                                          AppLocalizations.of(context).loadingVehicles,
                                           style: TextStyle(
                                             color: AppColors.textStrong,
                                             fontSize: 14,
@@ -558,7 +559,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Veuillez réessayer',
+                                          AppLocalizations.of(context).pleaseRetry,
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: AppColors.text,
@@ -584,7 +585,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                         const SizedBox(height: 16),
                                         Text(
-                                          'Aucun véhicule disponible',
+                                          AppLocalizations.of(context).noVehicleAvailable,
                                           style: TextStyle(
                                             fontSize: 16,
                                             color: AppColors.textStrong,
@@ -593,7 +594,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Veuillez réessayer plus tard',
+                                          AppLocalizations.of(context).pleaseRetryLater,
                                           style: TextStyle(
                                             fontSize: 14,
                                             color: AppColors.text,
@@ -863,7 +864,7 @@ class _BookingScreenState extends State<BookingScreen>
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    'Espèces',
+                                    AppLocalizations.of(context).cash,
                                     style: TextStyle(
                                       fontSize: 14,
                                       color: Colors.white,
@@ -932,9 +933,9 @@ class _BookingScreenState extends State<BookingScreen>
                                   child: Text(
                                     _selectedVehicle != null
                                         ? (widget.fromSummary 
-                                            ? 'Retour au résumé'
-                                            : 'Planifier ${_selectedVehicle!.name}')
-                                        : 'Sélectionner un véhicule',
+                                            ? AppLocalizations.of(context).backToSummary
+                                            : AppLocalizations.of(context).planVehicle(_selectedVehicle!.name))
+                                        : AppLocalizations.of(context).selectVehicle,
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,

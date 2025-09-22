@@ -13,6 +13,7 @@ import 'package:my_mobility_services/widgets/waiting_widget.dart';
 import 'package:my_mobility_services/screens/log_screen/welcome_login_screen.dart'
     show PanelType;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart' hide GlassSheet;
+import '../../l10n/generated/app_localizations.dart';
 
 class SignupForm extends StatefulWidget {
   const SignupForm({required this.onClose, required this.onSwitch, super.key});
@@ -213,7 +214,7 @@ class SignupFormState extends State<SignupForm> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context).errorUnknownError}: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -376,12 +377,12 @@ class SignupFormState extends State<SignupForm> {
               onPressed: _isLoading ? null : _submit,
               child: _isLoading
                   ? const LoadingMBS()
-                  : const Text('Get Started'),
+                  : Text(AppLocalizations.of(context).getStarted),
             ),
           ),
 
           const SizedBox(height: 24),
-          const DividerText('or sign up with'),
+          DividerText(AppLocalizations.of(context).orSignUpWith),
           const SizedBox(height: 12),
 
           Row(
@@ -391,7 +392,7 @@ class SignupFormState extends State<SignupForm> {
                 icon: SvgPicture.asset('assets/images/Google__G__logo.svg'),
                 tooltip: 'Sign in with Google',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Google: bientôt dispo')),
+                  SnackBar(content: Text(AppLocalizations.of(context).googleSoon)),
                 ),
               ),
               const SizedBox(width: 24),
@@ -405,7 +406,7 @@ class SignupFormState extends State<SignupForm> {
                 ),
                 tooltip: 'Sign in with Apple',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Apple: bientôt dispo')),
+                  SnackBar(content: Text(AppLocalizations.of(context).appleSoon)),
                 ),
               ),
               const SizedBox(width: 24),
@@ -413,7 +414,7 @@ class SignupFormState extends State<SignupForm> {
                 icon: SvgPicture.asset('assets/images/2023_Facebook_icon.svg'),
                 tooltip: 'Sign in with Facebook',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Facebook: bientôt dispo')),
+                  SnackBar(content: Text(AppLocalizations.of(context).facebookSoon)),
                 ),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 enum VehicleCategory {
   luxe,
@@ -7,8 +8,21 @@ enum VehicleCategory {
   economique,
 }
 
-// Extension pour obtenir la catégorie en français
+// Extension pour obtenir la catégorie localisée
 extension VehicleCategoryExtension on VehicleCategory {
+  String getLocalizedCategory(context) {
+    final localizations = AppLocalizations.of(context);
+    switch (this) {
+      case VehicleCategory.luxe:
+        return localizations.vehicleCategoryLuxe;
+      case VehicleCategory.van:
+        return localizations.vehicleCategoryVan;
+      case VehicleCategory.economique:
+        return localizations.vehicleCategoryEconomique;
+    }
+  }
+  
+  // Version legacy pour compatibilité
   String get categoryInFrench {
     switch (this) {
       case VehicleCategory.luxe:
@@ -49,6 +63,70 @@ class VehiculeType {
     required this.createdAt,
     this.updatedAt,
   });
+
+  // Factory avec validation
+  factory VehiculeType.create({
+    required String id,
+    required String name,
+    required VehicleCategory category,
+    required double pricePerKm,
+    required int maxPassengers,
+    required int maxLuggage,
+    required String description,
+    required String imageUrl,
+    required IconData icon,
+    required bool isActive,
+    required DateTime createdAt,
+    DateTime? updatedAt,
+  }) {
+    _validateVehicleData(
+      name: name,
+      pricePerKm: pricePerKm,
+      maxPassengers: maxPassengers,
+      maxLuggage: maxLuggage,
+      description: description,
+    );
+
+    return VehiculeType(
+      id: id,
+      name: name,
+      category: category,
+      pricePerKm: pricePerKm,
+      maxPassengers: maxPassengers,
+      maxLuggage: maxLuggage,
+      description: description,
+      imageUrl: imageUrl,
+      icon: icon,
+      isActive: isActive,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
+  // Validation des données du véhicule
+  static void _validateVehicleData({
+    required String name,
+    required double pricePerKm,
+    required int maxPassengers,
+    required int maxLuggage,
+    required String description,
+  }) {
+    if (name.isEmpty) {
+      throw ArgumentError('Le nom du véhicule ne peut pas être vide');
+    }
+    if (pricePerKm <= 0) {
+      throw ArgumentError('Le prix par km doit être positif: $pricePerKm');
+    }
+    if (maxPassengers <= 0 || maxPassengers > 50) {
+      throw ArgumentError('Nombre de passagers invalide: $maxPassengers');
+    }
+    if (maxLuggage < 0 || maxLuggage > 20) {
+      throw ArgumentError('Nombre de bagages invalide: $maxLuggage');
+    }
+    if (description.isEmpty) {
+      throw ArgumentError('La description ne peut pas être vide');
+    }
+  }
 
   // Convertir en Map pour Firebase
   Map<String, dynamic> toMap() {

@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 enum ReservationStatus {
   pending, // En attente
@@ -8,8 +10,25 @@ enum ReservationStatus {
   cancelled, // Annulée
 }
 
-// Extension pour obtenir le statut en français
+// Extension pour obtenir le statut localisé
 extension ReservationStatusExtension on ReservationStatus {
+  String getLocalizedStatus(context) {
+    final localizations = AppLocalizations.of(context);
+    switch (this) {
+      case ReservationStatus.pending:
+        return localizations.reservationStatusPending;
+      case ReservationStatus.confirmed:
+        return localizations.reservationStatusConfirmed;
+      case ReservationStatus.inProgress:
+        return localizations.reservationStatusInProgress;
+      case ReservationStatus.completed:
+        return localizations.reservationStatusCompleted;
+      case ReservationStatus.cancelled:
+        return localizations.reservationStatusCancelled;
+    }
+  }
+  
+  // Version legacy pour compatibilité
   String get statusInFrench {
     switch (this) {
       case ReservationStatus.pending:
@@ -127,11 +146,7 @@ class Reservation {
       clientNote: map['clientNote'],
       hasCounterOffer: map['hasCounterOffer'] ?? false,
       driverProposedDate: map['driverProposedDate'] != null 
-          ? DateTime.utc(
-              (map['driverProposedDate'] as Timestamp).toDate().year,
-              (map['driverProposedDate'] as Timestamp).toDate().month,
-              (map['driverProposedDate'] as Timestamp).toDate().day,
-            )
+          ? (map['driverProposedDate'] as Timestamp).toDate()
           : null,
       driverProposedTime: map['driverProposedTime'],
       adminMessage: map['adminMessage'],

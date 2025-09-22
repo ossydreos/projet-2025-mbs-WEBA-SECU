@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/data/models/vehicule_type.dart';
 
@@ -6,20 +7,34 @@ class VehicleService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final String _collection = 'vehicles';
 
-  // Récupérer tous les véhicules actifs
-  Future<List<VehiculeType>> getActiveVehicles() async {
+  // Récupérer tous les véhicules actifs avec pagination
+  Future<List<VehiculeType>> getActiveVehicles({
+    int limit = 20,
+    DocumentSnapshot? lastDocument,
+  }) async {
     try {
-      final QuerySnapshot snapshot = await _firestore
+      Query query = _firestore
           .collection(_collection)
           .where('isActive', isEqualTo: true)
           .orderBy('category')
-          .get();
+          .orderBy('name')
+          .limit(limit);
+
+      if (lastDocument != null) {
+        query = query.startAfterDocument(lastDocument);
+      }
+
+      final QuerySnapshot snapshot = await query.get();
 
       return snapshot.docs
           .map((doc) => VehiculeType.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Erreur lors de la récupération des véhicules: $e');
+      developer.log(
+        'Erreur lors de la récupération des véhicules: $e',
+        name: 'VehicleService',
+        error: e,
+      );
       return [];
     }
   }
@@ -50,7 +65,11 @@ class VehicleService {
           .map((doc) => VehiculeType.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Erreur lors de la récupération de tous les véhicules: $e');
+      developer.log(
+        'Erreur lors de la récupération de tous les véhicules: $e',
+        name: 'VehicleService',
+        error: e,
+      );
       return [];
     }
   }
@@ -68,7 +87,11 @@ class VehicleService {
       }
       return null;
     } catch (e) {
-      print('Erreur lors de la récupération du véhicule $id: $e');
+      developer.log(
+        'Erreur lors de la récupération du véhicule $id: $e',
+        name: 'VehicleService',
+        error: e,
+      );
       return null;
     }
   }
@@ -86,7 +109,11 @@ class VehicleService {
           .map((doc) => VehiculeType.fromMap(doc.data() as Map<String, dynamic>))
           .toList();
     } catch (e) {
-      print('Erreur lors de la récupération des véhicules par catégorie: $e');
+      developer.log(
+        'Erreur lors de la récupération des véhicules par catégorie: $e',
+        name: 'VehicleService',
+        error: e,
+      );
       return [];
     }
   }
@@ -94,16 +121,17 @@ class VehicleService {
   // Créer un nouveau véhicule
   Future<String?> createVehicle(VehiculeType vehicle) async {
     try {
-      final docRef = await _firestore.collection(_collection).add(vehicle.toMap());
+      final docRef = _firestore.collection(_collection).doc();
+      final vehicleWithId = vehicle.copyWith(id: docRef.id);
       
-      // Mettre à jour l'ID du véhicule
-      await _firestore.collection(_collection).doc(docRef.id).update({
-        'id': docRef.id,
-      });
-
+      await docRef.set(vehicleWithId.toMap());
       return docRef.id;
     } catch (e) {
-      print('Erreur lors de la création du véhicule: $e');
+      developer.log(
+        'Erreur lors de la création du véhicule: $e',
+        name: 'VehicleService',
+        error: e,
+      );
       return null;
     }
   }
@@ -117,7 +145,11 @@ class VehicleService {
           .update(vehicle.copyWith(updatedAt: DateTime.now()).toMap());
       return true;
     } catch (e) {
-      print('Erreur lors de la mise à jour du véhicule: $e');
+      developer.log(
+        'Erreur lors de la mise à jour du véhicule: $e',
+        name: 'VehicleService',
+        error: e,
+      );
       return false;
     }
   }
@@ -134,7 +166,11 @@ class VehicleService {
       });
       return true;
     } catch (e) {
-      print('Erreur lors de la suppression du véhicule: $e');
+      developer.log(
+        'Erreur lors de la suppression du véhicule: $e',
+        name: 'VehicleService',
+        error: e,
+      );
       return false;
     }
   }
@@ -145,7 +181,11 @@ class VehicleService {
       await _firestore.collection(_collection).doc(id).delete();
       return true;
     } catch (e) {
-      print('Erreur lors de la suppression définitive du véhicule: $e');
+      developer.log(
+        'Erreur lors de la suppression définitive du véhicule: $e',
+        name: 'VehicleService',
+        error: e,
+      );
       return false;
     }
   }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
+import '../exceptions/app_exceptions.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -16,8 +17,14 @@ class UserService {
           .collection(_collection)
           .doc(user.uid)
           .set(user.toMap());
-    } catch (e) {
-      throw Exception('Erreur lors de la création/mise à jour de l\'utilisateur: $e');
+    } catch (e, stackTrace) {
+      final exception = FirestoreException(
+        'Erreur lors de la création/mise à jour de l\'utilisateur',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+      exception.logError('UserService');
+      throw exception;
     }
   }
 
@@ -30,8 +37,14 @@ class UserService {
         return UserModel.fromMap(doc.data()!);
       }
       return null;
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération de l\'utilisateur: $e');
+    } catch (e, stackTrace) {
+      final exception = FirestoreException(
+        'Erreur lors de la récupération de l\'utilisateur',
+        originalError: e,
+        stackTrace: stackTrace,
+      );
+      exception.logError('UserService');
+      throw exception;
     }
   }
 

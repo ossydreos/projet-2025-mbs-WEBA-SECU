@@ -6,6 +6,7 @@ import 'package:my_mobility_services/screens/log_screen/signup_form.dart';
 import 'package:my_mobility_services/widgets/log_screen/glass_sheet.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart'
     hide GlassSheet;
+import '../../l10n/generated/app_localizations.dart';
 
 enum PanelType { none, login, signup }
 
@@ -118,7 +119,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Welcome',
+                        AppLocalizations.of(context).welcome,
                         style: AppConstants.defaultTextStyle.copyWith(
                           color: Colors.white,
                           fontSize: 30,
@@ -127,7 +128,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Réservez votre chauffeur en quelques secondes — moderne, fluide et fiable.',
+                        AppLocalizations.of(context).welcomeSubtitle,
                         textAlign: TextAlign.center,
                         style: AppConstants.defaultTextStyle.copyWith(
                           color: Colors.white70,
@@ -145,7 +146,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                             shape: const StadiumBorder(),
                           ),
                           child: Text(
-                            'Create Account',
+                            AppLocalizations.of(context).createAccount,
                             style: AppConstants.defaultTextStyle.copyWith(
                               fontWeight: FontWeight.w800,
                               fontSize: 16,
@@ -168,7 +169,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
                             ),
                           ),
                           child: Text(
-                            'I already have an account',
+                            AppLocalizations.of(context).alreadyHaveAccount,
                             style: AppConstants.defaultTextStyle.copyWith(
                               fontWeight: FontWeight.w700,
                             ),

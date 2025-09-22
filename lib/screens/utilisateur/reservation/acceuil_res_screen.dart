@@ -15,6 +15,7 @@ import 'package:my_mobility_services/data/services/notification_service.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class AccueilScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -78,7 +79,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       if (!serviceEnabled) {
         if (!mounted) return;
         setState(() {
-          _locationError = 'Services de localisation désactivés';
+          _locationError = AppLocalizations.of(context).locationServicesDisabled;
           _isLoadingLocation = false;
         });
         _addDefaultLocationMarker();
@@ -94,7 +95,7 @@ class _AccueilScreenState extends State<AccueilScreen>
           print('Erreur lors de la demande de permission: $e');
           if (!mounted) return;
           setState(() {
-            _locationError = 'Permission de localisation non disponible';
+            _locationError = AppLocalizations.of(context).locationPermissionNotAvailable;
             _isLoadingLocation = false;
           });
           _addDefaultLocationMarker();
@@ -104,7 +105,7 @@ class _AccueilScreenState extends State<AccueilScreen>
         if (permission == LocationPermission.denied) {
           if (!mounted) return;
           setState(() {
-            _locationError = 'Permission de localisation refusée';
+            _locationError = AppLocalizations.of(context).locationPermissionDenied;
             _isLoadingLocation = false;
           });
           _addDefaultLocationMarker();
@@ -115,7 +116,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       if (permission == LocationPermission.deniedForever) {
         if (!mounted) return;
         setState(() {
-          _locationError = 'Permission de localisation refusée définitivement';
+          _locationError = AppLocalizations.of(context).locationPermissionDeniedPermanently;
           _isLoadingLocation = false;
         });
         _addDefaultLocationMarker();
@@ -133,7 +134,7 @@ class _AccueilScreenState extends State<AccueilScreen>
         print('Erreur lors de l\'obtention de la position: $e');
         if (!mounted) return;
         setState(() {
-          _locationError = 'Impossible d\'obtenir la position actuelle';
+          _locationError = AppLocalizations.of(context).unableToGetCurrentPosition;
           _isLoadingLocation = false;
         });
         _addDefaultLocationMarker();
@@ -316,7 +317,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                           ? (reservation.hasCounterOffer 
                               ? 'CONTRE-OFFRE DU CHAUFFEUR !'
                               : 'Réservation confirmée !')
-                          : 'Réservation en attente',
+                          : AppLocalizations.of(context).reservationPending,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -328,8 +329,8 @@ class _AccueilScreenState extends State<AccueilScreen>
                       isWaitingPayment 
                           ? (reservation.hasCounterOffer 
                               ? 'Le chauffeur a proposé une contre-offre. Validez et payez'
-                              : 'Validez et payez votre réservation')
-                          : 'En attente de confirmation du chauffeur',
+                              : AppLocalizations.of(context).validateAndPayReservation)
+                          : AppLocalizations.of(context).waitingDriverConfirmation,
                       style: const TextStyle(fontSize: 14, color: Colors.white70),
                     ),
                   ],
@@ -348,8 +349,8 @@ class _AccueilScreenState extends State<AccueilScreen>
                 ),
                 child: Text(
                   isWaitingPayment 
-                      ? (reservation.hasCounterOffer ? 'Contre-offre' : 'À payer')
-                      : 'En attente',
+                      ? (reservation.hasCounterOffer ? AppLocalizations.of(context).counterOffer : AppLocalizations.of(context).toPay)
+                      : AppLocalizations.of(context).waitingConfirmation,
                   style: TextStyle(
                     fontSize: 12,
                     color: isWaitingPayment 
@@ -568,7 +569,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                   child: ElevatedButton.icon(
                     onPressed: () => _showReservationDetail(reservation),
                     icon: const Icon(Icons.payment, size: 20),
-                    label: const Text('Voir les détails et payer'),
+                    label: Text(AppLocalizations.of(context).viewDetailsAndPay),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accent,
                       foregroundColor: Colors.white,
@@ -606,7 +607,7 @@ class _AccueilScreenState extends State<AccueilScreen>
               child: OutlinedButton.icon(
                 onPressed: () => _cancelReservation(reservation),
                 icon: const Icon(Icons.cancel, size: 20),
-                label: const Text('Annuler la réservation'),
+                label: Text(AppLocalizations.of(context).cancelReservationButton),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red,
                   side: const BorderSide(color: Colors.red),
@@ -627,7 +628,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                 child: ElevatedButton.icon(
                   onPressed: _makePhoneCall,
                   icon: const Icon(Icons.phone, size: 18),
-                  label: const Text('Appeler'),
+                  label: Text(AppLocalizations.of(context).call),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: Colors.white,
@@ -643,7 +644,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                 child: OutlinedButton.icon(
                   onPressed: _sendSMS,
                   icon: const Icon(Icons.message, size: 18),
-                  label: const Text('Message'),
+                  label: Text(AppLocalizations.of(context).message),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.accent,
                     side: BorderSide(color: AppColors.accent),
@@ -841,7 +842,7 @@ class _AccueilScreenState extends State<AccueilScreen>
           await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
         }
       } else {
-        _showErrorSnackBar('Numéro de téléphone admin non disponible');
+        _showErrorSnackBar(AppLocalizations.of(context).adminPhoneNotAvailable);
       }
     } catch (e) {
       _showErrorSnackBar('Erreur lors de l\'appel: $e');
@@ -866,7 +867,7 @@ class _AccueilScreenState extends State<AccueilScreen>
           await launchUrl(smsUri, mode: LaunchMode.externalApplication);
         }
       } else {
-        _showErrorSnackBar('Numéro de téléphone admin non disponible');
+        _showErrorSnackBar(AppLocalizations.of(context).adminPhoneNotAvailable);
       }
     } catch (e) {
       _showErrorSnackBar('Erreur lors de l\'envoi du SMS: $e');
@@ -889,10 +890,10 @@ class _AccueilScreenState extends State<AccueilScreen>
   Future<void> _cancelReservation(Reservation reservation) async {
     final confirmed = await showGlassConfirmDialog(
       context: context,
-      title: 'Annuler la réservation',
-      message: 'Êtes-vous sûr de vouloir annuler cette réservation ? Cette action est irréversible.',
-      confirmText: 'Oui, annuler',
-      cancelText: 'Non',
+      title: AppLocalizations.of(context).cancelReservation,
+      message: AppLocalizations.of(context).cancelReservationConfirmation,
+      confirmText: AppLocalizations.of(context).yesCancel,
+      cancelText: AppLocalizations.of(context).no,
       icon: Icons.cancel_outlined,
       iconColor: Colors.redAccent,
       onConfirm: () => Navigator.of(context).pop(true),
@@ -910,13 +911,13 @@ class _AccueilScreenState extends State<AccueilScreen>
         'lastUpdated': Timestamp.now(),
         'cancelledAt': Timestamp.now(),
         'cancelledBy': 'client',
-        'cancellationReason': 'Annulé par le client',
+        'cancellationReason': 'Annulé par le ${AppLocalizations.of(context).client}',
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Réservation annulée avec succès'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).reservationCancelledSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -925,7 +926,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de l\'annulation: $e'),
+            content: Text(AppLocalizations.of(context).errorCancelling(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

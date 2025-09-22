@@ -6,6 +6,7 @@ import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 // 👇 importe la barre réutilisable
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
@@ -59,7 +60,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       child: Scaffold(
         backgroundColor: Colors.transparent,
 
-        appBar: const GlassAppBar(title: 'Trajets'),
+        appBar: GlassAppBar(title: AppLocalizations.of(context).trips),
 
         body: Column(
           children: [
@@ -472,7 +473,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   child: ElevatedButton.icon(
                     onPressed: _makePhoneCall,
                     icon: const Icon(Icons.phone, size: 18),
-                    label: const Text('Appeler'),
+                    label: Text(AppLocalizations.of(context).call),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accent,
                       foregroundColor: Colors.white,
@@ -488,7 +489,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   child: OutlinedButton.icon(
                     onPressed: _sendSMS,
                     icon: const Icon(Icons.message, size: 18),
-                    label: const Text('Message'),
+                    label: Text(AppLocalizations.of(context).message),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.accent,
                       side: BorderSide(color: AppColors.accent),

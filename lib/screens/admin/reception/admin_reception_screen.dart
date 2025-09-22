@@ -5,6 +5,7 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class AdminReceptionScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -35,7 +36,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: 'Boîte de réception',
+          title: AppLocalizations.of(context).inbox,
           actions: [
             // Bouton de test pour créer des réservations
             IconButton(
@@ -837,7 +838,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     // Demander confirmation
     final confirmed = await showGlassConfirmDialog(
       context: context,
-      title: 'Annuler toutes les réservations',
+      title: AppLocalizations.of(context).cancelAllReservations,
       message: 'Êtes-vous sûr de vouloir annuler toutes les réservations en attente de paiement ? Cette action est irréversible.',
       confirmText: 'Oui, annuler tout',
       cancelText: 'Non',
@@ -859,8 +860,8 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       if (querySnapshot.docs.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Aucune réservation en attente de paiement à annuler'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).noReservationsWaitingPayment),
               backgroundColor: Colors.orange,
             ),
           );
@@ -886,7 +887,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${querySnapshot.docs.length} réservation(s) annulée(s) avec succès'),
+            content: Text(AppLocalizations.of(context).reservationsCancelledSuccess(querySnapshot.docs.length)),
             backgroundColor: Colors.green,
           ),
         );
@@ -895,7 +896,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de l\'annulation: $e'),
+            content: Text(AppLocalizations.of(context).errorCancelling(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -930,8 +931,8 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Réservation de test créée avec succès !'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).testReservationCreated),
             backgroundColor: Colors.green,
           ),
         );
@@ -939,7 +940,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('${AppLocalizations.of(context).errorUnknownError}: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -956,8 +957,8 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Réservation confirmée avec succès !'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).reservationConfirmedSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -968,7 +969,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('${AppLocalizations.of(context).errorUnknownError}: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -993,7 +994,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       context: context,
       builder: (BuildContext context) {
         return GlassActionDialog(
-          title: 'Action sur la réservation',
+          title: AppLocalizations.of(context).reservationAction,
           message: 'Que souhaitez-vous faire avec cette réservation ?',
           actions: [
             GlassActionButton(
@@ -1043,8 +1044,8 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Réservation refusée'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).reservationRefused),
             backgroundColor: Colors.red,
           ),
         );
@@ -1052,7 +1053,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('${AppLocalizations.of(context).errorUnknownError}: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -1304,7 +1305,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Proposer'),
+              child: Text(AppLocalizations.of(context).propose),
             ),
           ],
         ),
@@ -1367,7 +1368,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Erreur lors de l\'envoi: $e'),
+            content: Text(AppLocalizations.of(context).sendError(e.toString())),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(

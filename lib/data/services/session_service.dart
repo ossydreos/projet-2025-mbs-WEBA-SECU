@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -27,7 +28,11 @@ class SessionService {
 
       return true;
     } catch (e) {
-      print('Erreur lors de la vérification de session: $e');
+      developer.log(
+        'Erreur lors de la vérification de session: $e',
+        name: 'SessionService',
+        error: e,
+      );
       return false;
     }
   }
@@ -45,7 +50,11 @@ class SessionService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Erreur lors de la mise à jour de la dernière connexion: $e');
+      developer.log(
+        'Erreur lors de la mise à jour de la dernière connexion: $e',
+        name: 'SessionService',
+        error: e,
+      );
     }
   }
 }

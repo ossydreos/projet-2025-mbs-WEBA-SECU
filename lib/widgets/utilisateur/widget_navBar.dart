@@ -1,6 +1,7 @@
 // lib/widgets/custom_bottom_nav_bar.dart
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import '../../l10n/generated/app_localizations.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -33,26 +34,26 @@ class CustomBottomNavigationBar extends StatelessWidget {
         ),
         elevation: 0, // Supprimer l'ombre par défaut
         enableFeedback: true, // Activer le retour haptique
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Accueil',
+            icon: const Icon(Icons.home_outlined),
+            activeIcon: const Icon(Icons.home),
+            label: AppLocalizations.of(context).home,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.local_offer_outlined),
-            activeIcon: Icon(Icons.local_offer),
-            label: 'Offres',
+            icon: const Icon(Icons.local_offer_outlined),
+            activeIcon: const Icon(Icons.local_offer),
+            label: AppLocalizations.of(context).offers,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.schedule_outlined),
-            activeIcon: Icon(Icons.schedule),
-            label: 'Trajets',
+            icon: const Icon(Icons.schedule_outlined),
+            activeIcon: const Icon(Icons.schedule),
+            label: AppLocalizations.of(context).trips,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Compte',
+            icon: const Icon(Icons.person_outline),
+            activeIcon: const Icon(Icons.person),
+            label: AppLocalizations.of(context).profile,
           ),
         ],
       );

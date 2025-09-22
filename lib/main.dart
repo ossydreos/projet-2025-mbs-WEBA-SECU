@@ -14,6 +14,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.dart';
@@ -21,6 +22,7 @@ import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.
 import 'package:my_mobility_services/widgets/authgate.dart';
 import 'firebase/firebase_options.dart';
 import 'theme/glassmorphism_theme.dart';
+import 'l10n/generated/app_localizations.dart';
 // Import des écrans pour les routes
 // Import des écrans admin
 import 'screens/admin/reception/admin_reception_screen.dart';
@@ -48,6 +50,22 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'My Mobility Services',
       theme: AppTheme.glassDark,
+      
+      // Configuration de l'internationalisation
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      locale: const Locale('en', ''), // ← FORCE L'ANGLAIS POUR VOIR LA DIFFÉRENCE
+      supportedLocales: const [
+        Locale('en', ''), // Anglais (par défaut)
+        Locale('fr', ''), // Français
+      ],
+      // La langue sera automatiquement détectée selon l'appareil
+      // Si langue non supportée → fallback vers l'anglais
+      
       home: const Authgate(),
       onGenerateRoute: (settings) {
         Widget page;

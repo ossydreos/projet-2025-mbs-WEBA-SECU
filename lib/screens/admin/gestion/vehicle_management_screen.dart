@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/vehicule_type.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 
 class VehicleManagementScreen extends StatefulWidget {
@@ -42,7 +43,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: 'Gestion des véhicules',
+          title: AppLocalizations.of(context).vehicleManagement,
           actions: [
             IconButton(
               onPressed: _showAddVehicleDialog,
@@ -444,8 +445,8 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                     TextField(
                       controller: nameController,
                       decoration: InputDecoration(
-                        labelText: 'Nom du véhicule',
-                        hintText: 'ex: Berline Économique',
+                        labelText: AppLocalizations.of(context).vehicleName,
+                        hintText: AppLocalizations.of(context).vehicleNameExample,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -460,7 +461,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       maxLines: 2,
                       decoration: InputDecoration(
                         labelText: 'Description',
-                        hintText: 'Description du véhicule',
+                        hintText: AppLocalizations.of(context).vehicleDescriptionHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -472,7 +473,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                     DropdownButtonFormField<VehicleCategory>(
                       value: selectedCategory,
                       decoration: InputDecoration(
-                        labelText: 'Catégorie',
+                        labelText: AppLocalizations.of(context).category,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -496,8 +497,8 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       controller: priceController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: 'Prix par kilomètre (€)',
-                        hintText: 'ex: 1.50',
+                        labelText: AppLocalizations.of(context).pricePerKmEuro,
+                        hintText: AppLocalizations.of(context).priceExample,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -639,7 +640,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: Text(isEditing ? 'Modifier' : 'Créer'),
+                          child: Text(isEditing ? AppLocalizations.of(context).modify : AppLocalizations.of(context).create),
                         ),
                       ],
                     ),
@@ -793,7 +794,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Supprimer'),
+                    child: Text(AppLocalizations.of(context).delete),
                   ),
                 ],
               ),

@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/widgets/authgate.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 /// Modèle utilisateur avec données Firestore
 class Utilisateur {
@@ -34,9 +35,9 @@ class Utilisateur {
     
     return Utilisateur(
       uid: data['uid'] ?? '',
-      nom: data['name'] ?? 'Utilisateur',
+      nom: data['name'] ?? 'Utilisateur', // On garde ça comme fallback statique
       email: data['email'] ?? '',
-      telephone: phone.isNotEmpty ? phone : 'Non renseigné',
+      telephone: phone.isNotEmpty ? phone : 'Not provided', // Will be translated in widget
       dateCreation: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       emailVerified: data['emailVerified'] ?? false,
       provider: data['provider'] ?? 'password',
@@ -99,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return GlassBackground(
               child: Scaffold(
                 backgroundColor: Colors.transparent,
-                appBar: const GlassAppBar(title: 'Profil'),
+                appBar: GlassAppBar(title: AppLocalizations.of(context).profile),
                 body: Stack(
                   children: [
                     // Contenu principal avec espacement
@@ -131,9 +132,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Utilisateur _getDefaultUser(User user) {
     return Utilisateur(
       uid: user.uid,
-      nom: user.displayName ?? user.email?.split('@')[0] ?? 'Utilisateur',
+      nom: user.displayName ?? user.email?.split('@')[0] ?? 'Utilisateur', // Fallback statique
       email: user.email ?? 'email@example.com',
-      telephone: user.phoneNumber ?? 'Non renseigné',
+      telephone: user.phoneNumber ?? 'Not provided', // Will be translated in widget
       dateCreation: user.metadata.creationTime ?? DateTime.now(),
       emailVerified: user.emailVerified,
       provider: 'password',
@@ -210,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    'Informations personnelles',
+                    AppLocalizations.of(context).personalInfo,
                     style: Theme.of(context).textTheme.titleLarge,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -219,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ElevatedButton(
                   onPressed: () {
                     // TODO: Implémenter la navigation vers l'écran de modification
-                    _showFeatureDialog('Modifier les informations');
+                    _showFeatureDialog(AppLocalizations.of(context).editInfo);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent.withOpacity(0.2),
@@ -245,19 +246,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
-                _buildInfoRow(Icons.person, 'Nom complet', utilisateur.nom),
+                _buildInfoRow(Icons.person, AppLocalizations.of(context).fullName, utilisateur.nom),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
                   height: 1,
                 ),
-                _buildInfoRow(Icons.email, 'Email', utilisateur.email),
+                _buildInfoRow(Icons.email, AppLocalizations.of(context).email, utilisateur.email),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
                   height: 1,
                 ),
-                _buildInfoRow(Icons.phone, 'Téléphone', utilisateur.telephone),
+                _buildInfoRow(Icons.phone, AppLocalizations.of(context).phoneNumber, 
+                  utilisateur.telephone == 'Not provided' ? AppLocalizations.of(context).notProvided : utilisateur.telephone),
               ],
             ),
           ),
@@ -329,7 +331,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
             child: Text(
-              'Menu',
+              AppLocalizations.of(context).menu,
               style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
             ),
           ),
@@ -338,25 +340,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
-                _buildMenuItem(Icons.directions_car, 'Mes réservations'),
+                _buildMenuItem(Icons.directions_car, AppLocalizations.of(context).myReservations),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
                   height: 1,
                 ),
-                _buildMenuItem(Icons.history, 'Historique'),
+                _buildMenuItem(Icons.history, AppLocalizations.of(context).history),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
                   height: 1,
                 ),
-                _buildMenuItem(Icons.payment, 'Paiements'),
+                _buildMenuItem(Icons.payment, AppLocalizations.of(context).payments),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
                   height: 1,
                 ),
-                _buildMenuItem(Icons.help_outline, 'Aide'),
+                _buildMenuItem(Icons.help_outline, AppLocalizations.of(context).help),
               ],
             ),
           ),
@@ -375,7 +377,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
             child: Text(
-              'Localisation',
+              AppLocalizations.of(context).location,
               style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
             ),
           ),
@@ -384,13 +386,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
-                _buildMenuItem(Icons.location_on, 'Adresses sauvegardées'),
+                _buildMenuItem(Icons.location_on, AppLocalizations.of(context).savedAddresses),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
                   height: 1,
                 ),
-                _buildMenuItem(Icons.map, 'Gérer les lieux favoris'),
+                _buildMenuItem(Icons.map, AppLocalizations.of(context).manageFavorites),
               ],
             ),
           ),
@@ -409,7 +411,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
             child: Text(
-              'Paramètres',
+              AppLocalizations.of(context).settings,
               style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
             ),
           ),
@@ -418,19 +420,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
-                _buildMenuItem(Icons.notifications, 'Notifications'),
+                _buildMenuItem(Icons.notifications, AppLocalizations.of(context).notifications),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
                   height: 1,
                 ),
-                _buildMenuItem(Icons.privacy_tip, 'Confidentialité'),
+                _buildMenuItem(Icons.privacy_tip, AppLocalizations.of(context).privacy),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
                   height: 1,
                 ),
-                _buildMenuItem(Icons.language, 'Langue'),
+                _buildMenuItem(Icons.language, AppLocalizations.of(context).language),
               ],
             ),
           ),
@@ -465,7 +467,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'Se déconnecter',
+                              AppLocalizations.of(context).disconnectButton,
                               style: TextStyle(
                                 color: Colors.redAccent,
                                 fontWeight: FontWeight.w500,
@@ -487,7 +489,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
-                    'Se déconnecter de votre compte.',
+                    AppLocalizations.of(context).logoutDescription,
                     style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
                 ),
@@ -564,7 +566,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Fonctionnalité disponible bientôt',
+                      AppLocalizations.of(context).featureComingSoon,
                       style: TextStyle(fontSize: 13, color: AppColors.textWeak),
                     ),
                   ],
@@ -588,10 +590,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showLogoutDialog() {
     showGlassConfirmDialog(
       context: context,
-      title: 'Déconnexion',
-      message: 'Voulez-vous vraiment vous déconnecter de votre compte ?',
-      confirmText: 'Déconnexion',
-      cancelText: 'Annuler',
+      title: AppLocalizations.of(context).logout,
+      message: AppLocalizations.of(context).logoutConfirmation,
+      confirmText: AppLocalizations.of(context).logout,
+      cancelText: AppLocalizations.of(context).cancel,
       icon: Icons.logout,
       iconColor: Colors.redAccent,
       onConfirm: () {
@@ -623,7 +625,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Cette fonctionnalité sera bientôt disponible.',
+                AppLocalizations.of(context).featureComingSoonDescription,
                 style: TextStyle(color: AppColors.textWeak),
                 textAlign: TextAlign.center,
               ),
@@ -664,7 +666,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Déconnexion réussie'),
+            content: Text(AppLocalizations.of(context).logoutSuccess),
             backgroundColor: AppColors.accent,
           ),
         );
@@ -674,7 +676,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la déconnexion: $e'),
+            content: Text(AppLocalizations.of(context).logoutError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

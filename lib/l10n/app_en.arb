@@ -1,0 +1,596 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "My Mobility Services",
+  "welcome": "Welcome",
+  "login": "Sign in",
+  "signup": "Sign up",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm password",
+  "forgotPassword": "Forgot password?",
+  "home": "Home",
+  "reservations": "Reservations",
+  "trips": "Trips",
+  "profile": "Profile",
+  "offers": "Offers",
+  "departure": "Departure",
+  "destination": "Destination",
+  "selectVehicle": "Select vehicle",
+  "bookNow": "Book now",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "loading": "Loading...",
+  "retry": "Retry",
+  "settings": "Settings",
+  "logout": "Logout",
+
+  "reservationStatusPending": "Pending",
+  "reservationStatusConfirmed": "Confirmed",
+  "reservationStatusInProgress": "In progress",
+  "reservationStatusCompleted": "Completed",
+  "reservationStatusCancelled": "Cancelled",
+
+  "vehicleCategoryLuxe": "Luxury",
+  "vehicleCategoryVan": "Van",
+  "vehicleCategoryEconomique": "Economy",
+
+  "userRoleUser": "User",
+  "userRoleAdmin": "Administrator",
+
+  "errorInvalidEmail": "Invalid email",
+  "errorInvalidPhoneNumber": "Invalid phone number",
+  "errorEmptyField": "This field cannot be empty",
+  "errorPasswordTooShort": "Password must be at least 6 characters",
+  "errorPasswordsDoNotMatch": "Passwords do not match",
+  "errorNetworkError": "Network connection error",
+  "errorUnknownError": "An unknown error occurred",
+
+  "successReservationCreated": "Reservation created successfully",
+  "successReservationUpdated": "Reservation updated",
+  "successProfileUpdated": "Profile updated",
+  "successPasswordChanged": "Password changed",
+
+  "welcomeMessage": "Welcome 👋",
+  "getStarted": "Get started",
+  "orSignUpWith": "or sign up with",
+  "orSignInWith": "or sign in with",
+  "googleSoon": "Google: coming soon",
+  "appleSoon": "Apple: coming soon",
+  "facebookSoon": "Facebook: coming soon",
+  "logIn": "Sign in",
+
+  "personalInfo": "Personal information",
+  "editInfo": "Edit information",
+  "fullName": "Full name",
+  "phoneNumber": "Phone number",
+  "menu": "Menu",
+  "myReservations": "My reservations",
+  "history": "History",
+  "payments": "Payments",
+  "help": "Help",
+  "location": "Location",
+  "savedAddresses": "Saved addresses",
+  "manageFavorites": "Manage favorite places",
+  "notifications": "Notifications",
+  "user": "User",
+  "notProvided": "Not provided",
+  "defaultCountryCode": "+1",
+
+  "admin": "ADMIN",
+  "administrator": "Administrator",
+  "loadingError": "Loading error",
+  "noUpcomingRides": "No upcoming rides",
+  "upcomingRidesWillAppear": "Confirmed rides will appear here",
+  "noCompletedRides": "No completed rides",
+  "rideHistoryWillAppear": "Ride history will appear here",
+  "schedule": "Schedule",
+  "finish": "Finish",
+  "adminLogoutSuccess": "Admin logout successful",
+  "disconnectButton": "Disconnect",
+  "disconnection": "Disconnection",
+  "guest": "Guest",
+
+  "reviewPlannedTrip": "Review your planned trip",
+  "dateAndTime": "Date and time",
+  "modify": "Modify",
+  "route": "Route",
+  "pickupAddress": "Pickup address",
+  "dropoffAddress": "Drop-off address",
+  "estimatedArrival": "Estimated arrival",
+  "pickupTime": "Pickup time",
+  "estimatedDuration": "Estimated duration",
+  "distance": "Distance",
+  "vehicle": "Vehicle",
+  "passengers": "Passengers",
+  "luggage": "Luggage",
+  "paymentMethod": "Payment method",
+  "totalPrice": "Total price",
+  "bookTrip": "Book trip",
+  "applePay": "Apple Pay",
+  "bankCard": "Bank card",
+  "cash": "Cash",
+
+  "locationServicesDisabled": "Location services are disabled",
+  "locationPermissionNotAvailable": "Location permission not available",
+  "locationPermissionDenied": "Location permission denied",
+  "locationPermissionDeniedPermanently": "Location permission permanently denied",
+  "unableToGetCurrentPosition": "Unable to get current position",
+
+  "reservationPending": "Reservation pending",
+  "validateAndPayReservation": "Validate and pay reservation",
+  "waitingDriverConfirmation": "Waiting for driver confirmation",
+  "counterOffer": "Counter offer",
+  "toPay": "To pay",
+  "waitingConfirmation": "Waiting for confirmation",
+  "adminPhoneNotAvailable": "Admin phone not available",
+
+  "call": "Call",
+  "message": "Message",
+  "viewDetailsAndPay": "View details and pay",
+  "cancelReservationButton": "Cancel reservation",
+  "cancelReservationConfirmation": "Are you sure you want to cancel this reservation?",
+  "yesCancel": "Yes, cancel",
+  "client": "client",
+  "reservationCancelledSuccess": "Reservation cancelled successfully",
+  "errorCancelling": "Error cancelling: {error}",
+  "@errorCancelling": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "paymentConfirmed": "Payment confirmed",
+  "reservationDetails": "Reservation details",
+  "reservationNumber": "Reservation #{number}",
+  "@reservationNumber": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "note": "Note",
+  "driverMessage": "Driver message",
+  "payment": "Payment",
+  "paymentDescription": "Payment will be made directly to the driver",
+  "cashPayment": "Cash payment",
+  "confirmPayment": "Confirm payment",
+
+  "reservationCreatedSuccess": "Reservation created successfully! ID: {id}",
+  "@reservationCreatedSuccess": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "reservationCreationError": "Error creating reservation: {error}",
+  "@reservationCreationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "account": "Account",
+  "featureComingSoon": "Feature coming soon",
+  "logoutConfirmation": "Are you sure you want to log out?",
+  "logoutSuccess": "Logout successful",
+  "logoutError": "Logout error: {error}",
+  "@logoutError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "inbox": "Inbox",
+  "cancelAllReservations": "Cancel all reservations",
+  "noReservationsWaitingPayment": "No reservations waiting for payment",
+  "reservationsCancelledSuccess": "Reservations cancelled successfully: {count}",
+  "@reservationsCancelledSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "testReservationCreated": "Test reservation created",
+  "reservationAction": "Reservation action",
+  "reservationRefused": "Reservation refused",
+  "propose": "Propose",
+
+  "courses": "Courses",
+  "cancelRide": "Cancel ride",
+  "cancelRideConfirmation": "Are you sure you want to cancel this ride?",
+
+  "management": "Management",
+  "fleetManagement": "Fleet management",
+  "manageVehicles": "Manage vehicles",
+  "manageVehiclesSubtitle": "Add, edit or remove vehicles",
+  "promoCodes": "Promo codes",
+  "createPromoCode": "Create promo code",
+  "createPromoCodeSubtitle": "Create discount codes",
+  "activeCodes": "Active codes",
+  "activeCodesSubtitle": "View and manage active codes",
+  "administration": "Administration",
+  "userManagement": "User management",
+  "userManagementSubtitle": "Manage users and permissions",
+  "statistics": "Statistics",
+  "statisticsSubtitle": "View app statistics",
+
+  "vehicleManagement": "Vehicle management",
+  "addVehicle": "Add vehicle",
+
+  "firstName": "First name",
+  "lastName": "Last name",
+  "address": "Address",
+  "city": "City",
+  "postalCode": "Postal code",
+  "country": "Country",
+
+  "accountSettings": "Account settings",
+  "changePassword": "Change password",
+  "currentPassword": "Current password",
+  "newPassword": "New password",
+  "confirmNewPassword": "Confirm new password",
+
+  "paymentInfo": "Payment information",
+  "addPaymentMethod": "Add payment method",
+  "defaultPaymentMethod": "Default payment method",
+  "billingAddress": "Billing address",
+
+  "preferences": "Preferences",
+  "defaultPickupLocation": "Default pickup location",
+  "defaultDestination": "Default destination",
+  "preferredVehicleType": "Preferred vehicle type",
+
+  "helpAndSupport": "Help and support",
+  "reportIssue": "Report an issue",
+  "sendFeedback": "Send feedback",
+  "contactUs": "Contact us",
+
+  "aboutApp": "About the app",
+  "version": "Version",
+  "buildNumber": "Build number",
+  "developer": "Developer",
+
+  "legal": "Legal",
+  "licenses": "Licenses",
+
+  "signInWithGoogle": "Sign in with Google",
+  "signInWithApple": "Sign in with Apple",
+  "signInWithFacebook": "Sign in with Facebook",
+  "orContinueWith": "Or continue with",
+
+  "dontHaveAccount": "Don't have an account?",
+  "alreadyHaveAccount": "Already have an account?",
+  "createAccount": "Create account",
+  "signInInstead": "Sign in instead",
+
+  "skipForNow": "Skip for now",
+  "continueAsGuest": "Continue as guest",
+
+  "enableLocation": "Enable location",
+  "allowLocationAccess": "Allow location access",
+  "locationRequired": "Location access is required for the app to work properly",
+  "enableInSettings": "Enable in settings",
+
+  "bookingConfirmation": "Booking confirmation",
+  "tripBooked": "Trip booked successfully",
+  "bookingReference": "Booking reference",
+  "driverAssigned": "Driver assigned",
+
+  "cancelReservation": "Cancel reservation",
+  "cancellationReason": "Cancellation reason",
+  "refundPolicy": "Refund policy",
+
+  "rateTrip": "Rate trip",
+  "rateYourTrip": "Rate your trip",
+  "howWasYourTrip": "How was your trip?",
+  "additionalComments": "Additional comments",
+  "submitReview": "Submit review",
+  "submitRating": "Submit rating",
+
+  "tripCompleted": "Trip completed",
+  "thankYouForRiding": "Thank you for riding with us!",
+  "receiptSent": "Receipt sent to your email",
+
+  "emergencyMode": "Emergency mode",
+  "emergencyContacts": "Emergency contacts",
+  "callEmergency": "Call emergency",
+  "shareLocation": "Share location",
+  "emergencyContact": "Emergency contact",
+  "shareTrip": "Share trip",
+  "tripShared": "Trip shared successfully",
+
+  "maintenance": "Maintenance",
+  "appUnderMaintenance": "App is under maintenance",
+  "backSoon": "We'll be back soon",
+
+  "networkError": "Network error",
+  "noInternetConnection": "No internet connection",
+  "checkConnection": "Please check your connection",
+
+  "sessionExpired": "Session expired",
+  "pleaseSignInAgain": "Please sign in again",
+
+  "updateAvailable": "Update available",
+  "newVersionAvailable": "A new version of the app is available",
+  "updateNow": "Update now",
+  "updateLater": "Update later",
+
+  "permissionRequired": "Permission required",
+  "cameraPermission": "Camera permission",
+  "storagePermission": "Storage permission",
+  "microphonePermission": "Microphone permission",
+  "grantPermission": "Grant permission",
+
+  "uploadPhoto": "Upload photo",
+  "takePhoto": "Take photo",
+  "chooseFromGallery": "Choose from gallery",
+  "removePhoto": "Remove photo",
+
+  "search": "Search",
+  "searchResults": "Search results",
+  "noResults": "No results found",
+  "tryDifferentKeywords": "Try different keywords",
+
+  "filter": "Filter",
+  "sortBy": "Sort by",
+  "filterResults": "Filter results",
+  "clearFilters": "Clear filters",
+
+  "map": "Map",
+  "list": "List",
+  "switchToMapView": "Switch to map view",
+  "switchToListView": "Switch to list view",
+
+  "nearby": "Nearby",
+  "popular": "Popular",
+  "recommended": "Recommended",
+  "recent": "Recent",
+
+  "share": "Share",
+  "shareApp": "Share app",
+  "inviteFriends": "Invite friends",
+  "referralCode": "Referral code",
+
+  "tutorial": "Tutorial",
+  "howToUse": "How to use",
+  "tips": "Tips",
+  "gettingStarted": "Getting started",
+
+  "feedback": "Feedback",
+  "rating": "Rating",
+  "review": "Review",
+  "testimonials": "Testimonials",
+
+  "promotion": "Promotion",
+  "discount": "Discount",
+  "coupon": "Coupon",
+  "offer": "Offer",
+  "specialOffer": "Special offer",
+
+  "loyalty": "Loyalty",
+  "points": "Points",
+  "rewards": "Rewards",
+  "membership": "Membership",
+
+  "archive": "Archive",
+  "clear": "Clear",
+  "clearHistory": "Clear history",
+
+  "sync": "Sync",
+  "syncing": "Syncing...",
+  "syncComplete": "Sync complete",
+  "syncFailed": "Sync failed",
+
+  "offline": "Offline",
+  "online": "Online",
+  "workingOffline": "Working offline",
+  "connectionRestored": "Connection restored",
+
+  "battery": "Battery",
+  "batteryLow": "Battery low",
+  "batterySaver": "Battery saver",
+  "optimizeBattery": "Optimize battery",
+
+  "security": "Security",
+  "privacy": "Privacy",
+  "dataProtection": "Data protection",
+  "encryption": "Encryption",
+
+  "backup": "Backup",
+  "restore": "Restore",
+  "backupComplete": "Backup complete",
+  "restoreComplete": "Restore complete",
+
+  "theme": "Theme",
+  "lightMode": "Light mode",
+  "darkMode": "Dark mode",
+  "systemTheme": "System theme",
+  "customTheme": "Custom theme",
+
+  "accessibility": "Accessibility",
+  "fontSize": "Font size",
+  "contrast": "Contrast",
+  "voiceOver": "Voice over",
+
+  "date": "Date",
+  "time": "Time",
+  "price": "Price",
+  "status": "Status",
+  "actions": "Actions",
+
+  "edit": "Edit",
+  "delete": "Delete",
+  "view": "View",
+  "save": "Save",
+  "close": "Close",
+  "back": "Back",
+  "next": "Next",
+  "previous": "Previous",
+
+  "yes": "Yes",
+  "no": "No",
+  "ok": "OK",
+  "done": "Done",
+
+  "morning": "Morning",
+  "afternoon": "Afternoon",
+  "evening": "Evening",
+  "night": "Night",
+
+  "today": "Today",
+  "tomorrow": "Tomorrow",
+  "yesterday": "Yesterday",
+  "thisWeek": "This week",
+  "thisMonth": "This month",
+
+  "monday": "Monday",
+  "tuesday": "Tuesday",
+  "wednesday": "Wednesday",
+  "thursday": "Thursday",
+  "friday": "Friday",
+  "saturday": "Saturday",
+  "sunday": "Sunday",
+
+  "january": "January",
+  "february": "February",
+  "march": "March",
+  "april": "April",
+  "may": "May",
+  "june": "June",
+  "july": "July",
+  "august": "August",
+  "september": "September",
+  "october": "October",
+  "november": "November",
+  "december": "December",
+
+  "noReservations": "No reservations",
+  "noReservationsMessage": "You don't have any reservations yet",
+  "noTrips": "No trips",
+  "noTripsMessage": "You don't have any trips yet",
+
+  "pickupLocation": "Pickup location",
+  "dropoffLocation": "Drop-off location",
+  "selectDate": "Select date",
+  "selectTime": "Select time",
+  "estimatedPrice": "Estimated price",
+
+  "vehicleDetails": "Vehicle details",
+  "vehicleCapacity": "Capacity",
+  "vehicleFeatures": "Features",
+  "pricePerKm": "Price per km",
+
+  "creditCard": "Credit card",
+  "paypal": "PayPal",
+
+  "driverInfo": "Driver information",
+  "driverName": "Driver name",
+  "driverPhone": "Driver phone",
+  "vehicleInfo": "Vehicle information",
+
+  "tripStatus": "Trip status",
+  "tripDetails": "Trip details",
+  "tripHistory": "Trip history",
+
+  "notificationSettings": "Notification settings",
+  "pushNotifications": "Push notifications",
+  "emailNotifications": "Email notifications",
+
+  "support": "Support",
+  "contactSupport": "Contact support",
+  "faq": "FAQ",
+  "termsOfService": "Terms of service",
+  "privacyPolicy": "Privacy policy",
+
+  "language": "Language",
+  "locationServices": "Location services",
+
+  "searchLocation": "Search location",
+  "currentLocation": "Current location",
+  "recentLocations": "Recent locations",
+  "savedLocations": "Saved locations",
+
+  "addComment": "Add comment",
+
+  "dashboard": "Dashboard",
+  "users": "Users",
+  "vehicles": "Vehicles",
+  "reports": "Reports",
+  "analytics": "Analytics",
+
+  "addUser": "Add user",
+  "editUser": "Edit user",
+  "deleteUser": "Delete user",
+
+  "editVehicle": "Edit vehicle",
+  "deleteVehicle": "Delete vehicle",
+
+  "reservationManagement": "Reservation management",
+  "pendingReservations": "Pending reservations",
+  "confirmedReservations": "Confirmed reservations",
+  "completedReservations": "Completed reservations",
+
+  "totalTrips": "Total trips",
+  "totalRevenue": "Total revenue",
+  "activeUsers": "Active users",
+  "averageRating": "Average rating",
+
+  "exportData": "Export data",
+  "importData": "Import data",
+  "backupData": "Backup data",
+
+  "systemSettings": "System settings",
+  "appSettings": "App settings",
+  "serverSettings": "Server settings",
+
+  "estimatedTime": "Estimated time 15 min",
+  "availableVehicles": "Available vehicles",
+  "loadingVehicles": "Loading vehicles...",
+  "pleaseRetry": "Please retry",
+  "noVehicleAvailable": "No vehicle available",
+  "pleaseRetryLater": "Please retry later",
+  "backToSummary": "Back to summary",
+  "planVehicle": "Plan {vehicle}",
+  "@planVehicle": {
+    "placeholders": {
+      "vehicle": {
+        "type": "String"
+      }
+    }
+  },
+  "selectVehicle": "Select vehicle",
+  "logoutDescription": "Disconnect from your account.",
+  "featureComingSoonDescription": "This feature will be available soon.",
+  "adminLogoutDescription": "Disconnect from your administrator account.",
+  "adminLogoutConfirmation": "Do you really want to disconnect from your administrator account?",
+
+  "vehicleName": "Vehicle name",
+  "vehicleNameExample": "e.g. Economy Sedan",
+  "vehicleDescriptionHint": "Vehicle description",
+  "category": "Category",
+  "pricePerKmEuro": "Price per kilometer (€)",
+  "priceExample": "e.g. 1.50",
+  "create": "Create",
+  "modify": "Modify",
+  "reservationConfirmedSuccess": "Reservation confirmed successfully!",
+  "sendError": "❌ Sending error: {error}",
+  "@sendError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+
+  "welcomeSubtitle": "Book your driver in seconds — modern, smooth and reliable."
+}

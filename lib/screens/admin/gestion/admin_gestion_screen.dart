@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class AdminGestionScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -21,7 +22,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: 'Gestion',
+          title: AppLocalizations.of(context).management,
           actions: [
             Container(
               margin: const EdgeInsets.only(right: 16),
@@ -32,7 +33,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                 border: Border.all(color: AppColors.accent),
               ),
               child: Text(
-                'ADMIN',
+                AppLocalizations.of(context).admin,
                 style: TextStyle(
                   color: AppColors.accent,
                   fontWeight: FontWeight.bold,
@@ -66,51 +67,51 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildSection(
-              title: 'Gestion de la flotte',
+              title: AppLocalizations.of(context).fleetManagement,
               icon: Icons.directions_car,
               children: [
                 _buildMenuItem(
                   icon: Icons.category,
-                  title: 'Gestion des véhicules',
-                  subtitle: 'Gérer les catégories, prix et disponibilité des véhicules',
+                  title: AppLocalizations.of(context).manageVehicles,
+                  subtitle: AppLocalizations.of(context).manageVehiclesSubtitle,
                   onTap: () => _navigateToVehicleManagement(),
                 ),
               ],
             ),
             const SizedBox(height: 24),
             _buildSection(
-              title: 'Codes promotionnels',
+              title: AppLocalizations.of(context).promoCodes,
               icon: Icons.local_offer,
               children: [
                 _buildMenuItem(
                   icon: Icons.add_circle,
-                  title: 'Créer un code promo',
-                  subtitle: 'Générer un nouveau code promotionnel',
+                  title: AppLocalizations.of(context).createPromoCode,
+                  subtitle: AppLocalizations.of(context).createPromoCodeSubtitle,
                   onTap: () => _showCreatePromoDialog(),
                 ),
                 _buildMenuItem(
                   icon: Icons.list,
-                  title: 'Codes actifs',
-                  subtitle: 'Voir et gérer les codes promotionnels',
+                  title: AppLocalizations.of(context).activeCodes,
+                  subtitle: AppLocalizations.of(context).activeCodesSubtitle,
                   onTap: () => _showPromoCodesList(),
                 ),
               ],
             ),
             const SizedBox(height: 24),
             _buildSection(
-              title: 'Administration',
+              title: AppLocalizations.of(context).administration,
               icon: Icons.admin_panel_settings,
               children: [
                 _buildMenuItem(
                   icon: Icons.people,
-                  title: 'Gestion utilisateurs',
-                  subtitle: 'Voir et gérer les utilisateurs',
+                  title: AppLocalizations.of(context).userManagement,
+                  subtitle: AppLocalizations.of(context).userManagementSubtitle,
                   onTap: () => _showUserManagement(),
                 ),
                 _buildMenuItem(
                   icon: Icons.analytics,
-                  title: 'Statistiques',
-                  subtitle: 'Voir les statistiques de l\'application',
+                  title: AppLocalizations.of(context).statistics,
+                  subtitle: AppLocalizations.of(context).statisticsSubtitle,
                   onTap: () => _showStatistics(),
                 ),
               ],

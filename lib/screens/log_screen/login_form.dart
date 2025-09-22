@@ -12,6 +12,7 @@ import 'package:my_mobility_services/widgets/sheet_handle.dart';
 import 'package:my_mobility_services/widgets/waiting_widget.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart' hide GlassSheet;
 import 'package:my_mobility_services/data/services/session_service.dart';
+import '../../l10n/generated/app_localizations.dart';
 class LoginForm extends StatefulWidget {
   const LoginForm({required this.onClose, required this.onSwitch, super.key});
 
@@ -115,7 +116,7 @@ class LoginFormState extends State<LoginForm> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Bienvenue 👋')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).welcomeMessage)));
 
       widget.onClose();
     } on FirebaseAuthException catch (e) {
@@ -154,7 +155,7 @@ class LoginFormState extends State<LoginForm> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context).errorUnknownError}: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -233,7 +234,7 @@ class LoginFormState extends State<LoginForm> {
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.accent,
                     ),
-                    child: const Text('Forgot password?'),
+                    child: Text(AppLocalizations.of(context).forgotPassword),
                   ),
                 ],
               ),
@@ -252,7 +253,7 @@ class LoginFormState extends State<LoginForm> {
                           );
                           await _login();
                         },
-                  child: _isLoading ? const LoadingMBS() : const Text('Log In'),
+                  child: _isLoading ? const LoadingMBS() : Text(AppLocalizations.of(context).logIn),
                 ),
               ),
             ],
@@ -260,7 +261,7 @@ class LoginFormState extends State<LoginForm> {
         ),
         const SizedBox(height: 12),
 
-        const DividerText('or sign in with'),
+        DividerText(AppLocalizations.of(context).orSignInWith),
         const SizedBox(height: 12),
 
         Row(
@@ -270,7 +271,7 @@ class LoginFormState extends State<LoginForm> {
               icon: SvgPicture.asset('assets/images/Google__G__logo.svg'),
               tooltip: 'Sign in with Google',
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Google: bientôt dispo')),
+                SnackBar(content: Text(AppLocalizations.of(context).googleSoon)),
               ),
             ),
             const SizedBox(width: 24),
@@ -284,7 +285,7 @@ class LoginFormState extends State<LoginForm> {
               ),
               tooltip: 'Sign in with Apple',
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Apple: bientôt dispo')),
+                SnackBar(content: Text(AppLocalizations.of(context).appleSoon)),
               ),
             ),
             const SizedBox(width: 24),
@@ -292,7 +293,7 @@ class LoginFormState extends State<LoginForm> {
               icon: SvgPicture.asset('assets/images/2023_Facebook_icon.svg'),
               tooltip: 'Sign in with Facebook',
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Facebook: bientôt dispo')),
+                SnackBar(content: Text(AppLocalizations.of(context).facebookSoon)),
               ),
             ),
           ],

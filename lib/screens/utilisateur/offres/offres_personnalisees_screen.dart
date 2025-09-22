@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class OffresPersonnaliseesScreen extends StatelessWidget {
   final Function(int) onNavigate;
@@ -16,7 +17,7 @@ class OffresPersonnaliseesScreen extends StatelessWidget {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const GlassAppBar(title: 'Offres'),
+        appBar: GlassAppBar(title: AppLocalizations.of(context).offers),
         body: Padding(
           padding: const EdgeInsets.only(top: 16),
           child: const Center(
