@@ -28,6 +28,17 @@
         <string>LaunchScreen</string>
         <key>UIMainStoryboardFile</key>
         <string>Main</string>
+        
+        <!-- Stripe Configuration -->
+        <key>StripePublishableKey</key>
+        <string>pk_test_51SA4Pk0xP2bV4rW1o0e3BSzzRNOICsoXLfA2hexPWAaRvNYxYGpM9EXZeOibyR0NMhAeMJoDR9XsM8NVBCbqWxpt00Vr2CovbL</string>
+        
+        <!-- Apple Pay Configuration -->
+        <key>com.apple.developer.in-app-payments</key>
+        <array>
+            <string>merchant.com.example.my_mobility_services</string>
+        </array>
+        
         <key>UISupportedInterfaceOrientations</key>
         <array>
             <string>UIInterfaceOrientationPortrait</string>

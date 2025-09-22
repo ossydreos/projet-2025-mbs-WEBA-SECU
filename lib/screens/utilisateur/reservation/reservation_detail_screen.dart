@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/notification_service.dart';
+import 'package:my_mobility_services/data/services/stripe_checkout_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -16,8 +17,16 @@ class ReservationDetailScreen extends StatefulWidget {
 
 class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   final NotificationService _notificationService = NotificationService();
+  String _paymentMethod = 'Cash';
 
   Future<void> _confirmPayment() async {
+    // ✅ Si paiement en ligne sélectionné, ouvrir Stripe
+    if (_paymentMethod == 'Paiement en ligne') {
+      _openSecurePaymentScreen();
+      return;
+    }
+    
+    // ✅ Sinon, confirmer le paiement en espèces
     try {
       await _notificationService.confirmPayment(widget.reservation.id);
 
@@ -42,6 +51,230 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
         );
       }
     }
+  }
+
+  // ✅ Détecter la devise selon la région
+  String _getCurrencyForRegion() {
+    // Pour l'instant, on utilise CHF car votre app est principalement en Suisse
+    // Plus tard, vous pourrez détecter la région de l'utilisateur
+    return 'CHF';
+  }
+
+  // ✅ Ouvrir directement Stripe Checkout avec devise adaptée
+  void _openSecurePaymentScreen() async {
+    try {
+      await StripeCheckoutService.createCheckoutSession(
+        amount: widget.reservation.totalPrice,
+        currency: _getCurrencyForRegion(), // ✅ Devise adaptée à la région
+        reservationId: widget.reservation.id,
+        vehicleName: widget.reservation.vehicleName,
+        departure: widget.reservation.departure,
+        destination: widget.reservation.destination,
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de l\'ouverture du paiement: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // ✅ Afficher les boutons radio de paiement
+  void _showPaymentMethodDialog() {
+    String tempPaymentMethod = _paymentMethod; // Variable temporaire
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: AppColors.bgElev,
+              title: const Text(
+                'Méthode de paiement',
+                style: TextStyle(color: Colors.white),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // ✅ Option Cash
+                  GestureDetector(
+                    onTap: () {
+                      setDialogState(() {
+                        tempPaymentMethod = 'Cash';
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: tempPaymentMethod == 'Cash' 
+                            ? AppColors.accent.withOpacity(0.2) 
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: tempPaymentMethod == 'Cash' 
+                              ? AppColors.accent 
+                              : Colors.grey.withOpacity(0.5),
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: tempPaymentMethod == 'Cash' 
+                                  ? AppColors.accent 
+                                  : Colors.transparent,
+                              border: Border.all(
+                                color: tempPaymentMethod == 'Cash' 
+                                    ? AppColors.accent 
+                                    : Colors.grey,
+                                width: 2,
+                              ),
+                            ),
+                            child: tempPaymentMethod == 'Cash'
+                                ? const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 16,
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Cash',
+                                  style: TextStyle(
+                                    color: tempPaymentMethod == 'Cash' 
+                                        ? AppColors.accent 
+                                        : Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Paiement en espèces au chauffeur',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // ✅ Option Paiement en ligne
+                  GestureDetector(
+                    onTap: () {
+                      setDialogState(() {
+                        tempPaymentMethod = 'Paiement en ligne';
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: tempPaymentMethod == 'Paiement en ligne' 
+                            ? AppColors.accent.withOpacity(0.2) 
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: tempPaymentMethod == 'Paiement en ligne' 
+                              ? AppColors.accent 
+                              : Colors.grey.withOpacity(0.5),
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: tempPaymentMethod == 'Paiement en ligne' 
+                                  ? AppColors.accent 
+                                  : Colors.transparent,
+                              border: Border.all(
+                                color: tempPaymentMethod == 'Paiement en ligne' 
+                                    ? AppColors.accent 
+                                    : Colors.grey,
+                                width: 2,
+                              ),
+                            ),
+                            child: tempPaymentMethod == 'Paiement en ligne'
+                                ? const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 16,
+                                  )
+                                : null,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Paiement en ligne',
+                                  style: TextStyle(
+                                    color: tempPaymentMethod == 'Paiement en ligne' 
+                                        ? AppColors.accent 
+                                        : Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                const Text(
+                                  'Carte bancaire, Apple Pay, Google Pay, Twint',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _paymentMethod = tempPaymentMethod;
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'Confirmer',
+                    style: TextStyle(color: AppColors.accent),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -181,12 +414,12 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           ],
           _buildInfoRow(
             AppLocalizations.of(context).price,
-            '${widget.reservation.totalPrice.toStringAsFixed(2)} €',
+            '${widget.reservation.totalPrice.toStringAsFixed(2)} CHF',
           ),
           if (widget.reservation.discountAmount != null)
             _buildInfoRow(
               'Remise',
-              '- ${widget.reservation.discountAmount!.toStringAsFixed(2)} €',
+              '- ${widget.reservation.discountAmount!.toStringAsFixed(2)} CHF',
             ),
           if (widget.reservation.promoCode != null)
             _buildInfoRow('Code promo', widget.reservation.promoCode!),
@@ -194,7 +427,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             AppLocalizations.of(context).status,
             widget.reservation.status.getLocalizedStatus(context),
           ),
-
+          
           if (widget.reservation.clientNote != null) ...[
             const SizedBox(height: 8),
             _buildInfoRow(
@@ -359,24 +592,84 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           ),
 
           const SizedBox(height: 16),
-
+          
+          // ✅ Section sélection de méthode de paiement
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blue, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  AppLocalizations.of(context).cashPayment,
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+              const Text(
+                'Méthode de paiement:',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: _showPaymentMethodDialog,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    'Modifier',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
             ],
           ),
-
+          
+          const SizedBox(height: 12),
+          
+          // ✅ Affichage de la méthode sélectionnée
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  _paymentMethod == 'Paiement en ligne' 
+                    ? Icons.payment 
+                    : Icons.account_balance_wallet,
+                  color: Colors.black,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                _paymentMethod,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${widget.reservation.totalPrice.toStringAsFixed(2)} CHF',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          
           const SizedBox(height: 20),
 
           SizedBox(
@@ -384,7 +677,11 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             child: ElevatedButton.icon(
               onPressed: _confirmPayment,
               icon: const Icon(Icons.check_circle, size: 20),
-              label: Text(AppLocalizations.of(context).confirmPayment),
+              label: Text(
+                _paymentMethod == 'Carte bancaire' 
+                  ? 'Payer maintenant' 
+                  : AppLocalizations.of(context).confirmPayment
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,

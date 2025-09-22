@@ -427,7 +427,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 ),
               ),
               Text(
-                '${reservation.totalPrice.toStringAsFixed(1)} €',
+                '${reservation.totalPrice.toStringAsFixed(2)} CHF',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -616,7 +616,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${reservation.totalPrice.toStringAsFixed(1)} €',
+                      '${reservation.totalPrice.toStringAsFixed(2)} CHF',
                       style: TextStyle(
                         fontSize: 14,
                         color: AppColors.accent,

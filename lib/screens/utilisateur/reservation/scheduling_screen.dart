@@ -12,12 +12,14 @@ class SchedulingScreen extends StatefulWidget {
   final String destination;
   final LatLng? departureCoordinates;
   final LatLng? destinationCoordinates;
+  final double calculatedPrice; // ✅ AJOUTER LE PRIX CALCULÉ
 
   const SchedulingScreen({
     super.key,
     required this.vehicleName,
     required this.departure,
     required this.destination,
+    required this.calculatedPrice, // ✅ AJOUTER LE PRIX CALCULÉ
     this.departureCoordinates,
     this.destinationCoordinates,
   });
@@ -482,6 +484,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                                       widget.departureCoordinates,
                                   destinationCoordinates:
                                       widget.destinationCoordinates,
+                                  calculatedPrice: widget.calculatedPrice, // ✅ TRANSMETTRE LE PRIX
                                 ),
                               ),
                             );

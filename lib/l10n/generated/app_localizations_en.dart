@@ -291,7 +291,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get luggage => 'Luggage';
 
   @override
-  String get paymentMethod => 'Payment method';
+  String get paymentMethod => 'Payment Method';
 
   @override
   String get totalPrice => 'Total price';
@@ -303,7 +303,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get applePay => 'Apple Pay';
 
   @override
-  String get bankCard => 'Bank card';
+  String get bankCard => 'Bank Card';
 
   @override
   String get cash => 'Cash';
@@ -1360,7 +1360,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get category => 'Category';
 
   @override
-  String get pricePerKmEuro => 'Price per kilometer (€)';
+  String get pricePerKmEuro => 'Price per kilometer (CHF)';
 
   @override
   String get priceExample => 'e.g. 1.50';
@@ -1380,4 +1380,126 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get welcomeSubtitle =>
       'Book your driver in seconds — modern, smooth and reliable.';
+
+  @override
+  String get securePayment => 'Secure Payment';
+
+  @override
+  String get orderSummary => 'Order Summary';
+
+  @override
+  String get bankCardSubtitle => 'Visa, Mastercard, American Express';
+
+  @override
+  String get applePaySubtitle => 'Fast and secure payment';
+
+  @override
+  String get googlePay => 'Google Pay';
+
+  @override
+  String get googlePaySubtitle => 'Fast and secure payment';
+
+  @override
+  String get cardDetails => 'Card Details';
+
+  @override
+  String get payNow => 'Pay now';
+
+  @override
+  String get processingPayment => 'Processing payment...';
+
+  @override
+  String get paymentSuccess => 'Payment Successful!';
+
+  @override
+  String get paymentSuccessMessage =>
+      'Your reservation has been confirmed and paid successfully.';
+
+  @override
+  String get continueText => 'Continue';
+
+  @override
+  String get securePaymentInfo =>
+      'Your data is protected by 256-bit SSL encryption';
+
+  @override
+  String get paymentFailed => 'Payment Failed';
+
+  @override
+  String get paymentFailedMessage =>
+      'An error occurred while processing your payment.';
+
+  @override
+  String get tryAgain => 'Try Again';
+
+  @override
+  String get cancelPayment => 'Cancel Payment';
+
+  @override
+  String get refundRequest => 'Refund Request';
+
+  @override
+  String get refundReason => 'Refund Reason';
+
+  @override
+  String get refundAmount => 'Refund Amount';
+
+  @override
+  String get requestRefund => 'Request Refund';
+
+  @override
+  String get refundSuccess => 'Refund Requested';
+
+  @override
+  String get refundSuccessMessage => 'Your refund request has been submitted.';
+
+  @override
+  String get paymentHistory => 'Payment History';
+
+  @override
+  String get waitingForDriverConfirmation => 'Waiting for driver confirmation';
+
+  @override
+  String get waitingForConfirmation => 'Waiting for confirmation';
+
+  @override
+  String get reservationProcessingMessage =>
+      'Your reservation is being processed. You cannot make a new reservation until it is confirmed.';
+
+  @override
+  String get waitingForPayment => 'Waiting for payment';
+
+  @override
+  String get paymentRequiredMessage =>
+      'Your reservation is confirmed! Please make the payment to finalize your trip.';
+
+  @override
+  String get transactionId => 'Transaction ID';
+
+  @override
+  String get paymentDate => 'Payment Date';
+
+  @override
+  String get paymentStatus => 'Payment Status';
+
+  @override
+  String get paid => 'Paid';
+
+  @override
+  String get pending => 'Pending';
+
+  @override
+  String get failed => 'Failed';
+
+  @override
+  String get refunded => 'Refunded';
+
+  @override
+  String get noPaymentHistory => 'No Payment History';
+
+  @override
+  String get noPaymentHistoryMessage => 'You haven\'t made any payments yet.';
+
+  @override
+  String get total => 'Total';
 }

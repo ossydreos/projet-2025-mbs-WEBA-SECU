@@ -15,6 +15,11 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyATiODItwM8vfA-hN1hRNkdE4lLDjGySwc" />
         
+        <!-- Stripe Configuration -->
+        <meta-data
+            android:name="com.stripe.android.publishableKey"
+            android:value="pk_test_51SA4Pk0xP2bV4rW1o0e3BSzzRNOICsoXLfA2hexPWAaRvNYxYGpM9EXZeOibyR0NMhAeMJoDR9XsM8NVBCbqWxpt00Vr2CovbL" />
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"

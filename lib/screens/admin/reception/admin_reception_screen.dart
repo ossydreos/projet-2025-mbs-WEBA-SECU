@@ -389,7 +389,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     style: TextStyle(fontSize: 12, color: AppColors.textWeak),
                   ),
                   Text(
-                    '${(reservation.totalPrice ?? 0.0).toStringAsFixed(2)}€',
+                    '${(reservation.totalPrice ?? 0.0).toStringAsFixed(2)} CHF',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

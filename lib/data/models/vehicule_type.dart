@@ -160,10 +160,7 @@ class VehiculeType {
       maxLuggage: map['maxLuggage'] ?? 2,
       description: map['description'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
-      icon: IconData(
-        map['icon'] ?? Icons.directions_car.codePoint,
-        fontFamily: 'MaterialIcons',
-      ),
+      icon: Icons.directions_car, // Utiliser une icône constante pour éviter l'erreur de build
       isActive: map['isActive'] ?? true,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: map['updatedAt'] != null 
@@ -204,7 +201,7 @@ class VehiculeType {
   }
 
   // Propriétés calculées pour l'affichage
-  String get priceDisplay => '${pricePerKm.toStringAsFixed(2)} €/km';
+  String get priceDisplay => '${pricePerKm.toStringAsFixed(2)} CHF/km';
   String get capacityDisplay => '$maxPassengers passagers';
   String get luggageDisplay => '$maxLuggage bagages';
   

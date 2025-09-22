@@ -8,6 +8,8 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/theme/google_map_styles.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/widgets/utilisateur/paneau_recherche.dart';
+import 'package:my_mobility_services/widgets/utilisateur/reservation/pending_reservation_sheet.dart';
+import 'package:my_mobility_services/widgets/utilisateur/reservation/confirmed_reservation_sheet.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_service.dart';
@@ -283,6 +285,40 @@ class _AccueilScreenState extends State<AccueilScreen>
   Widget _buildPendingReservationPanel(Reservation reservation) {
     final isWaitingPayment = reservation.status == ReservationStatus.confirmed;
     
+    if (isWaitingPayment) {
+      // Sheet pour réservation confirmée (paiement)
+      return ConfirmedReservationSheet(
+        reservation: reservation,
+        onCancel: () => _cancelReservation(reservation),
+        onCall: _makePhoneCall,
+        onMessage: _sendSMS,
+        onPay: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ReservationDetailScreen(
+                reservation: reservation,
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      // Sheet pour réservation en attente
+      return PendingReservationSheet(
+        reservation: reservation,
+        onCancel: () => _cancelReservation(reservation),
+        onCall: _makePhoneCall,
+        onMessage: _sendSMS,
+      );
+    }
+  }
+
+  // Ancienne méthode (gardée pour référence) - COMMENTÉE
+  /*
+  Widget _buildPendingReservationPanelOld(Reservation reservation) {
+    final isWaitingPayment = reservation.status == ReservationStatus.confirmed;
+    
     return GlassContainer(
       margin: const EdgeInsets.all(0),
       padding: const EdgeInsets.all(20),
@@ -386,7 +422,7 @@ class _AccueilScreenState extends State<AccueilScreen>
                       ),
                     ),
                     Text(
-                      '${reservation.totalPrice.toStringAsFixed(1)} €',
+                      '${reservation.totalPrice.toStringAsFixed(2)} CHF',
                       style: TextStyle(
                         fontSize: 18,
                         color: AppColors.accent,
@@ -661,6 +697,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       ),
     );
   }
+  */
 
   @override
   Widget build(BuildContext context) {

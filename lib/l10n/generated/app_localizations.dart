@@ -665,7 +665,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentMethod.
   ///
   /// In en, this message translates to:
-  /// **'Payment method'**
+  /// **'Payment Method'**
   String get paymentMethod;
 
   /// No description provided for @totalPrice.
@@ -689,7 +689,7 @@ abstract class AppLocalizations {
   /// No description provided for @bankCard.
   ///
   /// In en, this message translates to:
-  /// **'Bank card'**
+  /// **'Bank Card'**
   String get bankCard;
 
   /// No description provided for @cash.
@@ -2753,7 +2753,7 @@ abstract class AppLocalizations {
   /// No description provided for @pricePerKmEuro.
   ///
   /// In en, this message translates to:
-  /// **'Price per kilometer (€)'**
+  /// **'Price per kilometer (CHF)'**
   String get pricePerKmEuro;
 
   /// No description provided for @priceExample.
@@ -2785,6 +2785,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Book your driver in seconds — modern, smooth and reliable.'**
   String get welcomeSubtitle;
+
+  /// No description provided for @securePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Secure Payment'**
+  String get securePayment;
+
+  /// No description provided for @orderSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Summary'**
+  String get orderSummary;
+
+  /// No description provided for @bankCardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa, Mastercard, American Express'**
+  String get bankCardSubtitle;
+
+  /// No description provided for @applePaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast and secure payment'**
+  String get applePaySubtitle;
+
+  /// No description provided for @googlePay.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Pay'**
+  String get googlePay;
+
+  /// No description provided for @googlePaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast and secure payment'**
+  String get googlePaySubtitle;
+
+  /// No description provided for @cardDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Details'**
+  String get cardDetails;
+
+  /// No description provided for @payNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay now'**
+  String get payNow;
+
+  /// No description provided for @processingPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing payment...'**
+  String get processingPayment;
+
+  /// No description provided for @paymentSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Successful!'**
+  String get paymentSuccess;
+
+  /// No description provided for @paymentSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reservation has been confirmed and paid successfully.'**
+  String get paymentSuccessMessage;
+
+  /// No description provided for @continueText.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueText;
+
+  /// No description provided for @securePaymentInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data is protected by 256-bit SSL encryption'**
+  String get securePaymentInfo;
+
+  /// No description provided for @paymentFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Failed'**
+  String get paymentFailed;
+
+  /// No description provided for @paymentFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'An error occurred while processing your payment.'**
+  String get paymentFailedMessage;
+
+  /// No description provided for @tryAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get tryAgain;
+
+  /// No description provided for @cancelPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Payment'**
+  String get cancelPayment;
+
+  /// No description provided for @refundRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund Request'**
+  String get refundRequest;
+
+  /// No description provided for @refundReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund Reason'**
+  String get refundReason;
+
+  /// No description provided for @refundAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund Amount'**
+  String get refundAmount;
+
+  /// No description provided for @requestRefund.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Refund'**
+  String get requestRefund;
+
+  /// No description provided for @refundSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund Requested'**
+  String get refundSuccess;
+
+  /// No description provided for @refundSuccessMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your refund request has been submitted.'**
+  String get refundSuccessMessage;
+
+  /// No description provided for @paymentHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment History'**
+  String get paymentHistory;
+
+  /// No description provided for @waitingForDriverConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for driver confirmation'**
+  String get waitingForDriverConfirmation;
+
+  /// No description provided for @waitingForConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for confirmation'**
+  String get waitingForConfirmation;
+
+  /// No description provided for @reservationProcessingMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reservation is being processed. You cannot make a new reservation until it is confirmed.'**
+  String get reservationProcessingMessage;
+
+  /// No description provided for @waitingForPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for payment'**
+  String get waitingForPayment;
+
+  /// No description provided for @paymentRequiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reservation is confirmed! Please make the payment to finalize your trip.'**
+  String get paymentRequiredMessage;
+
+  /// No description provided for @transactionId.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction ID'**
+  String get transactionId;
+
+  /// No description provided for @paymentDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Date'**
+  String get paymentDate;
+
+  /// No description provided for @paymentStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Status'**
+  String get paymentStatus;
+
+  /// No description provided for @paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get paid;
+
+  /// No description provided for @pending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get pending;
+
+  /// No description provided for @failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get failed;
+
+  /// No description provided for @refunded.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunded'**
+  String get refunded;
+
+  /// No description provided for @noPaymentHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No Payment History'**
+  String get noPaymentHistory;
+
+  /// No description provided for @noPaymentHistoryMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You haven\'t made any payments yet.'**
+  String get noPaymentHistoryMessage;
+
+  /// No description provided for @total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get total;
 }
 
 class _AppLocalizationsDelegate

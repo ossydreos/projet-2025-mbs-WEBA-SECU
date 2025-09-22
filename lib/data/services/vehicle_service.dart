@@ -199,6 +199,8 @@ class VehicleService {
   // Obtenir le prix formaté d'un trajet
   String getFormattedTripPrice(VehiculeType vehicle, double distanceInKm) {
     final price = calculateTripPrice(vehicle, distanceInKm);
-    return '${price.toStringAsFixed(2)} €';
+    // ✅ Arrondir à 0.05 CHF près et afficher 2 décimales
+    final roundedPrice = (price * 20).round() / 20;
+    return '${roundedPrice.toStringAsFixed(2)} CHF';
   }
 }

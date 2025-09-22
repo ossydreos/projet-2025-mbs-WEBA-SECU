@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/data/models/vehicule_type.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -12,6 +13,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/localisation_recherche_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/payment/secure_payment_screen.dart';
 
 class TripSummaryScreen extends StatefulWidget {
   final String vehicleName;
@@ -22,6 +24,7 @@ class TripSummaryScreen extends StatefulWidget {
   final String estimatedArrival;
   final LatLng? departureCoordinates;
   final LatLng? destinationCoordinates;
+  final double calculatedPrice; // ✅ AJOUTER LE PRIX CALCULÉ
 
   const TripSummaryScreen({
     super.key,
@@ -31,6 +34,7 @@ class TripSummaryScreen extends StatefulWidget {
     required this.selectedDate,
     required this.selectedTime,
     required this.estimatedArrival,
+    required this.calculatedPrice, // ✅ AJOUTER LE PRIX CALCULÉ
     this.departureCoordinates,
     this.destinationCoordinates,
   });
@@ -40,8 +44,7 @@ class TripSummaryScreen extends StatefulWidget {
 }
 
 class _TripSummaryScreenState extends State<TripSummaryScreen> {
-  String _paymentMethod = 'Espèces';
-  String _totalPrice = '0,00 €';
+  String _totalPrice = '0,00 CHF';
   final ReservationService _reservationService = ReservationService();
   final VehicleService _vehicleService = VehicleService();
   bool _isCreatingReservation = false;
@@ -132,7 +135,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     _estimatedArrival = widget.estimatedArrival;
     _currentVehicleName = widget.vehicleName;
 
-    _calculatePrice();
+    // ✅ UTILISER LE PRIX TRANSMIS AU LIEU DE LE RECALCULER
+    _setCalculatedPrice();
   }
 
   @override
@@ -157,7 +161,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     });
 
     // Calculer le prix et l'heure d'arrivée en parallèle
-    await Future.wait([_calculatePrice(), _updateEstimatedArrival()]);
+    _setCalculatedPrice();
+    await _updateEstimatedArrival();
   }
 
   // Méthode pour gérer le retour de BookingScreen
@@ -220,73 +225,16 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     }
   }
 
-  // Calculer le prix basé sur la distance et le type de véhicule
-  Future<void> _calculatePrice() async {
-    try {
-      // Obtenir le véhicule sélectionné
-      final vehicles = await _vehicleService.getActiveVehicles();
-      final selectedVehicle = vehicles.firstWhere(
-        (v) => v.name == _currentVehicleName,
-        orElse: () => vehicles.isNotEmpty
-            ? vehicles.first
-            : throw Exception('Aucun véhicule trouvé'),
-      );
-
-      print(
-        '🚗 Véhicule sélectionné pour la réservation: ${selectedVehicle.name} (${selectedVehicle.category.name}) - ${selectedVehicle.pricePerKm}€/km',
-      );
-
-      // Calculer la distance réelle avec Google Maps
-      double distance = 5.0; // Distance par défaut
-      if (_currentDepartureCoordinates != null &&
-          _currentDestinationCoordinates != null) {
-        try {
-          distance = await DirectionsService.getRealDistance(
-            origin: _currentDepartureCoordinates!,
-            destination: _currentDestinationCoordinates!,
-          );
-
-          // Distance minimum de 1km
-          if (distance < 1.0) {
-            distance = 1.0;
-          }
-        } catch (e) {
-          // Pas de fallback - l'API doit fonctionner
-          throw Exception(
-            'Impossible de calculer la distance - API Google Maps indisponible',
-          );
-        }
-      }
-
-      // Calculer le prix
-      _calculatedPrice = _vehicleService.calculateTripPrice(
-        selectedVehicle,
-        distance,
-      );
-
-      print(
-        '💰 Prix calculé: ${_calculatedPrice.toStringAsFixed(2)} € (distance: ${distance.toStringAsFixed(2)} km)',
-      );
-
-      if (mounted) {
-        setState(() {
-          final total = (_calculatedPrice - _discountAmount).clamp(
-            0,
-            double.infinity,
-          );
-          _totalPrice = '${total.toStringAsFixed(2)} €';
-        });
-      }
-    } catch (e) {
-      print('Erreur lors du calcul du prix: $e');
-      // Prix par défaut en cas d'erreur
-      if (mounted) {
-        setState(() {
-          _calculatedPrice = 15.0;
-          _totalPrice = '15,00 €';
-        });
-      }
-    }
+  // Utiliser le prix transmis depuis booking_screen
+  void _setCalculatedPrice() {
+    print('🔥 DEBUG: Prix reçu = ${widget.calculatedPrice}');
+    // ✅ Arrondir à 0.05 CHF près
+    _calculatedPrice = (widget.calculatedPrice * 20).round() / 20;
+    _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} CHF';
+    print(
+      '🔥 DEBUG: Prix final arrondi = ${_calculatedPrice.toStringAsFixed(2)} CHF',
+    );
+    print('🔥 DEBUG: Prix affiché = $_totalPrice');
   }
 
   Future<void> _applyPromo() async {
@@ -315,7 +263,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           0,
           double.infinity,
         );
-        _totalPrice = '${total.toStringAsFixed(2)} €';
+        _totalPrice = '${total.toStringAsFixed(2)} CHF';
       });
       ScaffoldMessenger.of(
         context,
@@ -324,7 +272,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       setState(() {
         _appliedPromo = null;
         _discountAmount = 0.0;
-        _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} €';
+        _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} CHF';
       });
       ScaffoldMessenger.of(
         context,
@@ -342,6 +290,9 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     });
 
     try {
+      // ✅ LE PRIX EST DÉJÀ CALCULÉ DANS initState
+      print('🔥 DEBUG RESERVATION: Prix utilisé = $_calculatedPrice');
+
       // Obtenir l'ID utilisateur (connecté ou temporaire)
       String userId;
       if (_reservationService.isUserLoggedIn()) {
@@ -372,11 +323,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         selectedDate: widget.selectedDate,
         selectedTime: _formatTime(widget.selectedTime),
         estimatedArrival: _estimatedArrival,
-        paymentMethod: _paymentMethod,
-        totalPrice: (_calculatedPrice - _discountAmount).clamp(
-          0,
-          double.infinity,
-        ),
+        paymentMethod: 'Espèces',
+        totalPrice: _calculatedPrice,
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
         departureCoordinates: _currentDepartureCoordinates != null
@@ -536,6 +484,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                               _currentDepartureCoordinates,
                                           destinationCoordinates:
                                               _currentDestinationCoordinates,
+                                          calculatedPrice:
+                                              _calculatedPrice, // ✅ AJOUTER LE PRIX
                                         ),
                                       ),
                                     );
@@ -947,143 +897,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                         ),
                       ),
 
-                      const SizedBox(height: 24),
-                      Divider(
-                        color: AppColors.textWeak.withOpacity(0.3),
-                        thickness: 0.5,
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Section Paiement
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                const Text(
-                                  'Paiement',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const Spacer(),
-                                GestureDetector(
-                                  onTap: () {
-                                    // TODO: Ouvrir sélection de méthode de paiement
-                                    _showPaymentMethodDialog();
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.accent,
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Text(
-                                      'Modifier',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Champ code promo + bouton Appliquer
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _promoController,
-                                    textCapitalization:
-                                        TextCapitalization.characters,
-                                    decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: Colors.white.withOpacity(0.08),
-                                      hintText: 'Code promo',
-                                      hintStyle: TextStyle(
-                                        color: AppColors.textWeak,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                  onPressed: _applyingPromo
-                                      ? null
-                                      : _applyPromo,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.accent,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                  child: _applyingPromo
-                                      ? const SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : const Text('Appliquer'),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-
-                            Row(
-                              children: [
-                                // Logo méthode de paiement
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.accent,
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.account_balance_wallet,
-                                    color: Colors.black,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  _paymentMethod,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const Spacer(),
-                                Text(
-                                  _totalPrice,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-
                       // fin contenu scrollable
                     ],
                   ),
@@ -1124,7 +937,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                 ),
                               )
                             : const Text(
-                                'Confirmer',
+                                'Confirmer la réservation',
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -1177,68 +990,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
               ),
             ),
           ],
-        );
-      },
-    );
-  }
-
-  void _showPaymentMethodDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.bgElev,
-          title: const Text(
-            'Méthode de paiement',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.apple, color: Colors.white),
-                title: Text(
-                  AppLocalizations.of(context).applePay,
-                  style: const TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  setState(() {
-                    _paymentMethod = 'Apple Pay';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.credit_card, color: Colors.white),
-                title: Text(
-                  AppLocalizations.of(context).bankCard,
-                  style: const TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  setState(() {
-                    _paymentMethod = 'Carte bancaire';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.account_balance_wallet,
-                  color: Colors.white,
-                ),
-                title: Text(
-                  AppLocalizations.of(context).cash,
-                  style: const TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  setState(() {
-                    _paymentMethod = 'Espèces';
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
         );
       },
     );
