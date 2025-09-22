@@ -38,7 +38,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initialiser les données de fuseau horaire pour toute l'application
   tz.initializeTimeZones();
-  
+
   runApp(const MyApp());
 }
 
@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'My Mobility Services',
       theme: AppTheme.glassDark,
-      
+
       // Configuration de l'internationalisation
       localizationsDelegates: const [
         AppLocalizations.delegate,

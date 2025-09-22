@@ -25,7 +25,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
       _openSecurePaymentScreen();
       return;
     }
-    
+
     // ✅ Sinon, confirmer le paiement en espèces
     try {
       await _notificationService.confirmPayment(widget.reservation.id);
@@ -86,7 +86,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   // ✅ Afficher les boutons radio de paiement
   void _showPaymentMethodDialog() {
     String tempPaymentMethod = _paymentMethod; // Variable temporaire
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -111,13 +111,13 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: tempPaymentMethod == 'Cash' 
-                            ? AppColors.accent.withOpacity(0.2) 
+                        color: tempPaymentMethod == 'Cash'
+                            ? AppColors.accent.withOpacity(0.2)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: tempPaymentMethod == 'Cash' 
-                              ? AppColors.accent 
+                          color: tempPaymentMethod == 'Cash'
+                              ? AppColors.accent
                               : Colors.grey.withOpacity(0.5),
                           width: 2,
                         ),
@@ -129,12 +129,12 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                             height: 24,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: tempPaymentMethod == 'Cash' 
-                                  ? AppColors.accent 
+                              color: tempPaymentMethod == 'Cash'
+                                  ? AppColors.accent
                                   : Colors.transparent,
                               border: Border.all(
-                                color: tempPaymentMethod == 'Cash' 
-                                    ? AppColors.accent 
+                                color: tempPaymentMethod == 'Cash'
+                                    ? AppColors.accent
                                     : Colors.grey,
                                 width: 2,
                               ),
@@ -155,8 +155,8 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                 Text(
                                   'Cash',
                                   style: TextStyle(
-                                    color: tempPaymentMethod == 'Cash' 
-                                        ? AppColors.accent 
+                                    color: tempPaymentMethod == 'Cash'
+                                        ? AppColors.accent
                                         : Colors.white,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -188,13 +188,13 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: tempPaymentMethod == 'Paiement en ligne' 
-                            ? AppColors.accent.withOpacity(0.2) 
+                        color: tempPaymentMethod == 'Paiement en ligne'
+                            ? AppColors.accent.withOpacity(0.2)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: tempPaymentMethod == 'Paiement en ligne' 
-                              ? AppColors.accent 
+                          color: tempPaymentMethod == 'Paiement en ligne'
+                              ? AppColors.accent
                               : Colors.grey.withOpacity(0.5),
                           width: 2,
                         ),
@@ -206,12 +206,12 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                             height: 24,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: tempPaymentMethod == 'Paiement en ligne' 
-                                  ? AppColors.accent 
+                              color: tempPaymentMethod == 'Paiement en ligne'
+                                  ? AppColors.accent
                                   : Colors.transparent,
                               border: Border.all(
-                                color: tempPaymentMethod == 'Paiement en ligne' 
-                                    ? AppColors.accent 
+                                color: tempPaymentMethod == 'Paiement en ligne'
+                                    ? AppColors.accent
                                     : Colors.grey,
                                 width: 2,
                               ),
@@ -232,8 +232,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                 Text(
                                   'Paiement en ligne',
                                   style: TextStyle(
-                                    color: tempPaymentMethod == 'Paiement en ligne' 
-                                        ? AppColors.accent 
+                                    color:
+                                        tempPaymentMethod == 'Paiement en ligne'
+                                        ? AppColors.accent
                                         : Colors.white,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -427,7 +428,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
             AppLocalizations.of(context).status,
             widget.reservation.status.getLocalizedStatus(context),
           ),
-          
+
           if (widget.reservation.clientNote != null) ...[
             const SizedBox(height: 8),
             _buildInfoRow(
@@ -592,7 +593,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           ),
 
           const SizedBox(height: 16),
-          
+
           // ✅ Section sélection de méthode de paiement
           Row(
             children: [
@@ -628,9 +629,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // ✅ Affichage de la méthode sélectionnée
           Row(
             children: [
@@ -642,9 +643,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  _paymentMethod == 'Paiement en ligne' 
-                    ? Icons.payment 
-                    : Icons.account_balance_wallet,
+                  _paymentMethod == 'Paiement en ligne'
+                      ? Icons.payment
+                      : Icons.account_balance_wallet,
                   color: Colors.black,
                   size: 24,
                 ),
@@ -669,7 +670,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
 
           SizedBox(
@@ -678,9 +679,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
               onPressed: _confirmPayment,
               icon: const Icon(Icons.check_circle, size: 20),
               label: Text(
-                _paymentMethod == 'Carte bancaire' 
-                  ? 'Payer maintenant' 
-                  : AppLocalizations.of(context).confirmPayment
+                _paymentMethod == 'Carte bancaire'
+                    ? 'Payer maintenant'
+                    : AppLocalizations.of(context).confirmPayment,
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
