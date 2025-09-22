@@ -623,6 +623,8 @@ class _BookingScreenState extends State<BookingScreen>
                                       vehicle,
                                       _estimatedDistance,
                                     );
+                                    // ✅ Arrondir à 0.05 CHF près
+                                    final roundedPrice = (estimatedPrice * 20).round() / 20;
 
                                     return Opacity(
                                       opacity: isActive ? 1.0 : 0.5,
@@ -747,7 +749,7 @@ class _BookingScreenState extends State<BookingScreen>
                                               ),
                                             ),
                                             child: Text(
-                                              '${estimatedPrice.toStringAsFixed(2)} €',
+                                              '${roundedPrice.toStringAsFixed(2)} CHF',
                                               style: TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.bold,
@@ -820,7 +822,7 @@ class _BookingScreenState extends State<BookingScreen>
                                   ),
                                   Flexible(
                                     child: Text(
-                                      '${_vehicleService.calculateTripPrice(_selectedVehicle!, _estimatedDistance).toStringAsFixed(2)} €',
+                                      '${((_vehicleService.calculateTripPrice(_selectedVehicle!, _estimatedDistance) * 20).round() / 20).toStringAsFixed(2)} CHF',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -898,6 +900,16 @@ class _BookingScreenState extends State<BookingScreen>
                                               });
                                             } else {
                                               // Aller à la page de planification
+                                              final calculatedPrice = _vehicleService.calculateTripPrice(
+                                                _selectedVehicle!,
+                                                _estimatedDistance,
+                                              );
+                                              // ✅ Arrondir à 0.05 CHF près
+                                              final roundedPrice = (calculatedPrice * 20).round() / 20;
+                                              print('🔥 DEBUG BOOKING: Prix calculé = $calculatedPrice');
+                                              print('🔥 DEBUG BOOKING: Prix arrondi = $roundedPrice');
+                                              print('🔥 DEBUG BOOKING: Véhicule = ${_selectedVehicle!.name}');
+                                              print('🔥 DEBUG BOOKING: Distance = $_estimatedDistance');
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
@@ -912,6 +924,7 @@ class _BookingScreenState extends State<BookingScreen>
                                                             .departureCoordinates,
                                                         destinationCoordinates: widget
                                                             .destinationCoordinates,
+                                                        calculatedPrice: roundedPrice, // ✅ TRANSMETTRE LE PRIX ARRONDI
                                                       ),
                                                 ),
                                               );

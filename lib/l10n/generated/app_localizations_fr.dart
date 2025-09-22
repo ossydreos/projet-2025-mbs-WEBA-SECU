@@ -1170,7 +1170,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get vehicleFeatures => 'Features';
 
   @override
-  String get pricePerKm => 'null €/km';
+  String get pricePerKm => 'null CHF/km';
 
   @override
   String get creditCard => 'Credit card';
@@ -1370,7 +1370,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get category => 'Catégorie';
 
   @override
-  String get pricePerKmEuro => 'Prix par kilomètre (€)';
+  String get pricePerKmEuro => 'Prix par kilomètre (CHF)';
 
   @override
   String get priceExample => 'ex: 1.50';
@@ -1390,4 +1390,129 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get welcomeSubtitle =>
       'Réservez votre chauffeur en quelques secondes — moderne, fluide et fiable.';
+
+  @override
+  String get securePayment => 'Paiement sécurisé';
+
+  @override
+  String get orderSummary => 'Résumé de la commande';
+
+  @override
+  String get bankCardSubtitle => 'Visa, Mastercard, American Express';
+
+  @override
+  String get applePaySubtitle => 'Paiement rapide et sécurisé';
+
+  @override
+  String get googlePay => 'Google Pay';
+
+  @override
+  String get googlePaySubtitle => 'Paiement rapide et sécurisé';
+
+  @override
+  String get cardDetails => 'Détails de la carte';
+
+  @override
+  String get payNow => 'Payer maintenant';
+
+  @override
+  String get processingPayment => 'Traitement du paiement...';
+
+  @override
+  String get paymentSuccess => 'Paiement réussi !';
+
+  @override
+  String get paymentSuccessMessage =>
+      'Votre réservation a été confirmée et payée avec succès.';
+
+  @override
+  String get continueText => 'Continuer';
+
+  @override
+  String get securePaymentInfo =>
+      'Vos données sont protégées par un chiffrement SSL 256-bit';
+
+  @override
+  String get paymentFailed => 'Échec du paiement';
+
+  @override
+  String get paymentFailedMessage =>
+      'Une erreur s\'est produite lors du traitement de votre paiement.';
+
+  @override
+  String get tryAgain => 'Réessayer';
+
+  @override
+  String get cancelPayment => 'Annuler le paiement';
+
+  @override
+  String get refundRequest => 'Demande de remboursement';
+
+  @override
+  String get refundReason => 'Raison du remboursement';
+
+  @override
+  String get refundAmount => 'Montant du remboursement';
+
+  @override
+  String get requestRefund => 'Demander un remboursement';
+
+  @override
+  String get refundSuccess => 'Remboursement demandé';
+
+  @override
+  String get refundSuccessMessage =>
+      'Votre demande de remboursement a été envoyée.';
+
+  @override
+  String get paymentHistory => 'Historique des paiements';
+
+  @override
+  String get waitingForDriverConfirmation =>
+      'En attente de confirmation du chauffeur';
+
+  @override
+  String get waitingForConfirmation => 'En attente de confirmation';
+
+  @override
+  String get reservationProcessingMessage =>
+      'Votre réservation est en cours de traitement. Vous ne pouvez pas faire une nouvelle réservation tant qu\'elle n\'est pas confirmée.';
+
+  @override
+  String get waitingForPayment => 'En attente de paiement';
+
+  @override
+  String get paymentRequiredMessage =>
+      'Votre réservation est confirmée ! Veuillez effectuer le paiement pour finaliser votre trajet.';
+
+  @override
+  String get transactionId => 'ID de transaction';
+
+  @override
+  String get paymentDate => 'Date de paiement';
+
+  @override
+  String get paymentStatus => 'Statut du paiement';
+
+  @override
+  String get paid => 'Payé';
+
+  @override
+  String get pending => 'En attente';
+
+  @override
+  String get failed => 'Échoué';
+
+  @override
+  String get refunded => 'Remboursé';
+
+  @override
+  String get noPaymentHistory => 'Aucun historique de paiement';
+
+  @override
+  String get noPaymentHistoryMessage =>
+      'Vous n\'avez pas encore effectué de paiements.';
+
+  @override
+  String get total => 'Total';
 }

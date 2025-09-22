@@ -37,3 +37,14 @@
 # Flutter deferred components
 -keep class io.flutter.embedding.engine.deferredcomponents.** { *; }
 -keep class io.flutter.embedding.android.FlutterPlayStoreSplitApplication { *; }
+
+# Stripe
+-keep class com.stripe.** { *; }
+-keep class com.stripe.android.** { *; }
+-keep class com.stripe.android.pushProvisioning.** { *; }
+-dontwarn com.stripe.**
+-dontwarn com.stripe.android.**
+
+# React Native Stripe SDK (si utilisé)
+-keep class com.reactnativestripesdk.** { *; }
+-dontwarn com.reactnativestripesdk.**

@@ -37,7 +37,6 @@ void main() async {
   // Initialiser les données de fuseau horaire pour toute l'application
   tz.initializeTimeZones();
   
-  
   runApp(const MyApp());
 }
 
@@ -51,20 +50,17 @@ class MyApp extends StatelessWidget {
       title: 'My Mobility Services',
       theme: AppTheme.glassDark,
       
-      // Configuration de l'internationalisation
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      locale: const Locale('en', ''), // ← FORCE L'ANGLAIS POUR VOIR LA DIFFÉRENCE
       supportedLocales: const [
-        Locale('en', ''), // Anglais (par défaut)
-        Locale('fr', ''), // Français
+        Locale('fr', ''), // Français (par défaut)
+        Locale('en', ''), // Anglais
       ],
-      // La langue sera automatiquement détectée selon l'appareil
-      // Si langue non supportée → fallback vers l'anglais
+
       
       home: const Authgate(),
       onGenerateRoute: (settings) {
