@@ -225,11 +225,19 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
   }
 
   void _navigateToVehicleManagement() {
-    Navigator.pushNamed(context, '/admin/vehicle-management');
+    try {
+      Navigator.pushNamed(context, '/admin/vehicle-management');
+    } catch (e) {
+      _showErrorSnackBar('Erreur de navigation: $e');
+    }
   }
 
   void _showPromoCodesList() {
-    Navigator.pushNamed(context, '/admin/promo/active');
+    try {
+      Navigator.pushNamed(context, '/admin/promo/active');
+    } catch (e) {
+      _showErrorSnackBar('Erreur de navigation: $e');
+    }
   }
 
   void _showUserManagement() {
@@ -238,6 +246,18 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
 
   void _showStatistics() {
     _showFeatureDialog('Statistiques');
+  }
+
+  void _showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   void _showFeatureDialog(String feature) {

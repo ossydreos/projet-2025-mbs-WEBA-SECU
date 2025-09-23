@@ -617,7 +617,12 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                     return Transform.scale(
                       scale: _pulseAnimation.value,
                       child: GestureDetector(
-                        onTap: widget.onDecline,
+                        onTap: () {
+                          print(
+                            '🔔 UberStyleNotification: Bouton REFUSER touché',
+                          );
+                          widget.onDecline();
+                        },
                         child: Container(
                           height: 55,
                           decoration: BoxDecoration(
@@ -659,7 +664,12 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                     return Transform.scale(
                       scale: _pulseAnimation.value,
                       child: GestureDetector(
-                        onTap: widget.onAccept,
+                        onTap: () {
+                          print(
+                            '🔔 UberStyleNotification: Bouton ACCEPTER touché',
+                          );
+                          widget.onAccept();
+                        },
                         child: Container(
                           height: 55,
                           decoration: BoxDecoration(

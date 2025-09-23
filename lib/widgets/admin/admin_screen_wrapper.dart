@@ -32,7 +32,9 @@ class _AdminScreenWrapperState extends State<AdminScreenWrapper> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Mettre à jour le contexte à chaque changement de page
-    _notificationService.updateContext(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notificationService.updateContext(context);
+    });
   }
 
   @override

@@ -36,10 +36,12 @@ class NotificationManager {
       context,
       reservation,
       onAccept: () {
+        print('🔔 NotificationManager: Bouton ACCEPTER cliqué');
         _closeCurrentNotification();
         onAccept();
       },
       onDecline: () {
+        print('🔔 NotificationManager: Bouton REFUSER cliqué');
         _closeCurrentNotification();
         onDecline();
       },
@@ -80,10 +82,12 @@ class NotificationManager {
       context,
       reservation,
       onAccept: () {
+        print('🔔 NotificationManager: Bouton ACCEPTER cliqué');
         _closeCurrentNotification();
         onAccept();
       },
       onDecline: () {
+        print('🔔 NotificationManager: Bouton REFUSER cliqué');
         _closeCurrentNotification();
         onDecline();
       },

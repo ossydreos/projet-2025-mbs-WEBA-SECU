@@ -30,6 +30,8 @@ enum RefusalAction { refuse, counterOffer }
 class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
   final ReservationTimeoutService _timeoutService = ReservationTimeoutService();
+  final AdminGlobalNotificationService _notificationService =
+      AdminGlobalNotificationService();
   int _selectedIndex = 0;
 
   @override
@@ -65,7 +67,10 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   @override
   void initState() {
     super.initState();
-    // Les notifications sont maintenant gérées globalement par AdminScreenWrapper
+    // Initialiser le service de notification global
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notificationService.initialize(context);
+    });
   }
 
   @override
@@ -83,9 +88,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           children: [
             _buildStatsCards(),
             const SizedBox(height: 24),
-            _buildTestNotificationButton(),
-            const SizedBox(height: 16),
-            _buildTestTimeoutButton(),
+            _buildSimulateReservationButton(),
             const SizedBox(height: 24),
             const PendingReservationsWidget(),
             const SizedBox(height: 24),
@@ -96,110 +99,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         ),
       ),
     );
-  }
-
-  Widget _buildTestNotificationButton() {
-    return GlassContainer(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Text(
-            'Test des notifications',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textStrong,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Cliquez pour tester l\'affichage des notifications pop-up',
-            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _testNotification,
-              icon: const Icon(Icons.notifications_active),
-              label: const Text('🧪 Tester la notification'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _testNotification() async {
-    try {
-      print('🧪 Test de notification démarré');
-
-      // Créer une réservation de test
-      final testReservation = Reservation(
-        id: '',
-        userId: 'test_user_${DateTime.now().millisecondsSinceEpoch}',
-        userName: 'Client Test',
-        vehicleName: 'Berline Premium',
-        departure: 'Gare de Lausanne, 1003 Lausanne',
-        destination: 'Aéroport de Genève, 1215 Le Grand-Saconnex',
-        selectedDate: DateTime.now().add(const Duration(hours: 2)),
-        selectedTime: '14:30',
-        estimatedArrival: '15:15',
-        paymentMethod: 'Carte bancaire',
-        totalPrice: 45.50,
-        status: ReservationStatus.pending,
-        createdAt: DateTime.now(),
-        clientNote:
-            'Test de notification - Cette réservation est créée pour tester le système',
-      );
-
-      print('🧪 Création de la réservation de test...');
-
-      // Créer la réservation dans Firebase
-      final reservationId = await _reservationService.createReservation(
-        testReservation,
-      );
-
-      print('🧪 Réservation créée avec l\'ID: $reservationId');
-
-      // Forcer l'affichage de la notification via le service global
-      final adminNotificationService = AdminGlobalNotificationService();
-      adminNotificationService.updateContext(context);
-      adminNotificationService.forceShowNotification(testReservation);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '✅ Notification de test affichée ! Réservation: ${reservationId.substring(0, 8)}',
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    } catch (e) {
-      print('🧪 Erreur lors du test: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Erreur lors du test: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
   }
 
   Widget _buildStatsCards() {
@@ -1630,7 +1529,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         }
 
         final nearTimeoutReservations = snapshot.data!;
-        
+
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16),
           child: GlassContainer(
@@ -1660,17 +1559,17 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                   const SizedBox(height: 8),
                   Text(
                     '${nearTimeoutReservations.length} réservation(s) proche(s) du timeout (30 min)',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textWeak,
-                    ),
+                    style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
                   const SizedBox(height: 12),
                   ...nearTimeoutReservations.map((reservation) {
-                    final createdAt = (reservation['createdAt'] as Timestamp).toDate();
-                    final timeSinceCreation = DateTime.now().difference(createdAt);
+                    final createdAt = (reservation['createdAt'] as Timestamp)
+                        .toDate();
+                    final timeSinceCreation = DateTime.now().difference(
+                      createdAt,
+                    );
                     final minutesRemaining = 30 - timeSinceCreation.inMinutes;
-                    
+
                     return Container(
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.all(12),
@@ -1719,26 +1618,23 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     );
   }
 
-  // Bouton de test pour le timeout
-  Widget _buildTestTimeoutButton() {
+  // Bouton pour simuler une demande de réservation client
+  Widget _buildSimulateReservationButton() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: ElevatedButton.icon(
         onPressed: () async {
           try {
-            // Vérifier les réservations en timeout
-            final timedOutReservations = await _timeoutService.getTimedOutReservations();
-            final nearTimeoutReservations = await _timeoutService.getReservationsNearTimeout();
-            
+            // Créer une vraie réservation dans Firestore
+            await _createRealTestReservation();
+
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'Timeout Check:\n'
-                    'En timeout: ${timedOutReservations.length}\n'
-                    'Proche timeout: ${nearTimeoutReservations.length}',
+                    'Réservation client simulée créée ! Notification en cours...',
                   ),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Colors.green,
                   duration: const Duration(seconds: 3),
                 ),
               );
@@ -1754,19 +1650,89 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             }
           }
         },
-        icon: const Icon(Icons.timer, color: Colors.white),
+        icon: const Icon(Icons.add_circle, color: Colors.white),
         label: const Text(
-          'Test Timeout Check',
+          'Simuler Demande de Réservation',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
+          backgroundColor: Colors.green,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
+  }
+
+  // Créer une vraie réservation dans Firestore
+  Future<void> _createRealTestReservation() async {
+    try {
+      final now = DateTime.now();
+      final reservationId = 'test-${now.millisecondsSinceEpoch}';
+
+      // Données de la réservation de test
+      final reservationData = {
+        'id': reservationId,
+        'userId': 'test-client-${now.millisecondsSinceEpoch}',
+        'userName':
+            'Client Test ${now.hour}:${now.minute.toString().padLeft(2, '0')}',
+        'userEmail': 'test@example.com',
+        'userPhone': '+41 79 123 45 67',
+        'departure': 'Gare de Lausanne',
+        'destination': 'Aéroport de Genève',
+        'selectedDate': Timestamp.fromDate(now),
+        'selectedTime':
+            '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 5).toString().padLeft(2, '0')}',
+        'estimatedArrival':
+            '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 35).toString().padLeft(2, '0')}',
+        'totalPrice': 45.50,
+        'vehicleName': 'Mercedes Classe E',
+        'paymentMethod': 'Carte de crédit',
+        'status': ReservationStatus.pending.name,
+        'createdAt': Timestamp.fromDate(now),
+        'updatedAt': Timestamp.fromDate(now),
+        'notes': 'Réservation de test créée par l\'admin',
+        'promoCode': null,
+        'discountAmount': 0.0,
+      };
+
+      // Insérer dans Firestore
+      await FirebaseFirestore.instance
+          .collection('reservations')
+          .doc(reservationId)
+          .set(reservationData);
+
+      print('✅ Réservation de test créée avec ID: $reservationId');
+
+      // Créer un objet Reservation pour la notification
+      final reservation = Reservation(
+        id: reservationId,
+        userId: 'test-client-${now.millisecondsSinceEpoch}',
+        userName:
+            'Client Test ${now.hour}:${now.minute.toString().padLeft(2, '0')}',
+        departure: 'Gare de Lausanne',
+        destination: 'Aéroport de Genève',
+        selectedDate: now,
+        selectedTime:
+            '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 5).toString().padLeft(2, '0')}',
+        estimatedArrival:
+            '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 35).toString().padLeft(2, '0')}',
+        totalPrice: 45.50,
+        vehicleName: 'Mercedes Classe E',
+        paymentMethod: 'Carte de crédit',
+        status: ReservationStatus.pending,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      // Forcer l'affichage de la notification avec un petit délai
+      await Future.delayed(const Duration(milliseconds: 500));
+      _notificationService.forceShowNotification(reservation, context: context);
+
+      print('🔔 Notification forcée affichée');
+    } catch (e) {
+      print('❌ Erreur lors de la création de la réservation de test: $e');
+      rethrow;
+    }
   }
 }

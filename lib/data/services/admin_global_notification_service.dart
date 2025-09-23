@@ -31,15 +31,19 @@ class AdminGlobalNotificationService {
   // Mettre à jour le contexte (nécessaire lors des changements de page)
   void updateContext(BuildContext context) {
     _globalContext = context;
+    print('🔔 AdminGlobalNotificationService: Contexte mis à jour');
   }
 
   // Forcer l'affichage d'une notification (pour les tests)
-  void forceShowNotification(Reservation reservation) {
+  void forceShowNotification(Reservation reservation, {BuildContext? context}) {
     print(
       '🔔 AdminGlobalNotificationService: Forçage de l\'affichage de la notification',
     );
 
-    if (_globalContext == null || !_globalContext!.mounted) {
+    // Utiliser le contexte fourni ou le contexte global
+    final contextToUse = context ?? _globalContext;
+
+    if (contextToUse == null || !contextToUse.mounted) {
       print(
         '🔔 AdminGlobalNotificationService: Contexte non disponible pour le forçage',
       );
@@ -51,7 +55,7 @@ class AdminGlobalNotificationService {
     );
 
     _notificationManager.showGlobalNotification(
-      _globalContext!,
+      contextToUse,
       reservation,
       onAccept: () => _acceptReservation(reservation.id),
       onDecline: () => _showRefusalOptions(reservation),
@@ -195,11 +199,12 @@ class AdminGlobalNotificationService {
 
   // Accepter une réservation
   Future<void> _acceptReservation(String reservationId) async {
+    print(
+      '🔔 AdminGlobalNotificationService: Acceptation de la réservation $reservationId',
+    );
+
     try {
-      await _reservationService.updateReservationStatus(
-        reservationId,
-        ReservationStatus.confirmed,
-      );
+      await _reservationService.confirmReservation(reservationId);
 
       if (_globalContext != null && _globalContext!.mounted) {
         ScaffoldMessenger.of(_globalContext!).showSnackBar(
@@ -227,53 +232,33 @@ class AdminGlobalNotificationService {
     }
   }
 
-  // Afficher les options de refus
+  // Refuser directement la réservation
   void _showRefusalOptions(Reservation reservation) {
-    if (_globalContext == null || !_globalContext!.mounted) return;
+    if (_globalContext == null || !_globalContext!.mounted) {
+      print(
+        '❌ AdminGlobalNotificationService: Contexte non disponible pour refuser',
+      );
+      return;
+    }
 
-    showDialog(
-      context: _globalContext!,
-      builder: (BuildContext context) {
-        return GlassActionDialog(
-          title: 'Action sur la réservation',
-          message: 'Que souhaitez-vous faire avec cette réservation ?',
-          actions: [
-            GlassActionButton(
-              label: 'Annuler',
-              onPressed: () => Navigator.of(context).pop(),
-              color: AppColors.textWeak,
-            ),
-            GlassActionButton(
-              label: 'Refuser',
-              onPressed: () {
-                Navigator.of(context).pop();
-                _declineReservation(reservation.id);
-              },
-              icon: Icons.close,
-              color: Colors.red,
-            ),
-            GlassActionButton(
-              label: 'Contre-offre',
-              onPressed: () {
-                Navigator.of(context).pop();
-                _showCounterOfferDialog(reservation);
-              },
-              icon: Icons.handshake,
-              color: AppColors.accent,
-              isPrimary: true,
-            ),
-          ],
-        );
-      },
+    print(
+      '🔔 AdminGlobalNotificationService: Refus direct de la réservation ${reservation.id}',
     );
+
+    // Refuser directement sans menu
+    _declineReservation(reservation.id);
   }
 
   // Refuser une réservation
   Future<void> _declineReservation(String reservationId) async {
+    print(
+      '🔔 AdminGlobalNotificationService: Refus de la réservation $reservationId',
+    );
+
     try {
-      await _reservationService.updateReservationStatus(
+      await _reservationService.refuseReservation(
         reservationId,
-        ReservationStatus.cancelled,
+        reason: 'Demande refusée par l\'administrateur',
       );
 
       if (_globalContext != null && _globalContext!.mounted) {
