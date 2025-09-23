@@ -1,4 +1,3 @@
-import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/promo_code.dart';
 
@@ -6,126 +5,184 @@ class PromoCodeService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _collection = 'promo_codes';
 
-  Future<String> create(PromoCode promo) async {
+  // Créer un nouveau code promo
+  Future<String> createPromoCode(PromoCode promoCode) async {
     try {
-      final doc = _firestore.collection(_collection).doc();
-      await doc.set(promo.copyWith(id: doc.id).toMap());
-      return doc.id;
-    } catch (e, st) {
-      developer.log(
-        'Erreur création code promo: $e',
-        name: 'PromoCodeService',
-        error: e,
-        stackTrace: st,
-      );
-      rethrow;
+      final docRef = await _firestore
+          .collection(_collection)
+          .add(promoCode.toMap());
+      return docRef.id;
+    } catch (e) {
+      throw Exception('Erreur lors de la création du code promo: $e');
     }
   }
 
-  Future<void> update(PromoCode promo) async {
+  // Récupérer tous les codes promo
+  Future<List<PromoCode>> getAllPromoCodes() async {
     try {
-      await _firestore.collection(_collection).doc(promo.id).update({
-        ...promo.toMap(),
-        'updatedAt': FieldValue.serverTimestamp(),
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => PromoCode.fromMap({...doc.data(), 'id': doc.id}))
+          .toList();
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des codes promo: $e');
+    }
+  }
+
+  // Récupérer un code promo par son code
+  Future<PromoCode?> getPromoCodeByCode(String code) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .where('code', isEqualTo: code.toUpperCase())
+          .where('isActive', isEqualTo: true)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        return null;
+      }
+
+      final doc = querySnapshot.docs.first;
+      return PromoCode.fromMap({...doc.data(), 'id': doc.id});
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération du code promo: $e');
+    }
+  }
+
+  // Valider un code promo
+  Future<PromoCodeValidationResult> validatePromoCode(
+    String code,
+    double totalPrice,
+  ) async {
+    try {
+      final promoCode = await getPromoCodeByCode(code);
+
+      if (promoCode == null) {
+        return PromoCodeValidationResult(
+          isValid: false,
+          message: 'Code promo introuvable',
+        );
+      }
+
+      // Vérifier si le code a expiré
+      if (promoCode.expiresAt != null &&
+          DateTime.now().isAfter(promoCode.expiresAt!)) {
+        return PromoCodeValidationResult(
+          isValid: false,
+          message: 'Ce code promo a expiré',
+        );
+      }
+
+      // Vérifier si le code a atteint sa limite d'utilisation
+      if (promoCode.maxUsers != null &&
+          promoCode.usedCount >= promoCode.maxUsers!) {
+        return PromoCodeValidationResult(
+          isValid: false,
+          message: 'Ce code promo a atteint sa limite d\'utilisation',
+        );
+      }
+
+      // Calculer la remise
+      double discountAmount = 0.0;
+      if (promoCode.type == DiscountType.percent) {
+        discountAmount = (totalPrice * promoCode.value) / 100;
+      } else {
+        discountAmount = promoCode.value;
+      }
+
+      // S'assurer que la remise ne dépasse pas le prix total
+      if (discountAmount > totalPrice) {
+        discountAmount = totalPrice;
+      }
+
+      return PromoCodeValidationResult(
+        isValid: true,
+        promoCode: promoCode,
+        discountAmount: discountAmount,
+        message: 'Code promo valide',
+      );
+    } catch (e) {
+      return PromoCodeValidationResult(
+        isValid: false,
+        message: 'Erreur lors de la validation: $e',
+      );
+    }
+  }
+
+  // Appliquer un code promo (incrémenter le compteur d'utilisation)
+  Future<void> applyPromoCode(String promoCodeId) async {
+    try {
+      await _firestore.collection(_collection).doc(promoCodeId).update({
+        'usedCount': FieldValue.increment(1),
+        'updatedAt': Timestamp.now(),
       });
-    } catch (e, st) {
-      developer.log(
-        'Erreur mise à jour code promo: $e',
-        name: 'PromoCodeService',
-        error: e,
-        stackTrace: st,
-      );
-      rethrow;
+    } catch (e) {
+      throw Exception('Erreur lors de l\'application du code promo: $e');
     }
   }
 
-  Future<void> delete(String id) async {
+  // Mettre à jour un code promo
+  Future<void> updatePromoCode(PromoCode promoCode) async {
     try {
-      await _firestore.collection(_collection).doc(id).delete();
-    } catch (e, st) {
-      developer.log(
-        'Erreur suppression code promo: $e',
-        name: 'PromoCodeService',
-        error: e,
-        stackTrace: st,
-      );
-      rethrow;
+      await _firestore
+          .collection(_collection)
+          .doc(promoCode.id)
+          .update(promoCode.copyWith(updatedAt: DateTime.now()).toMap());
+    } catch (e) {
+      throw Exception('Erreur lors de la mise à jour du code promo: $e');
     }
   }
 
-  Future<void> setActive(String id, bool isActive) async {
+  // Supprimer un code promo
+  Future<void> deletePromoCode(String promoCodeId) async {
     try {
-      await _firestore.collection(_collection).doc(id).update({
+      await _firestore.collection(_collection).doc(promoCodeId).delete();
+    } catch (e) {
+      throw Exception('Erreur lors de la suppression du code promo: $e');
+    }
+  }
+
+  // Activer/Désactiver un code promo
+  Future<void> togglePromoCodeStatus(String promoCodeId, bool isActive) async {
+    try {
+      await _firestore.collection(_collection).doc(promoCodeId).update({
         'isActive': isActive,
-        'updatedAt': FieldValue.serverTimestamp(),
+        'updatedAt': Timestamp.now(),
       });
-    } catch (e, st) {
-      developer.log(
-        'Erreur activation code promo: $e',
-        name: 'PromoCodeService',
-        error: e,
-        stackTrace: st,
-      );
-      rethrow;
+    } catch (e) {
+      throw Exception('Erreur lors de la modification du statut: $e');
     }
   }
 
-  Stream<List<PromoCode>> watchAll({bool? onlyActive}) {
-    Query query = _firestore
+  // Stream des codes promo pour l'admin
+  Stream<List<PromoCode>> getPromoCodesStream() {
+    return _firestore
         .collection(_collection)
-        .orderBy('createdAt', descending: true);
-    if (onlyActive != null) {
-      query = query.where('isActive', isEqualTo: onlyActive);
-    }
-    return query.snapshots().map(
-      (snap) => snap.docs
-          .map((d) => PromoCode.fromMap(d.data() as Map<String, dynamic>))
-          .toList(),
-    );
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => PromoCode.fromMap({...doc.data(), 'id': doc.id}))
+              .toList(),
+        );
   }
+}
 
-  Future<PromoCode?> getByCode(String code) async {
-    final snap = await _firestore
-        .collection(_collection)
-        .where('code', isEqualTo: code.toUpperCase())
-        .limit(1)
-        .get();
-    if (snap.docs.isEmpty) return null;
-    return PromoCode.fromMap(snap.docs.first.data());
-  }
+class PromoCodeValidationResult {
+  final bool isValid;
+  final PromoCode? promoCode;
+  final double discountAmount;
+  final String message;
 
-  // Vérifier si un code est valide (actif, non expiré, quota non atteint)
-  Future<bool> isUsable(PromoCode promo) async {
-    final now = DateTime.now();
-    if (!promo.isActive) return false;
-    if (promo.expiresAt != null && promo.expiresAt!.isBefore(now)) return false;
-    if (promo.maxUsers != null && promo.usedCount >= promo.maxUsers!)
-      return false;
-    return true;
-  }
-
-  // Redeem atomiquement un code (incrémente usedCount si encore valide)
-  Future<void> redeemIfValid(String promoId) async {
-    final ref = _firestore.collection(_collection).doc(promoId);
-    await _firestore.runTransaction((txn) async {
-      final snap = await txn.get(ref);
-      if (!snap.exists) {
-        throw StateError('Code promo introuvable');
-      }
-      final data = snap.data() as Map<String, dynamic>;
-      final promo = PromoCode.fromMap(data);
-      final now = DateTime.now();
-      if (!promo.isActive) throw StateError('Code désactivé');
-      if (promo.expiresAt != null && promo.expiresAt!.isBefore(now)) {
-        throw StateError('Code expiré');
-      }
-      if (promo.maxUsers != null && promo.usedCount >= promo.maxUsers!) {
-        throw StateError('Quota atteint');
-      }
-      txn.update(ref, {
-        'usedCount': promo.usedCount + 1,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-    });
-  }
+  PromoCodeValidationResult({
+    required this.isValid,
+    this.promoCode,
+    this.discountAmount = 0.0,
+    required this.message,
+  });
 }

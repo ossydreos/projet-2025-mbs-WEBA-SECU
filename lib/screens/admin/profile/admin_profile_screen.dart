@@ -9,7 +9,11 @@ class AdminProfileScreen extends StatefulWidget {
   final Function(int)? onNavigate;
   final bool showBottomBar;
 
-  const AdminProfileScreen({super.key, this.onNavigate, this.showBottomBar = true});
+  const AdminProfileScreen({
+    super.key,
+    this.onNavigate,
+    this.showBottomBar = true,
+  });
 
   @override
   State<AdminProfileScreen> createState() => _AdminProfileScreenState();
@@ -43,31 +47,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         return GlassBackground(
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            appBar: GlassAppBar(
-              title: AppLocalizations.of(context).account,
-              actions: [
-                Container(
-                  margin: const EdgeInsets.only(right: 16),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.accent),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context).admin,
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            appBar: GlassAppBar(title: 'Compte', actions: []),
             body: Column(
               children: [
                 Expanded(child: _buildContent(user)),
@@ -119,7 +99,9 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              user.displayName ?? user.email?.split('@')[0] ?? AppLocalizations.of(context).administrator,
+              user.displayName ??
+                  user.email?.split('@')[0] ??
+                  AppLocalizations.of(context).administrator,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -246,7 +228,9 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).logoutError(e.toString())),
+            content: Text(
+              AppLocalizations.of(context).logoutError(e.toString()),
+            ),
             backgroundColor: AppColors.hot,
           ),
         );

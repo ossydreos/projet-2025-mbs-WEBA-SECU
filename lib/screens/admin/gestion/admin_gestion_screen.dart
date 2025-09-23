@@ -24,28 +24,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: GlassAppBar(
-          title: 'Gestion',
-          actions: [
-            Container(
-              margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.accent),
-              ),
-              child: Text(
-                'ADMIN',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          ],
-        ),
+        appBar: GlassAppBar(title: 'Gestion', actions: []),
         body: Column(
           children: [
             // Contenu principal
@@ -74,8 +53,8 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               icon: Icons.directions_car,
               children: [
                 _buildMenuItem(
-                  icon: Icons.category,
-                  title: 'Gérer les véhicules',
+                  icon: Icons.directions_car,
+                  title: 'Gérer véhicules',
                   subtitle: 'Ajouter, modifier, activer ou désactiver',
                   onTap: () => _navigateToVehicleManagement(),
                 ),
@@ -88,7 +67,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
               children: [
                 _buildMenuItem(
                   icon: Icons.local_offer,
-                  title: 'Codes promotionnels',
+                  title: 'Gérer Code Promo',
                   subtitle: 'Créer, activer/désactiver et supprimer',
                   onTap: () => _showPromoCodesList(),
                 ),
