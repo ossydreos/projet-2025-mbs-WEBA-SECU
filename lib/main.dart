@@ -34,12 +34,17 @@ import 'screens/admin/profile/admin_profile_screen.dart';
 import 'screens/admin/gestion/code_promo/codePromo_cree_screen.dart';
 import 'screens/admin/gestion/code_promo/codePromo_actif_screen.dart';
 import 'widgets/admin/test_notification_demo.dart';
+import 'data/services/reservation_timeout_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initialiser les données de fuseau horaire pour toute l'application
   tz.initializeTimeZones();
+
+  // Démarrer le service de timeout des réservations
+  final timeoutService = ReservationTimeoutService();
+  timeoutService.startTimeoutService();
 
   runApp(const MyApp());
 }

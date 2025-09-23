@@ -6,6 +6,7 @@ import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_global_notification_service.dart';
+import 'package:my_mobility_services/data/services/reservation_timeout_service.dart';
 import 'package:my_mobility_services/widgets/admin/pending_reservations_widget.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -28,6 +29,7 @@ enum RefusalAction { refuse, counterOffer }
 
 class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
+  final ReservationTimeoutService _timeoutService = ReservationTimeoutService();
   int _selectedIndex = 0;
 
   @override
@@ -82,8 +84,12 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             _buildStatsCards(),
             const SizedBox(height: 24),
             _buildTestNotificationButton(),
+            const SizedBox(height: 16),
+            _buildTestTimeoutButton(),
             const SizedBox(height: 24),
             const PendingReservationsWidget(),
+            const SizedBox(height: 24),
+            _buildTimeoutWarning(),
             const SizedBox(height: 24),
             _buildPendingReservations(),
           ],
@@ -1608,5 +1614,159 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     } catch (e) {
       return originalArrivalTime; // Retourner l'original en cas d'erreur
     }
+  }
+
+  // Widget pour afficher l'avertissement de timeout
+  Widget _buildTimeoutWarning() {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _timeoutService.getReservationsNearTimeout(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink();
+        }
+
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final nearTimeoutReservations = snapshot.data!;
+        
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: GlassContainer(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.orange,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Avertissement Timeout',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textStrong,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${nearTimeoutReservations.length} réservation(s) proche(s) du timeout (30 min)',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textWeak,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ...nearTimeoutReservations.map((reservation) {
+                    final createdAt = (reservation['createdAt'] as Timestamp).toDate();
+                    final timeSinceCreation = DateTime.now().difference(createdAt);
+                    final minutesRemaining = 30 - timeSinceCreation.inMinutes;
+                    
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            color: Colors.orange,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Réservation #${reservation['id'].substring(0, 8)}... - ${minutesRemaining}min restantes',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textWeak,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            'Créée: ${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textWeak.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Bouton de test pour le timeout
+  Widget _buildTestTimeoutButton() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ElevatedButton.icon(
+        onPressed: () async {
+          try {
+            // Vérifier les réservations en timeout
+            final timedOutReservations = await _timeoutService.getTimedOutReservations();
+            final nearTimeoutReservations = await _timeoutService.getReservationsNearTimeout();
+            
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Timeout Check:\n'
+                    'En timeout: ${timedOutReservations.length}\n'
+                    'Proche timeout: ${nearTimeoutReservations.length}',
+                  ),
+                  backgroundColor: Colors.blue,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Erreur: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
+        icon: const Icon(Icons.timer, color: Colors.white),
+        label: const Text(
+          'Test Timeout Check',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+    );
   }
 }
