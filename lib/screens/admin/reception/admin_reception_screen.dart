@@ -1097,11 +1097,8 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
   Future<void> _confirmReservation(Reservation reservation) async {
     try {
-      // Mettre à jour le statut vers confirmed
-      await _reservationService.updateReservationStatus(
-        reservation.id,
-        ReservationStatus.confirmed,
-      );
+      // Confirmer la réservation avec notification
+      await _reservationService.confirmReservation(reservation.id);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1179,24 +1176,11 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
   Future<void> _refuseReservation(Reservation reservation) async {
     try {
-      final updatedReservation = Reservation(
-        id: reservation.id,
-        userId: reservation.userId,
-        userName: reservation.userName,
-        vehicleName: reservation.vehicleName,
-        departure: reservation.departure,
-        destination: reservation.destination,
-        selectedDate: reservation.selectedDate,
-        selectedTime: reservation.selectedTime,
-        estimatedArrival: reservation.estimatedArrival,
-        paymentMethod: reservation.paymentMethod,
-        totalPrice: reservation.totalPrice,
-        status: ReservationStatus.cancelled,
-        createdAt: reservation.createdAt,
-        clientNote: reservation.clientNote,
+      // Refuser la réservation avec notification
+      await _reservationService.refuseReservation(
+        reservation.id,
+        reason: 'Demande refusée par l\'administrateur',
       );
-
-      await _reservationService.updateReservation(updatedReservation);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

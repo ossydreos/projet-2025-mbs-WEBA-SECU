@@ -908,11 +908,8 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
   Future<void> _completeReservation(Reservation reservation) async {
     try {
-      final updatedReservation = reservation.copyWith(
-        status: ReservationStatus.completed,
-        updatedAt: DateTime.now(),
-      );
-      await _reservationService.updateReservation(updatedReservation);
+      // Marquer la course comme terminée avec notification
+      await _reservationService.completeReservation(reservation.id);
       if (mounted) {
         _showSuccessMessage('Course marquée comme terminée !');
       }
@@ -942,11 +939,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
   Future<void> _cancelConfirmedReservation(Reservation reservation) async {
     try {
-      final updatedReservation = reservation.copyWith(
-        status: ReservationStatus.cancelled,
-        updatedAt: DateTime.now(),
+      // Annuler la course confirmée avec notification
+      await _reservationService.cancelConfirmedReservation(
+        reservation.id,
+        reason: 'Course annulée par l\'administrateur',
       );
-      await _reservationService.updateReservation(updatedReservation);
       if (mounted) {
         _showSuccessMessage('Course annulée !');
       }
