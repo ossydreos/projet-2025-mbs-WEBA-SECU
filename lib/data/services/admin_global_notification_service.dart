@@ -18,12 +18,36 @@ class AdminGlobalNotificationService {
   BuildContext? _globalContext;
   DateTime _lastSeenReservationAt = DateTime.now();
   bool _isInitialized = false;
+  Map<String, dynamic>? _pendingNotification;
 
   // Initialiser le service global pour l'admin
   void initialize(BuildContext context) {
     _globalContext = context;
+    print('🔔 AdminGlobalNotificationService: Initialisation avec contexte');
+    print(
+      '🔔 AdminGlobalNotificationService: Contexte monté: ${context.mounted}',
+    );
+
     if (!_isInitialized) {
       _isInitialized = true;
+      print(
+        '🔔 AdminGlobalNotificationService: Démarrage de l\'écoute des réservations',
+      );
+      _startListeningToReservations();
+    } else {
+      print(
+        '🔔 AdminGlobalNotificationService: Service déjà initialisé, mise à jour du contexte uniquement',
+      );
+    }
+  }
+
+  // Initialiser le service sans contexte (pour le démarrage global)
+  void initializeGlobal() {
+    if (!_isInitialized) {
+      _isInitialized = true;
+      print(
+        '🔔 AdminGlobalNotificationService: Initialisation globale sans contexte',
+      );
       _startListeningToReservations();
     }
   }
@@ -32,6 +56,15 @@ class AdminGlobalNotificationService {
   void updateContext(BuildContext context) {
     _globalContext = context;
     print('🔔 AdminGlobalNotificationService: Contexte mis à jour');
+
+    // Afficher la notification en attente si elle existe
+    if (_pendingNotification != null) {
+      print(
+        '🔔 AdminGlobalNotificationService: Affichage de la notification en attente',
+      );
+      _showNotificationForReservation(_pendingNotification!);
+      _pendingNotification = null;
+    }
   }
 
   // Forcer l'affichage d'une notification (pour les tests)
@@ -70,6 +103,9 @@ class AdminGlobalNotificationService {
     print(
       '🔔 AdminGlobalNotificationService: Démarrage de l\'écoute des réservations',
     );
+    print(
+      '🔔 AdminGlobalNotificationService: Contexte disponible: ${_globalContext != null}',
+    );
 
     _reservationSubscription = FirebaseFirestore.instance
         .collection('reservations')
@@ -107,13 +143,21 @@ class AdminGlobalNotificationService {
 
               // Ne traiter que les nouvelles réservations en attente
               if (status != null && status == ReservationStatus.pending.name) {
+                print(
+                  '🔔 AdminGlobalNotificationService: Réservation en attente détectée - ID: ${change.doc.id}',
+                );
+
                 // Vérifier si c'est une nouvelle réservation (créée après la dernière vue)
-                // Ajouter une marge de 5 secondes pour éviter les problèmes de timing
+                // Ajouter une marge de 2 secondes pour éviter les problèmes de timing
                 final timeDifference = createdAt
                     .difference(_lastSeenReservationAt)
                     .inSeconds;
 
-                if (timeDifference > 5) {
+                print(
+                  '🔔 AdminGlobalNotificationService: Différence de temps: ${timeDifference}s',
+                );
+
+                if (timeDifference > 2) {
                   print(
                     '🔔 AdminGlobalNotificationService: Réservation plus récente que la dernière vue (diff: ${timeDifference}s), affichage de la notification',
                   );
@@ -143,8 +187,10 @@ class AdminGlobalNotificationService {
   void _showNotificationForReservation(Map<String, dynamic> data) {
     if (_globalContext == null || !_globalContext!.mounted) {
       print(
-        '🔔 AdminGlobalNotificationService: Contexte non disponible, notification ignorée',
+        '🔔 AdminGlobalNotificationService: Contexte non disponible, notification mise en attente',
       );
+      // Stocker la notification en attente pour l'afficher quand le contexte sera disponible
+      _pendingNotification = data;
       return;
     }
 

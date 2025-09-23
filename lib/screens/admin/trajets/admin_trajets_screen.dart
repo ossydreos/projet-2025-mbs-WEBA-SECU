@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
@@ -47,72 +46,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           appBar: GlassAppBar(
             title: AppLocalizations.of(context).courses,
             actions: [
-              // Bouton de test pour vérifier le pop-up global
-              IconButton(
-                icon: Icon(Icons.notifications_active, color: AppColors.accent),
-                tooltip: 'Test notification globale',
-                onPressed: () async {
-                  try {
-                    // Créer une réservation de test
-                    final now = DateTime.now();
-                    final reservationId =
-                        'test-trajets-${now.millisecondsSinceEpoch}';
-
-                    final reservationData = {
-                      'id': reservationId,
-                      'userId':
-                          'test-client-trajets-${now.millisecondsSinceEpoch}',
-                      'userName':
-                          'Test depuis Trajets ${now.hour}:${now.minute.toString().padLeft(2, '0')}',
-                      'userEmail': 'test@example.com',
-                      'userPhone': '+41 79 123 45 67',
-                      'departure': 'Test Departure',
-                      'destination': 'Test Destination',
-                      'selectedDate': Timestamp.fromDate(now),
-                      'selectedTime':
-                          '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 5).toString().padLeft(2, '0')}',
-                      'estimatedArrival':
-                          '${now.hour.toString().padLeft(2, '0')}:${(now.minute + 35).toString().padLeft(2, '0')}',
-                      'totalPrice': 25.0,
-                      'vehicleName': 'Test Vehicle',
-                      'paymentMethod': 'Carte',
-                      'status': ReservationStatus.pending.name,
-                      'createdAt': Timestamp.fromDate(now),
-                      'updatedAt': Timestamp.fromDate(now),
-                      'notes': 'Test depuis l\'écran Trajets',
-                      'promoCode': null,
-                      'discountAmount': 0.0,
-                    };
-
-                    // Insérer dans Firestore
-                    await FirebaseFirestore.instance
-                        .collection('reservations')
-                        .doc(reservationId)
-                        .set(reservationData);
-
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Réservation créée depuis Trajets ! Pop-up en cours...',
-                          ),
-                          backgroundColor: Colors.green,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Erreur: $e'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
               // Menu de tri et filtrage
               PopupMenuButton<String>(
                 icon: Icon(Icons.tune, color: AppColors.accent),
