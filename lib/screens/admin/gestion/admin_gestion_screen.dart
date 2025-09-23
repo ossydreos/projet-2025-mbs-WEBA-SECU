@@ -240,6 +240,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     _showFeatureDialog('Statistiques');
   }
 
+
   void _showFeatureDialog(String feature) {
     showDialog(
       context: context,

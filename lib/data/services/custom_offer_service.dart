@@ -18,6 +18,8 @@ class CustomOfferService {
     String? clientNote,
     Map<String, dynamic>? departureCoordinates,
     Map<String, dynamic>? destinationCoordinates,
+    DateTime? startDateTime,
+    DateTime? endDateTime,
   }) async {
     try {
       final user = _auth.currentUser;
@@ -39,6 +41,8 @@ class CustomOfferService {
         clientNote: clientNote,
         status: CustomOfferStatus.pending,
         createdAt: DateTime.now(),
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
         departureCoordinates: departureCoordinates,
         destinationCoordinates: destinationCoordinates,
       );
@@ -65,12 +69,16 @@ class CustomOfferService {
     return _firestore
         .collection(_collection)
         .where('userId', isEqualTo: user.uid)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
+      final offers = snapshot.docs
           .map((doc) => CustomOffer.fromMap(doc.data()))
           .toList();
+      
+      // Trier par date de création (plus récent en premier)
+      offers.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      
+      return offers;
     });
   }
 
@@ -85,6 +93,14 @@ class CustomOfferService {
           .map((doc) => CustomOffer.fromMap(doc.data()))
           .toList();
     });
+  }
+
+  // Stream pour les offres (pour l'admin)
+  Stream<QuerySnapshot> getCustomOffersStream() {
+    return _firestore
+        .collection(_collection)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
   }
 
   // Récupérer les offres en attente (pour les chauffeurs)
@@ -198,6 +214,57 @@ class CustomOfferService {
       return null;
     } catch (e) {
       throw Exception('Erreur lors de la récupération de l\'offre: $e');
+    }
+  }
+
+  // Mettre à jour une offre personnalisée (pour l'admin)
+  Future<void> updateCustomOffer(
+    String offerId, {
+    String? status,
+    double? proposedPrice,
+    String? driverMessage,
+    String? driverId,
+    String? driverName,
+    int? durationHours,
+    int? durationMinutes,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      };
+
+      if (status != null) {
+        updateData['status'] = status;
+      }
+      if (proposedPrice != null) {
+        updateData['proposedPrice'] = proposedPrice;
+      }
+      if (driverMessage != null) {
+        updateData['driverMessage'] = driverMessage;
+      }
+      if (driverId != null) {
+        updateData['driverId'] = driverId;
+      }
+      if (driverName != null) {
+        updateData['driverName'] = driverName;
+      }
+      if (durationHours != null) {
+        updateData['durationHours'] = durationHours;
+      }
+      if (durationMinutes != null) {
+        updateData['durationMinutes'] = durationMinutes;
+      }
+
+      // Ajouter la date d'acceptation/rejet si le statut change
+      if (status == 'accepted') {
+        updateData['acceptedAt'] = Timestamp.fromDate(DateTime.now());
+      } else if (status == 'rejected') {
+        updateData['rejectedAt'] = Timestamp.fromDate(DateTime.now());
+      }
+
+      await _firestore.collection(_collection).doc(offerId).update(updateData);
+    } catch (e) {
+      throw Exception('Erreur lors de la mise à jour de l\'offre: $e');
     }
   }
 

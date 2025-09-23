@@ -66,6 +66,10 @@ class CustomOffer {
   final CustomOfferStatus status;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  
+  // Dates et heures de début et fin
+  final DateTime? startDateTime;
+  final DateTime? endDateTime;
   final Map<String, dynamic>? departureCoordinates;
   final Map<String, dynamic>? destinationCoordinates;
   
@@ -92,6 +96,8 @@ class CustomOffer {
     required this.status,
     required this.createdAt,
     this.updatedAt,
+    this.startDateTime,
+    this.endDateTime,
     this.departureCoordinates,
     this.destinationCoordinates,
     this.driverId,
@@ -117,6 +123,8 @@ class CustomOffer {
       'status': status.name,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'startDateTime': startDateTime != null ? Timestamp.fromDate(startDateTime!) : null,
+      'endDateTime': endDateTime != null ? Timestamp.fromDate(endDateTime!) : null,
       'departureCoordinates': departureCoordinates,
       'destinationCoordinates': destinationCoordinates,
       'driverId': driverId,
@@ -147,6 +155,12 @@ class CustomOffer {
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: map['updatedAt'] != null
           ? (map['updatedAt'] as Timestamp).toDate()
+          : null,
+      startDateTime: map['startDateTime'] != null
+          ? (map['startDateTime'] as Timestamp).toDate()
+          : null,
+      endDateTime: map['endDateTime'] != null
+          ? (map['endDateTime'] as Timestamp).toDate()
           : null,
       departureCoordinates: map['departureCoordinates'],
       destinationCoordinates: map['destinationCoordinates'],
@@ -179,6 +193,8 @@ class CustomOffer {
     CustomOfferStatus? status,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? startDateTime,
+    DateTime? endDateTime,
     Map<String, dynamic>? departureCoordinates,
     Map<String, dynamic>? destinationCoordinates,
     String? driverId,
@@ -201,6 +217,8 @@ class CustomOffer {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      startDateTime: startDateTime ?? this.startDateTime,
+      endDateTime: endDateTime ?? this.endDateTime,
       departureCoordinates: departureCoordinates ?? this.departureCoordinates,
       destinationCoordinates: destinationCoordinates ?? this.destinationCoordinates,
       driverId: driverId ?? this.driverId,

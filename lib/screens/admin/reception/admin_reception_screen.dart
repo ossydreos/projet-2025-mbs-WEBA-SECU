@@ -4,9 +4,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/services/admin_global_notification_service.dart';
 import 'package:my_mobility_services/widgets/admin/pending_reservations_widget.dart';
+import '../offres/admin_custom_offer_detail_screen.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class AdminReceptionScreen extends StatefulWidget {
@@ -28,6 +31,7 @@ enum RefusalAction { refuse, counterOffer }
 
 class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
+  final CustomOfferService _customOfferService = CustomOfferService();
   int _selectedIndex = 0;
 
   @override
@@ -83,9 +87,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             const SizedBox(height: 24),
             _buildTestNotificationButton(),
             const SizedBox(height: 24),
-            const PendingReservationsWidget(),
-            const SizedBox(height: 24),
-            _buildPendingReservations(),
+            _buildAllPendingRequests(),
           ],
         ),
       ),
@@ -270,7 +272,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Réservations en cours',
+          'Réservations en attente',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -1608,5 +1610,185 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     } catch (e) {
       return originalArrivalTime; // Retourner l'original en cas d'erreur
     }
+  }
+
+  Widget _buildAllPendingRequests() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // En-tête unifié
+        Row(
+          children: [
+            const Icon(Icons.inbox, color: Colors.blue, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Demandes en attente',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        
+        // Widget des réservations en attente
+        const PendingReservationsWidget(),
+        
+        // Offres personnalisées en attente
+        StreamBuilder<QuerySnapshot>(
+          stream: _customOfferService.getCustomOffersStream(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const SizedBox.shrink(); // Pas de loading pour les offres
+            }
+
+            if (snapshot.hasError) {
+              return const SizedBox.shrink(); // Pas d'erreur visible pour les offres
+            }
+
+            final offers = snapshot.data?.docs
+                .map((doc) => CustomOffer.fromMap(doc.data() as Map<String, dynamic>))
+                .toList() ?? [];
+
+            // Filtrer seulement les offres en attente
+            final pendingOffers = offers.where((o) => o.status == CustomOfferStatus.pending).toList();
+
+            if (pendingOffers.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            return Column(
+              children: [
+                const SizedBox(height: 16),
+                ...pendingOffers.map((offer) => _buildCustomOfferCard(offer)),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomOfferCard(CustomOffer offer) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        child: InkWell(
+          onTap: () => _openCustomOfferDetail(offer),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // En-tête avec statut et date
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.schedule, color: Colors.orange, size: 20),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'En attente',
+                          style: TextStyle(
+                            color: Colors.orange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      _formatDate(offer.createdAt),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                
+                // Trajet
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.white70, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${offer.departure} → ${offer.destination}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                
+                // Durée
+                Row(
+                  children: [
+                    const Icon(Icons.access_time, color: Colors.white70, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${offer.durationHours}h ${offer.durationMinutes}min',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  ],
+                ),
+                
+                // Note du client (si présente)
+                if (offer.clientNote != null && offer.clientNote!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.note, color: Colors.white70, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          offer.clientNote!,
+                          style: const TextStyle(color: Colors.white70),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date);
+    
+    if (difference.inDays > 0) {
+      return '${difference.inDays}j';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}min';
+    } else {
+      return 'Maintenant';
+    }
+  }
+
+  void _openCustomOfferDetail(CustomOffer offer) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AdminCustomOfferDetailScreen(offer: offer),
+      ),
+    );
   }
 }

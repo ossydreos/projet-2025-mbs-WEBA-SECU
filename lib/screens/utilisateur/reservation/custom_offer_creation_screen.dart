@@ -9,6 +9,7 @@ import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/constants.dart';
+import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
@@ -116,6 +117,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   void initState() {
     super.initState();
     _initializeTime();
+    _checkForPendingOffers();
     
     // Écouter les changements de focus
     _departureFocusNode.addListener(() {
@@ -139,6 +141,25 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     // Écouter les changements de texte
     _departureController.addListener(_onDepartureTextChanged);
     _destinationController.addListener(_onDestinationTextChanged);
+  }
+
+  void _checkForPendingOffers() async {
+    try {
+      final offers = await _customOfferService.getUserCustomOffers().first;
+      final pendingOffers = offers.where((o) => o.status == CustomOfferStatus.pending).toList();
+      
+      if (pendingOffers.isNotEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vous avez déjà une offre en attente. Veuillez attendre la réponse du chauffeur.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      // Erreur silencieuse, on continue
+    }
   }
 
   void _initializeTime() {
@@ -487,35 +508,11 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
                 'longitude': _destinationCoordinates!.longitude,
               }
             : null,
+        startDateTime: startDateTime,
+        endDateTime: endDateTime,
       );
 
       if (mounted) {
-        // Afficher un message de succès
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).customOfferCreated),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-
-        // Afficher une boîte de dialogue avec plus de détails
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(AppLocalizations.of(context).customOfferCreated),
-            content: Text(AppLocalizations.of(context).customOfferCreatedMessage),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Fermer la boîte de dialogue
-                  Navigator.of(context).pop(); // Retourner à l'écran précédent
-                },
-                child: Text(AppLocalizations.of(context).confirm),
-              ),
-            ],
-          ),
-        );
       }
     } catch (e) {
       if (mounted) {
