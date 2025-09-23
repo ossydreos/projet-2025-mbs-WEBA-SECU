@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/reservation.dart';
+import 'client_notification_service.dart';
 
 class ReservationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ClientNotificationService _notificationService =
+      ClientNotificationService();
 
   // Collection Firestore
   static const String _collection = 'reservations';
@@ -32,13 +35,40 @@ class ReservationService {
   // Mettre à jour le statut d'une réservation
   Future<void> updateReservationStatus(
     String reservationId,
-    ReservationStatus newStatus,
-  ) async {
+    ReservationStatus newStatus, {
+    String? reason,
+  }) async {
     try {
+      // Récupérer la réservation actuelle pour obtenir l'ancien statut et l'userId
+      final reservationDoc = await _firestore
+          .collection(_collection)
+          .doc(reservationId)
+          .get();
+      if (!reservationDoc.exists) {
+        throw Exception('Réservation non trouvée');
+      }
+
+      final reservationData = reservationDoc.data()!;
+      final oldStatus = ReservationStatus.values.firstWhere(
+        (status) => status.name == reservationData['status'],
+        orElse: () => ReservationStatus.pending,
+      );
+      final userId = reservationData['userId'] as String;
+
+      // Mettre à jour le statut
       await _firestore.collection(_collection).doc(reservationId).update({
         'status': newStatus.name,
         'updatedAt': Timestamp.now(),
       });
+
+      // Envoyer une notification au client
+      await _notificationService.notifyReservationStatusChanged(
+        userId: userId,
+        reservationId: reservationId,
+        oldStatus: oldStatus,
+        newStatus: newStatus,
+        reason: reason,
+      );
     } catch (e) {
       throw Exception('Erreur lors de la mise à jour du statut: $e');
     }
@@ -313,5 +343,41 @@ class ReservationService {
         'Erreur lors de la récupération des réservations terminées: $e',
       );
     }
+  }
+
+  // Refuser une réservation avec une raison
+  Future<void> refuseReservation(String reservationId, {String? reason}) async {
+    await updateReservationStatus(
+      reservationId,
+      ReservationStatus.cancelled,
+      reason: reason ?? 'Demande refusée par l\'administrateur',
+    );
+  }
+
+  // Annuler une réservation confirmée avec une raison
+  Future<void> cancelConfirmedReservation(
+    String reservationId, {
+    String? reason,
+  }) async {
+    await updateReservationStatus(
+      reservationId,
+      ReservationStatus.cancelled,
+      reason: reason ?? 'Course annulée par l\'administrateur',
+    );
+  }
+
+  // Confirmer une réservation
+  Future<void> confirmReservation(String reservationId) async {
+    await updateReservationStatus(reservationId, ReservationStatus.confirmed);
+  }
+
+  // Marquer une réservation comme en cours
+  Future<void> startReservation(String reservationId) async {
+    await updateReservationStatus(reservationId, ReservationStatus.inProgress);
+  }
+
+  // Marquer une réservation comme terminée
+  Future<void> completeReservation(String reservationId) async {
+    await updateReservationStatus(reservationId, ReservationStatus.completed);
   }
 }
