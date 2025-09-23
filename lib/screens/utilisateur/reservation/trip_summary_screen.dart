@@ -860,36 +860,48 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: AppColors.textWeak.withOpacity(0.3),
-                                  width: 1,
-                                ),
+                            TextField(
+                              controller: _noteController,
+                              maxLines: 3,
+                              maxLength: 200,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
                               ),
-                              child: TextField(
-                                controller: _noteController,
-                                maxLines: 3,
-                                maxLength: 200,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                              decoration: InputDecoration(
+                                hintText:
+                                    'Ajoutez une note pour votre chauffeur...',
+                                hintStyle: TextStyle(
+                                  color: AppColors.textWeak,
                                   fontSize: 16,
                                 ),
-                                decoration: InputDecoration(
-                                  hintText:
-                                      'Ajoutez une note pour votre chauffeur...',
-                                  hintStyle: TextStyle(
-                                    color: AppColors.textWeak,
-                                    fontSize: 16,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: AppColors.textWeak.withOpacity(0.3),
+                                    width: 1,
                                   ),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.all(16),
-                                  counterStyle: TextStyle(
-                                    color: AppColors.textWeak,
-                                    fontSize: 12,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: AppColors.textWeak.withOpacity(0.3),
+                                    width: 1,
                                   ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(
+                                    color: AppColors.accent,
+                                    width: 2,
+                                  ),
+                                ),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.1),
+                                contentPadding: const EdgeInsets.all(16),
+                                counterStyle: TextStyle(
+                                  color: AppColors.textWeak,
+                                  fontSize: 12,
                                 ),
                               ),
                             ),

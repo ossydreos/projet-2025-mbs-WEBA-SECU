@@ -282,6 +282,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     }
   }
 
+
   Widget _buildPendingReservationPanel(Reservation reservation) {
     final isWaitingPayment = reservation.status == ReservationStatus.confirmed;
     

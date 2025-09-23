@@ -176,6 +176,102 @@ abstract class AppLocalizations {
   /// **'Offers'**
   String get offers;
 
+  /// No description provided for @customOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom offer'**
+  String get customOffer;
+
+  /// No description provided for @createCustomOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Create custom offer'**
+  String get createCustomOffer;
+
+  /// No description provided for @duration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get duration;
+
+  /// No description provided for @durationHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get durationHours;
+
+  /// No description provided for @durationMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes'**
+  String get durationMinutes;
+
+  /// No description provided for @noteForDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Note for driver'**
+  String get noteForDriver;
+
+  /// No description provided for @noteForDriverHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe your specific needs...'**
+  String get noteForDriverHint;
+
+  /// No description provided for @createOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Create offer'**
+  String get createOffer;
+
+  /// No description provided for @customOfferCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom offer created successfully'**
+  String get customOfferCreated;
+
+  /// No description provided for @customOfferCreatedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your offer has been sent to drivers. You will receive a notification as soon as a driver accepts with a price.'**
+  String get customOfferCreatedMessage;
+
+  /// No description provided for @proposedPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Proposed price'**
+  String get proposedPrice;
+
+  /// No description provided for @driverMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver message'**
+  String get driverMessage;
+
+  /// No description provided for @acceptOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept offer'**
+  String get acceptOffer;
+
+  /// No description provided for @rejectOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject offer'**
+  String get rejectOffer;
+
+  /// No description provided for @offerAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer accepted'**
+  String get offerAccepted;
+
+  /// No description provided for @offerRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer rejected'**
+  String get offerRejected;
+
   /// No description provided for @departure.
   ///
   /// In en, this message translates to:
@@ -265,6 +361,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancelled'**
   String get reservationStatusCancelled;
+
+  /// No description provided for @customOfferStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get customOfferStatusPending;
+
+  /// No description provided for @customOfferStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get customOfferStatusAccepted;
+
+  /// No description provided for @customOfferStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get customOfferStatusRejected;
+
+  /// No description provided for @customOfferStatusConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get customOfferStatusConfirmed;
+
+  /// No description provided for @customOfferStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get customOfferStatusInProgress;
+
+  /// No description provided for @customOfferStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get customOfferStatusCompleted;
+
+  /// No description provided for @customOfferStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get customOfferStatusCancelled;
 
   /// No description provided for @vehicleCategoryLuxe.
   ///
@@ -847,12 +985,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Note'**
   String get note;
-
-  /// No description provided for @driverMessage.
-  ///
-  /// In en, this message translates to:
-  /// **'Driver message'**
-  String get driverMessage;
 
   /// No description provided for @payment.
   ///
@@ -2701,6 +2833,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Plan {vehicle}'**
   String planVehicle(String vehicle);
+
+  /// No description provided for @selectedVehicleNoLongerAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected vehicle is no longer available'**
+  String get selectedVehicleNoLongerAvailable;
+
+  /// No description provided for @selectedVehicleDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected vehicle has been deactivated by the administrator'**
+  String get selectedVehicleDeactivated;
 
   /// No description provided for @logoutDescription.
   ///

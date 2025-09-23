@@ -40,6 +40,8 @@ class _BookingScreenState extends State<BookingScreen>
   bool _isPanelExpanded = true;
   double _currentPanelHeight = 0.0;
   double _dragStartHeight = 0.0;
+  bool _isDragging = false;
+  double _dragStartY = 0.0;
 
   // Service et données des véhicules
   final VehicleService _vehicleService = VehicleService();
@@ -63,6 +65,13 @@ class _BookingScreenState extends State<BookingScreen>
 
     // Par défaut, le panneau est étendu
     _panelController.forward();
+
+    // Initialiser la hauteur du panneau à l'état étendu
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final screenHeight = MediaQuery.of(context).size.height;
+      _currentPanelHeight = screenHeight * 0.45; // Hauteur par défaut étendue
+      _isPanelExpanded = true;
+    });
 
     // Les véhicules sont maintenant chargés via StreamBuilder
 
@@ -246,6 +255,54 @@ class _BookingScreenState extends State<BookingScreen>
     });
   }
 
+  // Vérifier si le véhicule sélectionné est toujours disponible
+  void _checkSelectedVehicleAvailability(List<VehiculeType> vehicles) {
+    if (_selectedVehicle != null) {
+      final selectedVehicleStillExists = vehicles.any((v) => v.id == _selectedVehicle!.id);
+      final selectedVehicleStillActive = vehicles.any((v) => v.id == _selectedVehicle!.id && v.isActive);
+      
+      if (!selectedVehicleStillExists) {
+        // Le véhicule n'existe plus du tout
+        setState(() {
+          _selectedVehicle = null;
+        });
+        _showVehicleUnavailableMessage();
+      } else if (!selectedVehicleStillActive) {
+        // Le véhicule existe mais n'est plus actif
+        setState(() {
+          _selectedVehicle = null;
+        });
+        _showVehicleDeactivatedMessage();
+      }
+    }
+  }
+
+  void _showVehicleUnavailableMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context).selectedVehicleNoLongerAvailable,
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.orange,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showVehicleDeactivatedMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context).selectedVehicleDeactivated,
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
   // Obtenir la couleur du véhicule selon sa catégorie
   Color _getVehicleColor(VehicleCategory category) {
     switch (category) {
@@ -260,7 +317,6 @@ class _BookingScreenState extends State<BookingScreen>
 
   void _togglePanel() {
     final screenHeight = MediaQuery.of(context).size.height;
-    final safeAreaBottom = MediaQuery.of(context).padding.bottom;
     final minHeight = screenHeight * 0.45;
     final maxHeight = screenHeight * 0.72;
     setState(() {
@@ -268,7 +324,69 @@ class _BookingScreenState extends State<BookingScreen>
       _currentPanelHeight = _currentPanelHeight >= midpoint
           ? minHeight
           : maxHeight;
-      _isPanelExpanded = true;
+      _isPanelExpanded = _currentPanelHeight >= midpoint;
+    });
+  }
+
+  void _onPanStart(DragStartDetails details) {
+    setState(() {
+      _isDragging = true;
+      _dragStartY = details.globalPosition.dy;
+      _dragStartHeight = _currentPanelHeight;
+    });
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    if (!_isDragging) return;
+    
+    final screenHeight = MediaQuery.of(context).size.height;
+    final minHeight = screenHeight * 0.45;
+    final maxHeight = screenHeight * 0.72;
+    
+    final deltaY = details.globalPosition.dy - _dragStartY;
+    final newHeight = _dragStartHeight - deltaY;
+    
+    setState(() {
+      _currentPanelHeight = newHeight.clamp(minHeight, maxHeight);
+      _isPanelExpanded = _currentPanelHeight >= (minHeight + maxHeight) / 2;
+    });
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    if (!_isDragging) return;
+    
+    final screenHeight = MediaQuery.of(context).size.height;
+    final minHeight = screenHeight * 0.45;
+    final maxHeight = screenHeight * 0.72;
+    final midpoint = (minHeight + maxHeight) / 2;
+    
+    setState(() {
+      _isDragging = false;
+      
+      // Animation vers la position finale basée sur la vitesse et la position
+      final velocity = details.velocity.pixelsPerSecond.dy;
+      
+      if (velocity.abs() > 500) {
+        // Glissement rapide - aller vers la direction du mouvement
+        if (velocity > 0) {
+          // Glissement vers le bas - réduire
+          _currentPanelHeight = minHeight;
+          _isPanelExpanded = false;
+        } else {
+          // Glissement vers le haut - étendre
+          _currentPanelHeight = maxHeight;
+          _isPanelExpanded = true;
+        }
+      } else {
+        // Glissement lent - aller vers la position la plus proche
+        if (_currentPanelHeight >= midpoint) {
+          _currentPanelHeight = maxHeight;
+          _isPanelExpanded = true;
+        } else {
+          _currentPanelHeight = minHeight;
+          _isPanelExpanded = false;
+        }
+      }
     });
   }
 
@@ -433,21 +551,13 @@ class _BookingScreenState extends State<BookingScreen>
               right: 0,
               bottom: 0,
               child: GestureDetector(
-                onPanStart: (details) {
-                  // Pas de gestion de pan pour simplifier
-                },
-                onPanUpdate: (details) {
-                  // Pas de gestion de pan pour simplifier
-                },
-                onPanEnd: (details) {
-                  // Pas de gestion de pan pour simplifier
-                },
+                onPanStart: _onPanStart,
+                onPanUpdate: _onPanUpdate,
+                onPanEnd: _onPanEnd,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: _isDragging ? Duration.zero : const Duration(milliseconds: 300),
                   curve: Curves.easeOut,
-                  height: _isPanelExpanded
-                      ? panelExpandedHeight
-                      : panelCollapsedHeight,
+                  height: _currentPanelHeight,
                   decoration: const BoxDecoration(color: Colors.transparent),
                   child: GlassContainer(
                     borderRadius: const BorderRadius.only(
@@ -471,7 +581,7 @@ class _BookingScreenState extends State<BookingScreen>
                           ),
                         ),
 
-                        if (_isPanelExpanded) ...[
+                        if (_currentPanelHeight >= (screenHeight * 0.40)) ...[
                           // Header du panneau étendu
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -573,7 +683,21 @@ class _BookingScreenState extends State<BookingScreen>
 
                                 final vehicles = snapshot.data ?? [];
                                 
-                                if (vehicles.isEmpty) {
+                                // Vérifier si le véhicule sélectionné est toujours disponible (après le build)
+                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                  _checkSelectedVehicleAvailability(vehicles);
+                                });
+                                
+                                // Trier les véhicules : actifs en haut, inactifs en bas
+                                final sortedVehicles = List<VehiculeType>.from(vehicles)
+                                  ..sort((a, b) {
+                                    // Actifs d'abord (isActive = true), puis inactifs (isActive = false)
+                                    if (a.isActive && !b.isActive) return -1;
+                                    if (!a.isActive && b.isActive) return 1;
+                                    return 0; // Même statut, garder l'ordre original
+                                  });
+                                
+                                if (sortedVehicles.isEmpty) {
                                   return Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
@@ -606,17 +730,15 @@ class _BookingScreenState extends State<BookingScreen>
                                   );
                                 }
 
-                                // Sélectionner le premier véhicule si aucun n'est sélectionné
-                                if (_selectedVehicle == null && vehicles.isNotEmpty) {
-                                  _selectedVehicle = vehicles.first;
-                                }
+                                // Ne pas sélectionner automatiquement de véhicule
+                                // L'utilisateur doit choisir manuellement
 
                                 return ListView.builder(
-                                  key: ValueKey('vehicles_${vehicles.length}'),
+                                  key: ValueKey('vehicles_${sortedVehicles.length}'),
                                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                                  itemCount: vehicles.length,
+                                  itemCount: sortedVehicles.length,
                                   itemBuilder: (context, index) {
-                                    final vehicle = vehicles[index];
+                                    final vehicle = sortedVehicles[index];
                                     final isSelected = _selectedVehicle?.id == vehicle.id;
                                     final isActive = vehicle.isActive;
                                     final estimatedPrice = _vehicleService.calculateTripPrice(
@@ -848,40 +970,6 @@ class _BookingScreenState extends State<BookingScreen>
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              // Méthode de paiement
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.accent,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.account_balance_wallet,
-                                      color: AppColors.bg,
-                                      size: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    AppLocalizations.of(context).cash,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: AppColors.text,
-                                    size: 20,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-
                               // Bouton de réservation - STYLE BOLT EXACT
                               SizedBox(
                                 width: double.infinity,

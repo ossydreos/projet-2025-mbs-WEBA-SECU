@@ -48,6 +48,55 @@ class AppLocalizationsFr extends AppLocalizations {
   String get offers => 'Offres';
 
   @override
+  String get customOffer => 'Offre personnalisée';
+
+  @override
+  String get createCustomOffer => 'Créer une offre personnalisée';
+
+  @override
+  String get duration => 'Durée';
+
+  @override
+  String get durationHours => 'Heures';
+
+  @override
+  String get durationMinutes => 'Minutes';
+
+  @override
+  String get noteForDriver => 'Note pour le chauffeur (optionnel)';
+
+  @override
+  String get noteForDriverHint => 'Décrivez vos besoins spécifiques...';
+
+  @override
+  String get createOffer => 'Créer l\'offre';
+
+  @override
+  String get customOfferCreated => 'Offre personnalisée créée avec succès';
+
+  @override
+  String get customOfferCreatedMessage =>
+      'Votre offre a été envoyée aux chauffeurs. Vous recevrez une notification dès qu\'un chauffeur acceptera avec un prix.';
+
+  @override
+  String get proposedPrice => 'Prix proposé';
+
+  @override
+  String get driverMessage => 'Message du chauffeur';
+
+  @override
+  String get acceptOffer => 'Accepter l\'offre';
+
+  @override
+  String get rejectOffer => 'Rejeter l\'offre';
+
+  @override
+  String get offerAccepted => 'Offre acceptée';
+
+  @override
+  String get offerRejected => 'Offre rejetée';
+
+  @override
   String get departure => 'Départ';
 
   @override
@@ -91,6 +140,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get reservationStatusCancelled => 'Annulée';
+
+  @override
+  String get customOfferStatusPending => 'En attente';
+
+  @override
+  String get customOfferStatusAccepted => 'Acceptée';
+
+  @override
+  String get customOfferStatusRejected => 'Rejetée';
+
+  @override
+  String get customOfferStatusConfirmed => 'Confirmée';
+
+  @override
+  String get customOfferStatusInProgress => 'En cours';
+
+  @override
+  String get customOfferStatusCompleted => 'Terminée';
+
+  @override
+  String get customOfferStatusCancelled => 'Annulée';
 
   @override
   String get vehicleCategoryLuxe => 'Luxe';
@@ -397,9 +467,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get note => 'Note';
-
-  @override
-  String get driverMessage => 'Message du chauffeur';
 
   @override
   String get payment => 'Paiement';
@@ -1341,6 +1408,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String planVehicle(String vehicle) {
     return 'Planifier $vehicle';
   }
+
+  @override
+  String get selectedVehicleNoLongerAvailable =>
+      'Le véhicule sélectionné n\'est plus disponible';
+
+  @override
+  String get selectedVehicleDeactivated =>
+      'Le véhicule sélectionné a été désactivé par l\'administrateur';
 
   @override
   String get logoutDescription => 'Se déconnecter de votre compte.';
