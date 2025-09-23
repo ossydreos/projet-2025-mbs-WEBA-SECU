@@ -66,7 +66,7 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
         usedCount: 0,
         isActive: true,
       );
-      await _service.create(promo);
+      await _service.createPromoCode(promo);
       if (mounted) {
         ScaffoldMessenger.of(
           context,

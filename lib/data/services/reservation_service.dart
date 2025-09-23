@@ -282,4 +282,36 @@ class ReservationService {
       userId: currentUser.uid,
     );
   }
+
+  // Supprimer une réservation
+  Future<void> deleteReservation(String reservationId) async {
+    try {
+      await _firestore.collection(_collection).doc(reservationId).delete();
+    } catch (e) {
+      throw Exception('Erreur lors de la suppression de la réservation: $e');
+    }
+  }
+
+  // Obtenir toutes les réservations terminées (pour la suppression en masse)
+  Future<List<Reservation>> getCompletedReservations() async {
+    try {
+      final querySnapshot = await _firestore
+          .collection(_collection)
+          .where('status', isEqualTo: ReservationStatus.completed.name)
+          .get();
+
+      return querySnapshot.docs
+          .map(
+            (doc) => Reservation.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
+          .toList();
+    } catch (e) {
+      throw Exception(
+        'Erreur lors de la récupération des réservations terminées: $e',
+      );
+    }
+  }
 }

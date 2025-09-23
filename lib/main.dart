@@ -20,7 +20,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.dart';
 
 import 'package:my_mobility_services/widgets/authgate.dart';
-import 'package:my_mobility_services/data/services/global_notification_service.dart';
+import 'package:my_mobility_services/widgets/admin/admin_screen_wrapper.dart';
 import 'firebase/firebase_options.dart';
 import 'theme/glassmorphism_theme.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -70,10 +70,6 @@ class MyApp extends StatelessWidget {
       // Si langue non supportée → fallback vers l'anglais
       home: const Authgate(),
       builder: (context, child) {
-        // Initialiser le service de notification globale
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          GlobalNotificationService().initialize(context);
-        });
         return child!;
       },
       onGenerateRoute: (settings) {
@@ -93,28 +89,52 @@ class MyApp extends StatelessWidget {
             break;
           // Routes admin
           case '/admin/home':
-            page = const AdminReceptionScreen();
+            page = AdminScreenWrapper(
+              title: 'Réception',
+              child: const AdminReceptionScreen(),
+            );
             break;
           case '/admin/trajets':
-            page = const AdminTrajetsScreen();
+            page = AdminScreenWrapper(
+              title: 'Trajets',
+              child: const AdminTrajetsScreen(),
+            );
             break;
           case '/admin/gestion':
-            page = const AdminGestionScreen();
+            page = AdminScreenWrapper(
+              title: 'Gestion',
+              child: const AdminGestionScreen(),
+            );
             break;
           case '/admin/vehicle-management':
-            page = VehicleManagementScreen();
+            page = AdminScreenWrapper(
+              title: 'Gestion Véhicules',
+              child: VehicleManagementScreen(),
+            );
             break;
           case '/admin/profile':
-            page = const AdminProfileScreen();
+            page = AdminScreenWrapper(
+              title: 'Profil',
+              child: const AdminProfileScreen(),
+            );
             break;
           case '/admin/promo/create':
-            page = const CreatePromoCodeScreen();
+            page = AdminScreenWrapper(
+              title: 'Créer Code Promo',
+              child: const CreatePromoCodeScreen(),
+            );
             break;
           case '/admin/promo/active':
-            page = ActivePromoCodesScreen();
+            page = AdminScreenWrapper(
+              title: 'Codes Promo Actifs',
+              child: ActivePromoCodesScreen(),
+            );
             break;
           case '/admin/demo/notification':
-            page = const TestNotificationDemo();
+            page = AdminScreenWrapper(
+              title: 'Test Notifications',
+              child: const TestNotificationDemo(),
+            );
             break;
           default:
             page = const HomeShell();

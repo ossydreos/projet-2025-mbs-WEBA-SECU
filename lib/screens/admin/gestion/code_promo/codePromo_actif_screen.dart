@@ -15,7 +15,7 @@ class ActivePromoCodesScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(title: 'Codes promotionnels'),
         body: StreamBuilder<List<PromoCode>>(
-          stream: _service.watchAll(),
+          stream: _service.getPromoCodesStream(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -30,8 +30,9 @@ class ActivePromoCodesScreen extends StatelessWidget {
               itemCount: items.length,
               itemBuilder: (context, i) => _PromoTile(
                 promo: items[i],
-                onToggle: (active) => _service.setActive(items[i].id, active),
-                onDelete: () => _service.delete(items[i].id),
+                onToggle: (active) =>
+                    _service.togglePromoCodeStatus(items[i].id, active),
+                onDelete: () => _service.deletePromoCode(items[i].id),
               ),
             );
           },

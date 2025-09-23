@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
-import 'package:my_mobility_services/data/models/vehicule_type.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -13,7 +12,6 @@ import 'package:latlong2/latlong.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/localisation_recherche_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
-import 'package:my_mobility_services/screens/utilisateur/payment/secure_payment_screen.dart';
 
 class TripSummaryScreen extends StatefulWidget {
   final String vehicleName;
@@ -46,7 +44,6 @@ class TripSummaryScreen extends StatefulWidget {
 class _TripSummaryScreenState extends State<TripSummaryScreen> {
   String _totalPrice = '0,00 CHF';
   final ReservationService _reservationService = ReservationService();
-  final VehicleService _vehicleService = VehicleService();
   bool _isCreatingReservation = false;
   double _calculatedPrice = 0.0;
   final TextEditingController _noteController = TextEditingController();
@@ -242,23 +239,17 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
     if (code.isEmpty) return;
     setState(() => _applyingPromo = true);
     try {
-      final promo = await _promoService.getByCode(code);
-      if (promo == null) {
-        throw Exception('Code invalide');
+      final result = await _promoService.validatePromoCode(
+        code,
+        _calculatedPrice,
+      );
+      if (!result.isValid) {
+        throw Exception(result.message);
       }
-      final usable = await _promoService.isUsable(promo);
-      if (!usable) {
-        throw Exception('Code non utilisable');
-      }
-      double discount;
-      if (promo.type == DiscountType.percent) {
-        discount = (_calculatedPrice * promo.value / 100.0);
-      } else {
-        discount = promo.value;
-      }
+
       setState(() {
-        _appliedPromo = promo;
-        _discountAmount = discount;
+        _appliedPromo = result.promoCode;
+        _discountAmount = result.discountAmount;
         final total = (_calculatedPrice - _discountAmount).clamp(
           0,
           double.infinity,
@@ -352,7 +343,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       );
       if (_appliedPromo != null) {
         try {
-          await _promoService.redeemIfValid(_appliedPromo!.id);
+          await _promoService.applyPromoCode(_appliedPromo!.id);
         } catch (e) {
           // ignorer l'erreur de redeem pour ne pas bloquer la réservation
         }
@@ -837,6 +828,170 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                       ),
                       const SizedBox(height: 24),
 
+                      // Section Code promo
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Code promo',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Entrez un code promo pour bénéficier d\'une réduction',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textWeak,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: AppColors.textWeak.withOpacity(
+                                          0.3,
+                                        ),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: TextField(
+                                      controller: _promoController,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText: 'Entrez votre code promo',
+                                        hintStyle: TextStyle(
+                                          color: AppColors.textWeak,
+                                          fontSize: 16,
+                                        ),
+                                        border: InputBorder.none,
+                                        contentPadding: const EdgeInsets.all(
+                                          16,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                ElevatedButton(
+                                  onPressed: _applyingPromo
+                                      ? null
+                                      : _applyPromo,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.accent,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: _applyingPromo
+                                      ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
+                                          ),
+                                        )
+                                      : const Text('Appliquer'),
+                                ),
+                              ],
+                            ),
+                            // Affichage du code promo appliqué
+                            if (_appliedPromo != null) ...[
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.green.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Code promo appliqué: ${_appliedPromo!.code}',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Remise: -${_discountAmount.toStringAsFixed(2)} CHF',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.green.shade700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _appliedPromo = null;
+                                          _discountAmount = 0.0;
+                                          _totalPrice =
+                                              '${_calculatedPrice.toStringAsFixed(2)} CHF';
+                                          _promoController.clear();
+                                        });
+                                      },
+                                      child: Icon(
+                                        Icons.close,
+                                        color: Colors.green.shade700,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+                      Divider(
+                        color: AppColors.textWeak.withOpacity(0.3),
+                        thickness: 0.5,
+                      ),
+                      const SizedBox(height: 24),
+
                       // Section Note pour le chauffeur
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -917,11 +1072,124 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
               const SizedBox(height: 12),
 
-              // Bouton Confirmer
+              // Section Prix et Bouton Confirmer
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: Column(
                   children: [
+                    // Affichage du prix
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.textWeak.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Prix de base',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.textWeak,
+                                ),
+                              ),
+                              Text(
+                                '${_calculatedPrice.toStringAsFixed(2)} CHF',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_appliedPromo != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Remise (${_appliedPromo!.code})',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                                Text(
+                                  '-${_discountAmount.toStringAsFixed(2)} CHF',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Divider(
+                              color: AppColors.textWeak.withOpacity(0.3),
+                              thickness: 0.5,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Total',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Text(
+                                  _totalPrice,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.accent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ] else ...[
+                            const SizedBox(height: 8),
+                            Divider(
+                              color: AppColors.textWeak.withOpacity(0.3),
+                              thickness: 0.5,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Total',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Text(
+                                  _totalPrice,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.accent,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

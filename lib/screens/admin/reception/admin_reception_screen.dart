@@ -5,8 +5,7 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
-import 'package:my_mobility_services/data/services/notification_service.dart';
-import 'package:my_mobility_services/data/services/notification_manager.dart';
+import 'package:my_mobility_services/data/services/admin_global_notification_service.dart';
 import 'package:my_mobility_services/widgets/admin/pending_reservations_widget.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -29,10 +28,7 @@ enum RefusalAction { refuse, counterOffer }
 
 class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
-  final NotificationManager _notificationManager = NotificationManager();
   int _selectedIndex = 0;
-  DateTime _lastSeenReservationAt = DateTime.now();
-  StreamSubscription<QuerySnapshot>? _newResSubscription;
 
   @override
   Widget build(BuildContext context) {
@@ -47,23 +43,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               onPressed: _cancelAllWaitingReservations,
               icon: Icon(Icons.clear_all, color: Colors.red),
               tooltip: 'Annuler toutes les réservations en attente',
-            ),
-            Container(
-              margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.accent),
-              ),
-              child: Text(
-                'ADMIN',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
             ),
           ],
         ),
@@ -84,104 +63,13 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   @override
   void initState() {
     super.initState();
-    _subscribeToNewReservations();
+    // Les notifications sont maintenant gérées globalement par AdminScreenWrapper
   }
 
   @override
   void dispose() {
-    _newResSubscription?.cancel();
-    _notificationManager.dispose();
+    // Les notifications sont maintenant gérées globalement
     super.dispose();
-  }
-
-  void _subscribeToNewReservations() {
-    // Écoute les nouvelles réservations et affiche une alerte à l'admin
-    _newResSubscription = FirebaseFirestore.instance
-        .collection('reservations')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .listen((snapshot) {
-          for (final change in snapshot.docChanges) {
-            if (change.type != DocumentChangeType.added) continue;
-            final data = change.doc.data() as Map<String, dynamic>;
-            final createdAt = (data['createdAt'] as Timestamp).toDate();
-            final status = data['status'] as String?;
-            if (status != null && status != ReservationStatus.pending.name)
-              continue;
-            if (createdAt.isAfter(_lastSeenReservationAt)) {
-              _lastSeenReservationAt = createdAt;
-              _showIncomingReservationNotification(data);
-            }
-          }
-        });
-  }
-
-  void _showIncomingReservationNotification(Map<String, dynamic> data) {
-    final userName = data['userName'] as String? ?? 'Client';
-    final from = data['departure'] as String? ?? '';
-    final to = data['destination'] as String? ?? '';
-    if (!mounted) return;
-
-    // Créer un objet Reservation à partir des données
-    final reservation = Reservation.fromMap({
-      'id': data['id'] ?? '',
-      'userId': data['userId'] ?? '',
-      'userName': userName,
-      'vehicleName': data['vehicleName'] ?? '',
-      'departure': from,
-      'destination': to,
-      'selectedDate': (data['selectedDate'] as Timestamp).toDate(),
-      'selectedTime': data['selectedTime'] ?? '',
-      'estimatedArrival': data['estimatedArrival'] ?? '',
-      'paymentMethod': data['paymentMethod'] ?? '',
-      'totalPrice': (data['totalPrice'] ?? 0.0).toDouble(),
-      'status': ReservationStatus.pending,
-      'createdAt': (data['createdAt'] as Timestamp).toDate(),
-      'departureCoordinates': data['departureCoordinates'],
-      'destinationCoordinates': data['destinationCoordinates'],
-      'clientNote': data['clientNote'],
-      'hasCounterOffer': data['hasCounterOffer'] ?? false,
-      'driverProposedDate': data['driverProposedDate'] != null
-          ? (data['driverProposedDate'] as Timestamp).toDate()
-          : null,
-      'driverProposedTime': data['driverProposedTime'],
-      'adminMessage': data['adminMessage'],
-      'promoCode': data['promoCode'],
-      'discountAmount': data['discountAmount']?.toDouble(),
-    });
-
-    // Afficher la notification style Uber avec gestion des priorités
-    _notificationManager.showGlobalNotification(
-      context,
-      reservation,
-      onAccept: () => _acceptReservation(reservation.id),
-      onDecline: () => _showRefusalOptions(reservation),
-      onCounterOffer: () => _showCounterOfferDialog(reservation),
-    );
-  }
-
-  Future<void> _acceptReservation(String reservationId) async {
-    try {
-      await _reservationService.updateReservationStatus(
-        reservationId,
-        ReservationStatus.confirmed,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Réservation acceptée !'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
   }
 
   Widget _buildContent() {
@@ -207,32 +95,53 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   Widget _buildTestNotificationButton() {
     return GlassContainer(
       padding: const EdgeInsets.all(16),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _showTestNotification,
-          icon: const Icon(Icons.notifications_active),
-          label: const Text('Créer réservation test'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accent,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+      child: Column(
+        children: [
+          Text(
+            'Test des notifications',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textStrong,
             ),
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            'Cliquez pour tester l\'affichage des notifications pop-up',
+            style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _testNotification,
+              icon: const Icon(Icons.notifications_active),
+              label: const Text('🧪 Tester la notification'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Future<void> _showTestNotification() async {
+  Future<void> _testNotification() async {
     try {
-      // Créer une vraie réservation de test dans Firebase
+      print('🧪 Test de notification démarré');
+
+      // Créer une réservation de test
       final testReservation = Reservation(
-        id: '', // Sera généré par le service
+        id: '',
         userId: 'test_user_${DateTime.now().millisecondsSinceEpoch}',
-        userName: 'Jean Dupont (Test)',
+        userName: 'Client Test',
         vehicleName: 'Berline Premium',
         departure: 'Gare de Lausanne, 1003 Lausanne',
         destination: 'Aéroport de Genève, 1215 Le Grand-Saconnex',
@@ -243,48 +152,47 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         totalPrice: 45.50,
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
-        clientNote: 'Merci de venir à l\'entrée principale - TEST',
+        clientNote:
+            'Test de notification - Cette réservation est créée pour tester le système',
       );
+
+      print('🧪 Création de la réservation de test...');
 
       // Créer la réservation dans Firebase
       final reservationId = await _reservationService.createReservation(
         testReservation,
       );
 
-      // Mettre à jour l'ID de la réservation
-      final reservationWithId = testReservation.copyWith(id: reservationId);
+      print('🧪 Réservation créée avec l\'ID: $reservationId');
 
-      // Afficher la notification
-      _notificationManager.showGlobalNotification(
-        context,
-        reservationWithId,
-        onAccept: () => _acceptReservation(reservationId),
-        onDecline: () => _showRefusalOptions(reservationWithId),
-        onCounterOffer: () => _showCounterOfferDialog(reservationWithId),
-      );
-    } catch (e) {
+      // Forcer l'affichage de la notification via le service global
+      final adminNotificationService = AdminGlobalNotificationService();
+      adminNotificationService.updateContext(context);
+      adminNotificationService.forceShowNotification(testReservation);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la création du test: $e'),
-            backgroundColor: Colors.red,
+            content: Text(
+              '✅ Notification de test affichée ! Réservation: ${reservationId.substring(0, 8)}',
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
-    }
-  }
-
-  Future<void> _showRefusalOptions(Reservation reservation) async {
-    final action = await _showRefusalDialog();
-    if (action == null) return;
-
-    switch (action) {
-      case RefusalAction.refuse:
-        await _refuseReservation(reservation);
-        break;
-      case RefusalAction.counterOffer:
-        await _showCounterOfferDialog(reservation);
-        break;
+    } catch (e) {
+      print('🧪 Erreur lors du test: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Erreur lors du test: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -459,7 +367,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   Widget _buildReservationCard(Reservation reservation) {
-    final hasCounterOffer = reservation.hasCounterOffer ?? false;
+    final hasCounterOffer = reservation.hasCounterOffer;
 
     return GlassContainer(
       padding: const EdgeInsets.all(16),
@@ -513,7 +421,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     style: TextStyle(fontSize: 12, color: AppColors.textWeak),
                   ),
                   Text(
-                    '${(reservation.totalPrice ?? 0.0).toStringAsFixed(2)} CHF',
+                    '${reservation.totalPrice.toStringAsFixed(2)} CHF',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -691,7 +599,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                           return Row(
                             children: [
                               Text(
-                                reservation.estimatedArrival ?? '--:--',
+                                reservation.estimatedArrival,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -718,7 +626,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                           );
                         } else {
                           return Text(
-                            reservation.estimatedArrival ?? '--:--',
+                            reservation.estimatedArrival,
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
@@ -730,7 +638,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     ),
                   ] else ...[
                     Text(
-                      reservation.estimatedArrival ?? '--:--',
+                      reservation.estimatedArrival,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -823,6 +731,69 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               ),
             ],
           ),
+
+          // Affichage du code promo utilisé si applicable
+          if (reservation.promoCode != null &&
+              reservation.promoCode!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: Colors.green.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.local_offer, color: Colors.green, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Code promo utilisé:',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              reservation.promoCode!,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                            if (reservation.discountAmount != null &&
+                                reservation.discountAmount! > 0) ...[
+                              const SizedBox(width: 8),
+                              Text(
+                                '(-${reservation.discountAmount!.toStringAsFixed(2)} CHF)',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.green.shade700,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // Affichage de la note du client si elle existe
           if (reservation.clientNote != null &&
