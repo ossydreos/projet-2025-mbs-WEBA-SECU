@@ -3,6 +3,7 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/custom_offer_creation_screen.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class OffresPersonnaliseesScreen extends StatefulWidget {
@@ -155,6 +156,241 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
     );
   }
 
+  Widget _buildAcceptedOfferCard(CustomOffer offer) {
+    return GlassContainer(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // En-tête avec prix en évidence
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.accent.withOpacity(0.8),
+                    AppColors.accent.withOpacity(0.6),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accent.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Offre acceptée !',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Chauffeur: ${offer.driverName ?? 'Non spécifié'}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${offer.proposedPrice?.toStringAsFixed(2) ?? '0.00'} CHF',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'Prix proposé',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 20),
+            
+            // Trajet
+            Row(
+              children: [
+                const Icon(Icons.location_on, color: Colors.white70, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '${offer.departure} → ${offer.destination}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Dates et heures
+            if (offer.startDateTime != null && offer.endDateTime != null) ...[
+              Row(
+                children: [
+                  const Icon(Icons.schedule, color: Colors.white70, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Début: ${_formatDateTime(offer.startDateTime!)}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Text(
+                          'Fin: ${_formatDateTime(offer.endDateTime!)}',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              // Fallback vers la durée si pas de dates
+              Row(
+                children: [
+                  const Icon(Icons.access_time, color: Colors.white70, size: 20),
+                  const SizedBox(width: 12),
+                  Text(
+                    '${offer.durationHours}h ${offer.durationMinutes}min',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            
+            // Message du chauffeur (si présent)
+            if (offer.driverMessage != null && offer.driverMessage!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.message, color: Colors.white70, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Message du chauffeur:',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          offer.driverMessage!,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            
+            const SizedBox(height: 20),
+            
+            // Boutons d'action
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _confirmAndPayOffer(offer),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Valider et payer',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _rejectOffer(offer),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'Refuser',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
@@ -177,6 +413,106 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
     final minute = dateTime.minute.toString().padLeft(2, '0');
     
     return '$day/$month à ${hour}h$minute';
+  }
+
+  Future<void> _confirmAndPayOffer(CustomOffer offer) async {
+    try {
+      // Simuler le processus de paiement
+      // Dans une vraie app, vous intégreriez Stripe ou un autre système de paiement
+      await _customOfferService.confirmCustomOffer(
+        offerId: offer.id,
+        paymentMethod: 'card', // Méthode de paiement par défaut
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Offre confirmée et payée avec succès !'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du paiement: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _rejectOffer(CustomOffer offer) async {
+    try {
+      await _customOfferService.updateOfferStatus(
+        offerId: offer.id,
+        status: CustomOfferStatus.rejected,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Offre refusée'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _cancelPendingOffer(CustomOffer offer) async {
+    try {
+      print('=== ANNULATION DIRECTE FIREBASE ===');
+      print('Offre ID: ${offer.id}');
+      print('Statut actuel: ${offer.status.name}');
+      
+      // Utiliser directement Firebase
+      await FirebaseFirestore.instance
+          .collection('custom_offers')
+          .doc(offer.id)
+          .update({
+        'status': 'rejected',
+        'updatedAt': Timestamp.now(),
+        'cancelledAt': Timestamp.now(),
+        'cancelledBy': 'client',
+        'cancellationReason': 'Annulé par le client',
+      });
+      
+      print('=== MISE À JOUR FIREBASE RÉUSSIE ===');
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Offre annulée avec succès !'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      print('=== ERREUR FIREBASE ===');
+      print('Erreur: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Erreur: $e'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -205,17 +541,21 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
 
             final offers = snapshot.data ?? [];
             
-            // Vérifier s'il y a une offre en attente
+            // Vérifier s'il y a une offre en attente ou acceptée
             final pendingOffer = offers.where((o) => o.status == CustomOfferStatus.pending).isNotEmpty
                 ? offers.where((o) => o.status == CustomOfferStatus.pending).first
+                : null;
+            
+            final acceptedOffer = offers.where((o) => o.status == CustomOfferStatus.accepted).isNotEmpty
+                ? offers.where((o) => o.status == CustomOfferStatus.accepted).first
                 : null;
 
             return Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  if (pendingOffer == null) ...[
-                    // En-tête seulement si pas d'offre en attente
+                  if (pendingOffer == null && acceptedOffer == null) ...[
+                    // En-tête seulement si pas d'offre en attente ou acceptée
                     GlassContainer(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -253,6 +593,33 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
                   if (pendingOffer != null) ...[
                     // Afficher l'offre en attente avec style amélioré
                     _buildPendingOfferCard(pendingOffer),
+                    const SizedBox(height: 16),
+                    // Bouton pour annuler l'offre
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _cancelPendingOffer(pendingOffer),
+                        icon: const Icon(Icons.cancel, color: Colors.white),
+                        label: const Text(
+                          'Annuler cette offre',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else if (acceptedOffer != null) ...[
+                    // Afficher l'offre acceptée avec prix et boutons d'action
+                    _buildAcceptedOfferCard(acceptedOffer),
                   ] else ...[
                     // Bouton de création (seulement si pas d'offre en attente)
                     SizedBox(

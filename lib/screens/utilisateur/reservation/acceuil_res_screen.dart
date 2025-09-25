@@ -14,9 +14,12 @@ import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_service.dart';
 import 'package:my_mobility_services/data/services/notification_service.dart';
+import 'package:my_mobility_services/data/services/custom_offer_service.dart';
+import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class AccueilScreen extends StatefulWidget {
@@ -35,6 +38,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   final ReservationService _reservationService = ReservationService();
   final AdminService _adminService = AdminService();
   final NotificationService _notificationService = NotificationService();
+  final CustomOfferService _customOfferService = CustomOfferService();
   int _selectedIndex = 0;
 
   String? _selectedDestination;
@@ -929,7 +933,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     final confirmed = await showGlassConfirmDialog(
       context: context,
       title: AppLocalizations.of(context).cancelReservation,
-      message: AppLocalizations.of(context).cancelReservationConfirmation,
+      message: '${AppLocalizations.of(context).cancelReservationConfirmation}\n\nCette action annulera aussi toutes vos offres personnalisées en cours.',
       confirmText: AppLocalizations.of(context).yesCancel,
       cancelText: AppLocalizations.of(context).no,
       icon: Icons.cancel_outlined,
@@ -941,6 +945,9 @@ class _AccueilScreenState extends State<AccueilScreen>
     if (confirmed != true) return;
 
     try {
+      print('Début de l\'annulation de la réservation ${reservation.id}');
+      
+      // Annuler la réservation
       await FirebaseFirestore.instance
           .collection('reservations')
           .doc(reservation.id)
@@ -952,10 +959,15 @@ class _AccueilScreenState extends State<AccueilScreen>
         'cancellationReason': 'Annulé par le ${AppLocalizations.of(context).client}',
       });
 
+      print('Réservation annulée avec succès');
+
+      // Annuler aussi toutes les offres personnalisées en cours
+      await _cancelAllPendingCustomOffers();
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).reservationCancelledSuccess),
+            content: Text('${AppLocalizations.of(context).reservationCancelledSuccess}\nToutes les offres personnalisées ont été annulées.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -969,6 +981,53 @@ class _AccueilScreenState extends State<AccueilScreen>
           ),
         );
       }
+    }
+  }
+
+  // Annuler toutes les offres personnalisées en cours
+  Future<void> _cancelAllPendingCustomOffers() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('Utilisateur non connecté');
+        return;
+      }
+
+      print('Annulation des offres personnalisées pour l\'utilisateur: ${user.uid}');
+
+      // Récupérer toutes les offres de l'utilisateur
+      final allOffersSnapshot = await FirebaseFirestore.instance
+          .collection('custom_offers')
+          .where('userId', isEqualTo: user.uid)
+          .get();
+
+      print('Nombre total d\'offres trouvées: ${allOffersSnapshot.docs.length}');
+
+      int cancelledCount = 0;
+
+      // Annuler chaque offre qui est en attente ou acceptée
+      for (final doc in allOffersSnapshot.docs) {
+        final data = doc.data();
+        final status = data['status'] as String?;
+        
+        print('Offre ${doc.id}: statut = $status');
+        
+        if (status == 'pending' || status == 'accepted') {
+          await doc.reference.update({
+            'status': 'rejected',
+            'updatedAt': Timestamp.now(),
+            'cancelledAt': Timestamp.now(),
+            'cancelledBy': 'client',
+            'cancellationReason': 'Annulé avec la réservation',
+          });
+          cancelledCount++;
+          print('Offre ${doc.id} annulée');
+        }
+      }
+
+      print('Nombre d\'offres annulées: $cancelledCount');
+    } catch (e) {
+      print('Erreur lors de l\'annulation des offres personnalisées: $e');
     }
   }
 

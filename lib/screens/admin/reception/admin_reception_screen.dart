@@ -1652,17 +1652,34 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 .map((doc) => CustomOffer.fromMap(doc.data() as Map<String, dynamic>))
                 .toList() ?? [];
 
+            print('Admin - Total offres trouvées: ${offers.length}');
+            for (final offer in offers) {
+              print('Admin - Offre ${offer.id}: statut = ${offer.status.name}');
+            }
+
             // Filtrer seulement les offres en attente
             final pendingOffers = offers.where((o) => o.status == CustomOfferStatus.pending).toList();
+            
+            print('Admin - Offres en attente après filtrage: ${pendingOffers.length}');
+            
+            // FORCER LE FILTRAGE - NE PAS AFFICHER LES OFFRES ANNULEES
+            final validOffers = offers.where((o) => 
+              o.status == CustomOfferStatus.pending || 
+              o.status == CustomOfferStatus.accepted
+            ).toList();
+            
+            print('Admin - Offres valides (pending/accepted): ${validOffers.length}');
 
-            if (pendingOffers.isEmpty) {
+            if (validOffers.isEmpty) {
+              print('Admin - Aucune offre valide à afficher');
               return const SizedBox.shrink();
             }
 
+            print('Admin - Affichage de ${validOffers.length} offres valides');
             return Column(
               children: [
                 const SizedBox(height: 16),
-                ...pendingOffers.map((offer) => _buildCustomOfferCard(offer)),
+                ...validOffers.map((offer) => _buildCustomOfferCard(offer)),
               ],
             );
           },

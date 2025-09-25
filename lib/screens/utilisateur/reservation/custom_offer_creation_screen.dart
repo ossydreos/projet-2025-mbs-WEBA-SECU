@@ -513,6 +513,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
       );
 
       if (mounted) {
+        Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
