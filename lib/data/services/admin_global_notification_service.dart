@@ -18,12 +18,36 @@ class AdminGlobalNotificationService {
   BuildContext? _globalContext;
   DateTime _lastSeenReservationAt = DateTime.now();
   bool _isInitialized = false;
+  Map<String, dynamic>? _pendingNotification;
 
   // Initialiser le service global pour l'admin
   void initialize(BuildContext context) {
     _globalContext = context;
+    print('🔔 AdminGlobalNotificationService: Initialisation avec contexte');
+    print(
+      '🔔 AdminGlobalNotificationService: Contexte monté: ${context.mounted}',
+    );
+
     if (!_isInitialized) {
       _isInitialized = true;
+      print(
+        '🔔 AdminGlobalNotificationService: Démarrage de l\'écoute des réservations',
+      );
+      _startListeningToReservations();
+    } else {
+      print(
+        '🔔 AdminGlobalNotificationService: Service déjà initialisé, mise à jour du contexte uniquement',
+      );
+    }
+  }
+
+  // Initialiser le service sans contexte (pour le démarrage global)
+  void initializeGlobal() {
+    if (!_isInitialized) {
+      _isInitialized = true;
+      print(
+        '🔔 AdminGlobalNotificationService: Initialisation globale sans contexte',
+      );
       _startListeningToReservations();
     }
   }
@@ -31,15 +55,28 @@ class AdminGlobalNotificationService {
   // Mettre à jour le contexte (nécessaire lors des changements de page)
   void updateContext(BuildContext context) {
     _globalContext = context;
+    print('🔔 AdminGlobalNotificationService: Contexte mis à jour');
+
+    // Afficher la notification en attente si elle existe
+    if (_pendingNotification != null) {
+      print(
+        '🔔 AdminGlobalNotificationService: Affichage de la notification en attente',
+      );
+      _showNotificationForReservation(_pendingNotification!);
+      _pendingNotification = null;
+    }
   }
 
   // Forcer l'affichage d'une notification (pour les tests)
-  void forceShowNotification(Reservation reservation) {
+  void forceShowNotification(Reservation reservation, {BuildContext? context}) {
     print(
       '🔔 AdminGlobalNotificationService: Forçage de l\'affichage de la notification',
     );
 
-    if (_globalContext == null || !_globalContext!.mounted) {
+    // Utiliser le contexte fourni ou le contexte global
+    final contextToUse = context ?? _globalContext;
+
+    if (contextToUse == null || !contextToUse.mounted) {
       print(
         '🔔 AdminGlobalNotificationService: Contexte non disponible pour le forçage',
       );
@@ -51,7 +88,7 @@ class AdminGlobalNotificationService {
     );
 
     _notificationManager.showGlobalNotification(
-      _globalContext!,
+      contextToUse,
       reservation,
       onAccept: () => _acceptReservation(reservation.id),
       onDecline: () => _showRefusalOptions(reservation),
@@ -65,6 +102,9 @@ class AdminGlobalNotificationService {
 
     print(
       '🔔 AdminGlobalNotificationService: Démarrage de l\'écoute des réservations',
+    );
+    print(
+      '🔔 AdminGlobalNotificationService: Contexte disponible: ${_globalContext != null}',
     );
 
     _reservationSubscription = FirebaseFirestore.instance
@@ -103,13 +143,21 @@ class AdminGlobalNotificationService {
 
               // Ne traiter que les nouvelles réservations en attente
               if (status != null && status == ReservationStatus.pending.name) {
+                print(
+                  '🔔 AdminGlobalNotificationService: Réservation en attente détectée - ID: ${change.doc.id}',
+                );
+
                 // Vérifier si c'est une nouvelle réservation (créée après la dernière vue)
-                // Ajouter une marge de 5 secondes pour éviter les problèmes de timing
+                // Ajouter une marge de 2 secondes pour éviter les problèmes de timing
                 final timeDifference = createdAt
                     .difference(_lastSeenReservationAt)
                     .inSeconds;
 
-                if (timeDifference > 5) {
+                print(
+                  '🔔 AdminGlobalNotificationService: Différence de temps: ${timeDifference}s',
+                );
+
+                if (timeDifference > 2) {
                   print(
                     '🔔 AdminGlobalNotificationService: Réservation plus récente que la dernière vue (diff: ${timeDifference}s), affichage de la notification',
                   );
@@ -139,8 +187,10 @@ class AdminGlobalNotificationService {
   void _showNotificationForReservation(Map<String, dynamic> data) {
     if (_globalContext == null || !_globalContext!.mounted) {
       print(
-        '🔔 AdminGlobalNotificationService: Contexte non disponible, notification ignorée',
+        '🔔 AdminGlobalNotificationService: Contexte non disponible, notification mise en attente',
       );
+      // Stocker la notification en attente pour l'afficher quand le contexte sera disponible
+      _pendingNotification = data;
       return;
     }
 
@@ -195,11 +245,12 @@ class AdminGlobalNotificationService {
 
   // Accepter une réservation
   Future<void> _acceptReservation(String reservationId) async {
+    print(
+      '🔔 AdminGlobalNotificationService: Acceptation de la réservation $reservationId',
+    );
+
     try {
-      await _reservationService.updateReservationStatus(
-        reservationId,
-        ReservationStatus.confirmed,
-      );
+      await _reservationService.confirmReservation(reservationId);
 
       if (_globalContext != null && _globalContext!.mounted) {
         ScaffoldMessenger.of(_globalContext!).showSnackBar(
@@ -227,53 +278,33 @@ class AdminGlobalNotificationService {
     }
   }
 
-  // Afficher les options de refus
+  // Refuser directement la réservation
   void _showRefusalOptions(Reservation reservation) {
-    if (_globalContext == null || !_globalContext!.mounted) return;
+    if (_globalContext == null || !_globalContext!.mounted) {
+      print(
+        '❌ AdminGlobalNotificationService: Contexte non disponible pour refuser',
+      );
+      return;
+    }
 
-    showDialog(
-      context: _globalContext!,
-      builder: (BuildContext context) {
-        return GlassActionDialog(
-          title: 'Action sur la réservation',
-          message: 'Que souhaitez-vous faire avec cette réservation ?',
-          actions: [
-            GlassActionButton(
-              label: 'Annuler',
-              onPressed: () => Navigator.of(context).pop(),
-              color: AppColors.textWeak,
-            ),
-            GlassActionButton(
-              label: 'Refuser',
-              onPressed: () {
-                Navigator.of(context).pop();
-                _declineReservation(reservation.id);
-              },
-              icon: Icons.close,
-              color: Colors.red,
-            ),
-            GlassActionButton(
-              label: 'Contre-offre',
-              onPressed: () {
-                Navigator.of(context).pop();
-                _showCounterOfferDialog(reservation);
-              },
-              icon: Icons.handshake,
-              color: AppColors.accent,
-              isPrimary: true,
-            ),
-          ],
-        );
-      },
+    print(
+      '🔔 AdminGlobalNotificationService: Refus direct de la réservation ${reservation.id}',
     );
+
+    // Refuser directement sans menu
+    _declineReservation(reservation.id);
   }
 
   // Refuser une réservation
   Future<void> _declineReservation(String reservationId) async {
+    print(
+      '🔔 AdminGlobalNotificationService: Refus de la réservation $reservationId',
+    );
+
     try {
-      await _reservationService.updateReservationStatus(
+      await _reservationService.refuseReservation(
         reservationId,
-        ReservationStatus.cancelled,
+        reason: 'Demande refusée par l\'administrateur',
       );
 
       if (_globalContext != null && _globalContext!.mounted) {

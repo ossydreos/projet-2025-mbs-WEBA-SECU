@@ -25,16 +25,22 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
   }
 
   Future<void> _loadVehicles() async {
+    if (!mounted) return;
+
     setState(() => _isLoading = true);
     try {
       final vehicles = await _vehicleService.getAllVehicles();
-      setState(() {
-        _vehicles = vehicles;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _vehicles = vehicles;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() => _isLoading = false);
-      _showErrorSnackBar('Erreur lors du chargement des véhicules: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showErrorSnackBar('Erreur lors du chargement des véhicules: $e');
+      }
     }
   }
 
@@ -51,22 +57,10 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
               icon: Icon(Icons.add, color: AppColors.accent),
               tooltip: 'Ajouter un véhicule',
             ),
-            Container(
-              margin: const EdgeInsets.only(right: 16),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.accent),
-              ),
-              child: Text(
-                'ADMIN',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-              ),
+            IconButton(
+              onPressed: _loadVehicles,
+              icon: Icon(Icons.refresh, color: AppColors.accent),
+              tooltip: 'Actualiser',
             ),
           ],
         ),

@@ -16,15 +16,16 @@ class AdminScreenWrapper extends StatefulWidget {
 }
 
 class _AdminScreenWrapperState extends State<AdminScreenWrapper> {
-  final AdminGlobalNotificationService _notificationService =
+  static final AdminGlobalNotificationService _notificationService =
       AdminGlobalNotificationService();
 
   @override
   void initState() {
     super.initState();
-    // Initialiser le service de notifications globales immédiatement
+    // Initialiser le service de notifications globales
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _notificationService.initialize(context);
+      print('🔔 AdminScreenWrapper: Service initialisé');
     });
   }
 
@@ -32,7 +33,9 @@ class _AdminScreenWrapperState extends State<AdminScreenWrapper> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Mettre à jour le contexte à chaque changement de page
-    _notificationService.updateContext(context);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notificationService.updateContext(context);
+    });
   }
 
   @override
