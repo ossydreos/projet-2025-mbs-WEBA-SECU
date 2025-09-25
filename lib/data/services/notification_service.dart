@@ -58,7 +58,7 @@ class NotificationService {
     );
   }
 
-  // Afficher une notification style Uber pour les nouvelles demandes
+  // Afficher une notification style barre en bas pour les nouvelles demandes
   static void showUberStyleNotification(
     BuildContext context,
     Reservation reservation, {
@@ -67,47 +67,119 @@ class NotificationService {
     VoidCallback? onCounterOffer,
     VoidCallback? onPending,
   }) {
-    // Fermer toute notification existante
-    Navigator.of(context).popUntil((route) => route.isFirst);
-
-    // Afficher la notification plein écran
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.transparent,
-      useSafeArea: false,
-      builder: (BuildContext context) {
-        return PopScope(
-          canPop: false,
-          child: UberStyleNotification(
-            reservation: reservation,
-            onAccept: () {
-              Navigator.of(context).pop();
-              onAccept();
-            },
-            onDecline: () {
-              Navigator.of(context).pop();
-              onDecline();
-            },
-            onClose: () {
-              Navigator.of(context).pop();
-              onDecline(); // Fermer = refuser par défaut
-            },
-            onCounterOffer: onCounterOffer != null
-                ? () {
-                    Navigator.of(context).pop();
-                    onCounterOffer();
-                  }
-                : null,
-            onPending: onPending != null
-                ? () {
-                    Navigator.of(context).pop();
-                    onPending();
-                  }
-                : null,
+    // Afficher la notification comme une barre en bas
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.directions_car,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Nouvelle demande',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${reservation.departure} → ${reservation.destination}',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${reservation.totalPrice.toStringAsFixed(2)} CHF',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        onAccept();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('ACCEPTER'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        onDecline();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text('REFUSER'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+        backgroundColor: Colors.blue,
+        duration: const Duration(seconds: 30),
+        behavior: SnackBarBehavior.fixed,
+        action: SnackBarAction(
+          label: 'FERMER',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            onDecline();
+          },
+        ),
+      ),
     );
   }
 }

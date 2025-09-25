@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/notification_service.dart';
+import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/services/stripe_checkout_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class ReservationDetailScreen extends StatefulWidget {
   final Reservation reservation;
+  final String? customOfferId; // ID de l'offre personnalisée si applicable
 
-  const ReservationDetailScreen({super.key, required this.reservation});
+  const ReservationDetailScreen({
+    super.key, 
+    required this.reservation,
+    this.customOfferId,
+  });
 
   @override
   State<ReservationDetailScreen> createState() =>
@@ -17,6 +24,8 @@ class ReservationDetailScreen extends StatefulWidget {
 
 class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   final NotificationService _notificationService = NotificationService();
+  final ReservationService _reservationService = ReservationService();
+  final CustomOfferService _customOfferService = CustomOfferService();
   String _paymentMethod = 'Cash';
 
   Future<void> _confirmPayment() async {
@@ -28,7 +37,20 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
 
     // ✅ Sinon, confirmer le paiement en espèces
     try {
-      await _notificationService.confirmPayment(widget.reservation.id);
+      String reservationId = widget.reservation.id;
+      
+      // Si c'est une offre personnalisée, créer la réservation maintenant
+      if (widget.customOfferId != null && widget.reservation.id.isEmpty) {
+        reservationId = await _reservationService.createReservation(widget.reservation);
+        
+        // Mettre à jour l'offre personnalisée avec l'ID de la réservation
+        await _customOfferService.updateCustomOfferReservationId(
+          offerId: widget.customOfferId!,
+          reservationId: reservationId,
+        );
+      }
+      
+      await _notificationService.confirmPayment(reservationId);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -63,10 +85,23 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   // ✅ Ouvrir directement Stripe Checkout avec devise adaptée
   void _openSecurePaymentScreen() async {
     try {
+      String reservationId = widget.reservation.id;
+      
+      // Si c'est une offre personnalisée, créer la réservation maintenant
+      if (widget.customOfferId != null && widget.reservation.id.isEmpty) {
+        reservationId = await _reservationService.createReservation(widget.reservation);
+        
+        // Mettre à jour l'offre personnalisée avec l'ID de la réservation
+        await _customOfferService.updateCustomOfferReservationId(
+          offerId: widget.customOfferId!,
+          reservationId: reservationId,
+        );
+      }
+      
       await StripeCheckoutService.createCheckoutSession(
         amount: widget.reservation.totalPrice,
         currency: _getCurrencyForRegion(), // ✅ Devise adaptée à la région
-        reservationId: widget.reservation.id,
+        reservationId: reservationId,
         vehicleName: widget.reservation.vehicleName,
         departure: widget.reservation.departure,
         destination: widget.reservation.destination,
@@ -324,7 +359,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           Text(
             AppLocalizations.of(
               context,
-            ).reservationNumber(widget.reservation.id.substring(0, 8)),
+            ).reservationNumber(widget.reservation.id.isEmpty ? 'TEMP' : widget.reservation.id.length > 8 ? widget.reservation.id.substring(0, 8) : widget.reservation.id),
             style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,

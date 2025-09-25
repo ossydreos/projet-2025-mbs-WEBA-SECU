@@ -189,6 +189,21 @@ class CustomOfferService {
     }
   }
 
+  // Mettre à jour l'ID de réservation d'une offre personnalisée
+  Future<void> updateCustomOfferReservationId({
+    required String offerId,
+    required String reservationId,
+  }) async {
+    try {
+      await _firestore.collection(_collection).doc(offerId).update({
+        'reservationId': reservationId,
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      });
+    } catch (e) {
+      throw Exception('Erreur lors de la mise à jour de l\'ID de réservation de l\'offre: $e');
+    }
+  }
+
   // Mettre à jour le statut d'une offre
   Future<void> updateOfferStatus({
     required String offerId,

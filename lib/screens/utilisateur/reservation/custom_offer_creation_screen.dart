@@ -77,7 +77,11 @@ class CustomOfferCreationScreen extends StatefulWidget {
 
 class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   final CustomOfferService _customOfferService = CustomOfferService();
-  final _Debouncer _debouncer = _Debouncer(const Duration(milliseconds: 300));
+  final _Debouncer _debouncer = _Debouncer(const Duration(milliseconds: 500));
+  
+  // Cache pour éviter les appels répétés
+  Position? _cachedPosition;
+  DateTime? _lastPositionFetch;
   
   // Contrôleurs de texte
   final TextEditingController _departureController = TextEditingController();
@@ -233,21 +237,26 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
                 ? AppConstants.googleMapsApiKeyIOS
                 : AppConstants.googleMapsApiKeyAndroid);
       
-      // Obtenir la position actuelle pour le tri par proximité
+      // Utiliser la position cachée ou Genève par défaut (plus rapide)
       String locationParam = '';
-      try {
-        final position = await Geolocator.getCurrentPosition();
-        locationParam = '&location=${position.latitude},${position.longitude}&radius=50000';
-      } catch (e) {
-        // Si pas de géolocalisation, utiliser Genève par défaut
+      if (_cachedPosition != null && 
+          _lastPositionFetch != null && 
+          DateTime.now().difference(_lastPositionFetch!).inMinutes < 5) {
+        // Utiliser la position cachée si elle est récente (< 5 min)
+        locationParam = '&location=${_cachedPosition!.latitude},${_cachedPosition!.longitude}&radius=50000';
+      } else {
+        // Sinon utiliser Genève par défaut (plus rapide que géolocalisation)
         locationParam = '&location=46.2044,6.1432&radius=50000';
+        
+        // Récupérer la position en arrière-plan pour le prochain appel
+        _updatePositionInBackground();
       }
       
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
         '?input=${Uri.encodeQueryComponent(query)}'
         '&language=fr'
-        '&components=country:fr|country:ch'
+        '&components=country:ch|country:fr'  // Suisse en premier
         '&sessiontoken=$_placesSessionToken'
         '$locationParam'
         '&key=$key',
@@ -264,7 +273,26 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
               .map((p) => Suggestion.fromPlaces(p))
               .toList();
           
-          // Utiliser l'ordre de Google Places (trié par proximité)
+          // Tri rapide côté client : Suisse en premier
+          suggestions.sort((a, b) {
+            final aIsSwiss = a.address.toLowerCase().contains('suisse') ||
+                             a.address.toLowerCase().contains('switzerland') ||
+                             a.address.toLowerCase().contains('genève') ||
+                             a.address.toLowerCase().contains('zurich') ||
+                             a.address.toLowerCase().contains('bern') ||
+                             a.address.toLowerCase().contains('lausanne');
+            
+            final bIsSwiss = b.address.toLowerCase().contains('suisse') ||
+                             b.address.toLowerCase().contains('switzerland') ||
+                             b.address.toLowerCase().contains('genève') ||
+                             b.address.toLowerCase().contains('zurich') ||
+                             b.address.toLowerCase().contains('bern') ||
+                             b.address.toLowerCase().contains('lausanne');
+            
+            if (aIsSwiss && !bIsSwiss) return -1;
+            if (!aIsSwiss && bIsSwiss) return 1;
+            return 0;
+          });
           
           setState(() {
             _departureSuggestions = suggestions;
@@ -303,21 +331,26 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
                 ? AppConstants.googleMapsApiKeyIOS
                 : AppConstants.googleMapsApiKeyAndroid);
       
-      // Obtenir la position actuelle pour le tri par proximité
+      // Utiliser la position cachée ou Genève par défaut (plus rapide)
       String locationParam = '';
-      try {
-        final position = await Geolocator.getCurrentPosition();
-        locationParam = '&location=${position.latitude},${position.longitude}&radius=50000';
-      } catch (e) {
-        // Si pas de géolocalisation, utiliser Genève par défaut
+      if (_cachedPosition != null && 
+          _lastPositionFetch != null && 
+          DateTime.now().difference(_lastPositionFetch!).inMinutes < 5) {
+        // Utiliser la position cachée si elle est récente (< 5 min)
+        locationParam = '&location=${_cachedPosition!.latitude},${_cachedPosition!.longitude}&radius=50000';
+      } else {
+        // Sinon utiliser Genève par défaut (plus rapide que géolocalisation)
         locationParam = '&location=46.2044,6.1432&radius=50000';
+        
+        // Récupérer la position en arrière-plan pour le prochain appel
+        _updatePositionInBackground();
       }
       
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
         '?input=${Uri.encodeQueryComponent(query)}'
         '&language=fr'
-        '&components=country:fr|country:ch'
+        '&components=country:ch|country:fr'  // Suisse en premier
         '&sessiontoken=$_placesSessionToken'
         '$locationParam'
         '&key=$key',
@@ -334,7 +367,26 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
               .map((p) => Suggestion.fromPlaces(p))
               .toList();
           
-          // Utiliser l'ordre de Google Places (trié par proximité)
+          // Tri rapide côté client : Suisse en premier
+          suggestions.sort((a, b) {
+            final aIsSwiss = a.address.toLowerCase().contains('suisse') ||
+                             a.address.toLowerCase().contains('switzerland') ||
+                             a.address.toLowerCase().contains('genève') ||
+                             a.address.toLowerCase().contains('zurich') ||
+                             a.address.toLowerCase().contains('bern') ||
+                             a.address.toLowerCase().contains('lausanne');
+            
+            final bIsSwiss = b.address.toLowerCase().contains('suisse') ||
+                             b.address.toLowerCase().contains('switzerland') ||
+                             b.address.toLowerCase().contains('genève') ||
+                             b.address.toLowerCase().contains('zurich') ||
+                             b.address.toLowerCase().contains('bern') ||
+                             b.address.toLowerCase().contains('lausanne');
+            
+            if (aIsSwiss && !bIsSwiss) return -1;
+            if (!aIsSwiss && bIsSwiss) return 1;
+            return 0;
+          });
           
           setState(() {
             _destinationSuggestions = suggestions;
@@ -358,6 +410,23 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         _destinationSuggestions = [];
       });
     }
+  }
+
+  // Méthode pour mettre à jour la position en arrière-plan (non bloquante)
+  void _updatePositionInBackground() {
+    Future.delayed(Duration.zero, () async {
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 3), // Timeout rapide
+        );
+        _cachedPosition = position;
+        _lastPositionFetch = DateTime.now();
+      } catch (e) {
+        // Ignorer les erreurs de géolocalisation
+        print('Géolocalisation en arrière-plan échouée: $e');
+      }
+    });
   }
 
   Future<LatLng?> _fetchPlaceDetailsLatLng(String placeId) async {

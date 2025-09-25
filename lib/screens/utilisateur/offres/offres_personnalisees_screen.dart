@@ -100,14 +100,14 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Début: ${_formatDateTime(offer.startDateTime!)}',
+                          'Début: ${_formatDateTime(offer.startDateTime)}',
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
                           ),
                         ),
                         Text(
-                          'Fin: ${_formatDateTime(offer.endDateTime!)}',
+                          'Fin: ${_formatDateTime(offer.endDateTime)}',
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
@@ -272,14 +272,14 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Début: ${_formatDateTime(offer.startDateTime!)}',
+                          'Début: ${_formatDateTime(offer.startDateTime)}',
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
                           ),
                         ),
                         Text(
-                          'Fin: ${_formatDateTime(offer.endDateTime!)}',
+                          'Fin: ${_formatDateTime(offer.endDateTime)}',
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
@@ -411,7 +411,9 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
     }
   }
 
-  String _formatDateTime(DateTime dateTime) {
+  String _formatDateTime(DateTime? dateTime) {
+    if (dateTime == null) return 'Non défini';
+    
     final day = dateTime.day.toString().padLeft(2, '0');
     final month = dateTime.month.toString().padLeft(2, '0');
     final hour = dateTime.hour.toString().padLeft(2, '0');
@@ -431,12 +433,17 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
         throw Exception('Utilisateur non connecté');
       }
 
-      // Mapper l'offre personnalisée vers une Réservation pour réutiliser EXACTEMENT le même flux
+      // NE PAS créer de réservation maintenant - juste naviguer vers le paiement
+      // La réservation sera créée seulement après confirmation du paiement
+      
+      // Créer un objet réservation temporaire pour l'écran de paiement
       final DateTime selectedDate = offer.startDateTime ?? DateTime.now();
-      final String selectedTime = '${selectedDate.hour.toString().padLeft(2, '0')}:${selectedDate.minute.toString().padLeft(2, '0')}';
+      final int hour = selectedDate.hour;
+      final int minute = selectedDate.minute;
+      final String selectedTime = '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
 
-      final reservation = Reservation(
-        id: '',
+      final tempReservation = Reservation(
+        id: '', // Pas d'ID encore
         userId: user.uid,
         userName: user.displayName ?? user.email?.split('@').first,
         vehicleName: 'Offre personnalisée',
@@ -447,22 +454,12 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
         estimatedArrival: '--:--',
         paymentMethod: 'Espèces',
         totalPrice: offer.proposedPrice!,
-        status: ReservationStatus.confirmed, // même logique: en attente de paiement
+        status: ReservationStatus.confirmed, // En attente de paiement
         createdAt: DateTime.now(),
         departureCoordinates: offer.departureCoordinates,
         destinationCoordinates: offer.destinationCoordinates,
         clientNote: offer.clientNote,
-      );
-
-      // Sauvegarder la réservation et obtenir l'ID
-      final reservationId = await _reservationService.createReservation(reservation);
-
-      // Lier l'offre à la réservation créée
-      await _customOfferService.updateCustomOffer(
-        offer.id,
-        status: 'accepted',
-        proposedPrice: offer.proposedPrice,
-        reservationId: reservationId,
+        customOfferId: offer.id, // Lier à l'offre personnalisée
       );
 
       // Ouvrir l'écran de paiement IDENTIQUE aux réservations normales
@@ -472,7 +469,8 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
           context,
           MaterialPageRoute(
             builder: (context) => ReservationDetailScreen(
-              reservation: reservation.copyWith(id: reservationId),
+              reservation: tempReservation,
+              customOfferId: offer.id, // Passer l'ID de l'offre pour créer la réservation après paiement
             ),
           ),
         );

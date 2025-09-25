@@ -108,92 +108,302 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
   // Barre d'attente de paiement pour une offre acceptée (même style que réservations)
   Widget _buildAcceptedCustomOfferPaymentBar(CustomOffer offer) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.accent.withOpacity(0.8),
-            AppColors.accent.withOpacity(0.6),
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.accent.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    if (offer.reservationId != null) {
+      // Si une réservation a déjà été créée pour cette offre, ne pas afficher cette barre
+      return const SizedBox.shrink();
+    }
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // En-tête avec icône véhicule, nom client et prix
+            Row(
               children: [
-                const Text(
-                  'En attente du paiement du client',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    fontFamily: 'Poppins',
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.directions_car,
+                    color: AppColors.accent,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Le client doit valider et payer son offre personnalisée',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontFamily: 'Poppins',
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (offer.userName != null)
+                        Text(
+                          offer.userName!,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textStrong,
+                          ),
+                        ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Offre personnalisée',
+                        style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Row(
+                // Prix
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Icon(Icons.location_on, color: Colors.white, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '${offer.departure} → ${offer.destination}',
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                    Text(
+                      'Prix proposé',
+                      style: TextStyle(fontSize: 12, color: AppColors.textWeak),
+                    ),
+                    Text(
+                      '${offer.proposedPrice?.toStringAsFixed(2) ?? 'N/A'} CHF',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.accent,
                       ),
                     ),
                   ],
                 ),
-                if (offer.proposedPrice != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Prix proposé: ${offer.proposedPrice!.toStringAsFixed(2)} CHF',
-                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-                  ),
-                ]
               ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_forever, color: Colors.white, size: 24),
-            tooltip: 'Supprimer cette offre',
-            onPressed: () => _forceDeleteCustomOffer(offer),
-          ),
-        ],
+            const SizedBox(height: 16),
+
+            // Informations de trajet
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Point de départ
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: AppColors.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              offer.departure,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.text,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Ligne de connexion
+                      Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Container(
+                          width: 1,
+                          height: 20,
+                          color: AppColors.textWeak.withOpacity(0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Point d'arrivée
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: AppColors.hot,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              offer.destination,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.text,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // Informations temporelles
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Départ',
+                      style: TextStyle(fontSize: 12, color: AppColors.textWeak),
+                    ),
+                    Text(
+                      offer.startDateTime != null 
+                        ? '${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}'
+                        : '--:--',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textStrong,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Fin',
+                      style: TextStyle(fontSize: 12, color: AppColors.textWeak),
+                    ),
+                    Text(
+                      offer.endDateTime != null 
+                        ? '${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}'
+                        : '--:--',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textStrong,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Informations supplémentaires
+            Row(
+              children: [
+                // Date
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_today, size: 16, color: AppColors.textWeak),
+                      const SizedBox(width: 8),
+                      Text(
+                        offer.startDateTime != null 
+                          ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
+                          : 'Date non définie',
+                        style: TextStyle(fontSize: 14, color: AppColors.text),
+                      ),
+                    ],
+                  ),
+                ),
+                // Méthode de paiement
+                Row(
+                  children: [
+                    Icon(Icons.account_balance_wallet, size: 16, color: AppColors.textWeak),
+                    const SizedBox(width: 8),
+                    Text(
+                      'À définir',
+                      style: TextStyle(fontSize: 14, color: AppColors.text),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            // Note du client (si présente)
+            if (offer.clientNote != null && offer.clientNote!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.note, size: 16, color: AppColors.textWeak),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      offer.clientNote!,
+                      style: TextStyle(fontSize: 14, color: AppColors.text),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
+            const SizedBox(height: 16),
+
+            // Barre d'attente de paiement (EXACTEMENT comme les réservations normales)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.accent.withOpacity(0.8),
+                    AppColors.accent.withOpacity(0.6),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.accent.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'En attente du paiement du client',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Le client doit valider et payer son offre personnalisée',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.payment, color: Colors.white, size: 24),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -338,7 +548,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '✅ Notification de test affichée ! Réservation: ${reservationId.substring(0, 8)}',
+              '✅ Notification de test affichée ! Réservation: ${reservationId.length > 8 ? reservationId.substring(0, 8) : reservationId}',
             ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
@@ -1822,6 +2032,14 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 .where((o) => o.status == CustomOfferStatus.accepted)
                 .toList();
 
+            // DEBUG: Afficher les statuts des offres
+            print('🔍 DEBUG - Offres trouvées: ${offers.length}');
+            for (var offer in offers) {
+              print('🔍 DEBUG - Offre ${offer.id}: statut=${offer.status.name}');
+            }
+            print('🔍 DEBUG - Offres pending: ${pendingOffers.length}');
+            print('🔍 DEBUG - Offres accepted: ${acceptedOffers.length}');
+
             if (pendingOffers.isEmpty && acceptedOffers.isEmpty) {
               return const SizedBox.shrink();
             }
@@ -1844,6 +2062,11 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   Widget _buildCustomOfferCard(CustomOffer offer) {
+    // Ne s'afficher que pour les offres en attente
+    if (offer.status != CustomOfferStatus.pending) {
+      return const SizedBox.shrink();
+    }
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(

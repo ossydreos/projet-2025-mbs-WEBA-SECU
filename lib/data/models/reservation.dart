@@ -69,6 +69,7 @@ class Reservation {
   // Promo
   final String? promoCode; // code appliqué
   final double? discountAmount; // montant de la remise en devise
+  final String? customOfferId; // ID de l'offre personnalisée liée
 
   Reservation({
     required this.id,
@@ -94,6 +95,7 @@ class Reservation {
     this.adminMessage,
     this.promoCode,
     this.discountAmount,
+    this.customOfferId,
   });
 
   // Convertir en Map pour Firebase
@@ -124,6 +126,7 @@ class Reservation {
       'adminMessage': adminMessage,
       'promoCode': promoCode,
       'discountAmount': discountAmount,
+      'customOfferId': customOfferId,
     };
   }
 
@@ -162,6 +165,7 @@ class Reservation {
       discountAmount: (map['discountAmount'] ?? 0.0) == 0.0
           ? null
           : (map['discountAmount'] as num).toDouble(),
+      customOfferId: map['customOfferId'],
     );
   }
 
@@ -190,6 +194,7 @@ class Reservation {
     String? adminMessage,
     String? promoCode,
     double? discountAmount,
+    String? customOfferId,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -216,6 +221,7 @@ class Reservation {
       adminMessage: adminMessage ?? this.adminMessage,
       promoCode: promoCode ?? this.promoCode,
       discountAmount: discountAmount ?? this.discountAmount,
+      customOfferId: customOfferId ?? this.customOfferId,
     );
   }
 
