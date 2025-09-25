@@ -227,6 +227,7 @@ class CustomOfferService {
     String? driverName,
     int? durationHours,
     int? durationMinutes,
+    String? reservationId,
   }) async {
     try {
       final updateData = <String, dynamic>{
@@ -253,6 +254,9 @@ class CustomOfferService {
       }
       if (durationMinutes != null) {
         updateData['durationMinutes'] = durationMinutes;
+      }
+      if (reservationId != null) {
+        updateData['reservationId'] = reservationId;
       }
 
       // Ajouter la date d'acceptation/rejet si le statut change

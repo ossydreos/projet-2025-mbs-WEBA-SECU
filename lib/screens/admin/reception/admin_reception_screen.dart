@@ -42,11 +42,11 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         appBar: GlassAppBar(
           title: 'Boîte de réception',
           actions: [
-            // Bouton pour annuler toutes les réservations en attente de paiement
+            // Supprimer toutes les demandes (réservations + offres perso) visibles dans l'accueil
             IconButton(
-              onPressed: _cancelAllWaitingReservations,
-              icon: Icon(Icons.clear_all, color: Colors.red),
-              tooltip: 'Annuler toutes les réservations en attente',
+              onPressed: _deleteAllInboxRequests,
+              icon: const Icon(Icons.delete_sweep, color: Colors.red),
+              tooltip: 'Supprimer toutes les demandes',
             ),
           ],
         ),
@@ -62,6 +62,168 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         ),
       ),
     );
+  }
+
+  // Supprime toutes les demandes visibles dans l'accueil (réservations pending/confirmed + offres pending/accepted)
+  Future<void> _deleteAllInboxRequests() async {
+    try {
+      // 1) Supprimer les réservations en attente (pending) et confirmées (en attente de paiement)
+      final reservationsSnap = await FirebaseFirestore.instance
+          .collection('reservations')
+          .where('status', whereIn: ['pending', 'confirmed'])
+          .get();
+      for (final d in reservationsSnap.docs) {
+        await d.reference.delete();
+      }
+
+      // 2) Supprimer les offres personnalisées en attente et acceptées
+      final offersSnap = await FirebaseFirestore.instance
+          .collection('custom_offers')
+          .where('status', whereIn: ['pending', 'accepted'])
+          .get();
+      for (final d in offersSnap.docs) {
+        await d.reference.delete();
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Toutes les demandes ont été supprimées'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Barre d'attente de paiement pour une offre acceptée (même style que réservations)
+  Widget _buildAcceptedCustomOfferPaymentBar(CustomOffer offer) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.accent.withOpacity(0.8),
+            AppColors.accent.withOpacity(0.6),
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'En attente du paiement du client',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Le client doit valider et payer son offre personnalisée',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.white, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${offer.departure} → ${offer.destination}',
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                if (offer.proposedPrice != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Prix proposé: ${offer.proposedPrice!.toStringAsFixed(2)} CHF',
+                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                ]
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_forever, color: Colors.white, size: 24),
+            tooltip: 'Supprimer cette offre',
+            onPressed: () => _forceDeleteCustomOffer(offer),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Suppression forcée d'une offre personnalisée (debug / nettoyage)
+  Future<void> _forceDeleteCustomOffer(CustomOffer offer) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('custom_offers')
+          .doc(offer.id)
+          .delete();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Offre personnalisée supprimée'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -1636,7 +1798,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         // Widget des réservations en attente
         const PendingReservationsWidget(),
         
-        // Offres personnalisées en attente
+        // Offres personnalisées (section dédiée)
         StreamBuilder<QuerySnapshot>(
           stream: _customOfferService.getCustomOffersStream(),
           builder: (context, snapshot) {
@@ -1652,34 +1814,27 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 .map((doc) => CustomOffer.fromMap(doc.data() as Map<String, dynamic>))
                 .toList() ?? [];
 
-            print('Admin - Total offres trouvées: ${offers.length}');
-            for (final offer in offers) {
-              print('Admin - Offre ${offer.id}: statut = ${offer.status.name}');
-            }
+            // Séparer en deux groupes: en attente et acceptées (en attente de paiement)
+            final pendingOffers = offers
+                .where((o) => o.status == CustomOfferStatus.pending)
+                .toList();
+            final acceptedOffers = offers
+                .where((o) => o.status == CustomOfferStatus.accepted)
+                .toList();
 
-            // Filtrer seulement les offres en attente
-            final pendingOffers = offers.where((o) => o.status == CustomOfferStatus.pending).toList();
-            
-            print('Admin - Offres en attente après filtrage: ${pendingOffers.length}');
-            
-            // FORCER LE FILTRAGE - NE PAS AFFICHER LES OFFRES ANNULEES
-            final validOffers = offers.where((o) => 
-              o.status == CustomOfferStatus.pending || 
-              o.status == CustomOfferStatus.accepted
-            ).toList();
-            
-            print('Admin - Offres valides (pending/accepted): ${validOffers.length}');
-
-            if (validOffers.isEmpty) {
-              print('Admin - Aucune offre valide à afficher');
+            if (pendingOffers.isEmpty && acceptedOffers.isEmpty) {
               return const SizedBox.shrink();
             }
 
-            print('Admin - Affichage de ${validOffers.length} offres valides');
             return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 16),
-                ...validOffers.map((offer) => _buildCustomOfferCard(offer)),
+                const SizedBox(height: 12),
+                ...pendingOffers.map((offer) => _buildCustomOfferCard(offer)),
+                ...acceptedOffers
+                    // Si une réservation a été créée, ne pas dupliquer si un panneau réservation existe
+                    .where((o) => o.reservationId == null)
+                    .map((offer) => _buildAcceptedCustomOfferPaymentBar(offer)),
               ],
             );
           },
@@ -1706,12 +1861,24 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.schedule, color: Colors.orange, size: 20),
+                        Icon(
+                          offer.status == CustomOfferStatus.pending
+                              ? Icons.schedule
+                              : Icons.check_circle,
+                          color: offer.status == CustomOfferStatus.pending
+                              ? Colors.orange
+                              : Colors.green,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
-                        const Text(
-                          'En attente',
+                        Text(
+                          offer.status == CustomOfferStatus.pending
+                              ? 'En attente'
+                              : 'Acceptée',
                           style: TextStyle(
-                            color: Colors.orange,
+                            color: offer.status == CustomOfferStatus.pending
+                                ? Colors.orange
+                                : Colors.green,
                             fontWeight: FontWeight.w600,
                           ),
                         ),

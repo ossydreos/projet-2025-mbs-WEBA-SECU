@@ -16,6 +16,21 @@ class NotificationService {
         'lastUpdated': Timestamp.now(),
         'paymentConfirmedAt': Timestamp.now(),
       });
+
+      // Mettre à jour l'offre personnalisée liée (si existe) pour refléter le paiement
+      final offers = await _firestore
+          .collection('custom_offers')
+          .where('reservationId', isEqualTo: reservationId)
+          .limit(1)
+          .get();
+      if (offers.docs.isNotEmpty) {
+        await offers.docs.first.reference.update({
+          'status': 'confirmed',
+          'paymentMethod': 'cash',
+          'confirmedAt': Timestamp.now(),
+          'updatedAt': Timestamp.now(),
+        });
+      }
     } catch (e) {
       throw Exception('Erreur lors de la confirmation du paiement: $e');
     }

@@ -83,6 +83,8 @@ class CustomOffer {
   // Champs pour le paiement (une fois confirmé)
   final String? paymentMethod;
   final DateTime? confirmedAt; // Date de confirmation et paiement
+  // Lien optionnel vers une réservation créée à partir de l'offre
+  final String? reservationId;
 
   CustomOffer({
     required this.id,
@@ -107,6 +109,7 @@ class CustomOffer {
     this.acceptedAt,
     this.paymentMethod,
     this.confirmedAt,
+    this.reservationId,
   });
 
   // Convertir en Map pour Firebase
@@ -134,6 +137,7 @@ class CustomOffer {
       'acceptedAt': acceptedAt != null ? Timestamp.fromDate(acceptedAt!) : null,
       'paymentMethod': paymentMethod,
       'confirmedAt': confirmedAt != null ? Timestamp.fromDate(confirmedAt!) : null,
+      'reservationId': reservationId,
     };
   }
 
@@ -177,6 +181,7 @@ class CustomOffer {
       confirmedAt: map['confirmedAt'] != null
           ? (map['confirmedAt'] as Timestamp).toDate()
           : null,
+      reservationId: map['reservationId'],
     );
   }
 
@@ -204,6 +209,7 @@ class CustomOffer {
     DateTime? acceptedAt,
     String? paymentMethod,
     DateTime? confirmedAt,
+    String? reservationId,
   }) {
     return CustomOffer(
       id: id ?? this.id,
@@ -228,6 +234,7 @@ class CustomOffer {
       acceptedAt: acceptedAt ?? this.acceptedAt,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       confirmedAt: confirmedAt ?? this.confirmedAt,
+      reservationId: reservationId ?? this.reservationId,
     );
   }
 

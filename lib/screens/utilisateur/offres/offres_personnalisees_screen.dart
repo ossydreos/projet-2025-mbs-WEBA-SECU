@@ -3,6 +3,10 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/custom_offer_creation_screen.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
+import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -22,6 +26,7 @@ class OffresPersonnaliseesScreen extends StatefulWidget {
 
 class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen> {
   final CustomOfferService _customOfferService = CustomOfferService();
+  final ReservationService _reservationService = ReservationService();
 
   void _openCustomOfferCreation(BuildContext context) {
     Navigator.push(
@@ -417,26 +422,72 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
 
   Future<void> _confirmAndPayOffer(CustomOffer offer) async {
     try {
-      // Simuler le processus de paiement
-      // Dans une vraie app, vous intégreriez Stripe ou un autre système de paiement
-      await _customOfferService.confirmCustomOffer(
-        offerId: offer.id,
-        paymentMethod: 'card', // Méthode de paiement par défaut
+      if (offer.proposedPrice == null) {
+        throw Exception('Prix manquant sur l\'offre');
+      }
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('Utilisateur non connecté');
+      }
+
+      // Mapper l'offre personnalisée vers une Réservation pour réutiliser EXACTEMENT le même flux
+      final DateTime selectedDate = offer.startDateTime ?? DateTime.now();
+      final String selectedTime = '${selectedDate.hour.toString().padLeft(2, '0')}:${selectedDate.minute.toString().padLeft(2, '0')}';
+
+      final reservation = Reservation(
+        id: '',
+        userId: user.uid,
+        userName: user.displayName ?? user.email?.split('@').first,
+        vehicleName: 'Offre personnalisée',
+        departure: offer.departure,
+        destination: offer.destination,
+        selectedDate: selectedDate,
+        selectedTime: selectedTime,
+        estimatedArrival: '--:--',
+        paymentMethod: 'Espèces',
+        totalPrice: offer.proposedPrice!,
+        status: ReservationStatus.confirmed, // même logique: en attente de paiement
+        createdAt: DateTime.now(),
+        departureCoordinates: offer.departureCoordinates,
+        destinationCoordinates: offer.destinationCoordinates,
+        clientNote: offer.clientNote,
       );
-      
+
+      // Sauvegarder la réservation et obtenir l'ID
+      final reservationId = await _reservationService.createReservation(reservation);
+
+      // Lier l'offre à la réservation créée
+      await _customOfferService.updateCustomOffer(
+        offer.id,
+        status: 'accepted',
+        proposedPrice: offer.proposedPrice,
+        reservationId: reservationId,
+      );
+
+      // Ouvrir l'écran de paiement IDENTIQUE aux réservations normales
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Offre confirmée et payée avec succès !'),
-            backgroundColor: Colors.green,
+        // Aller vers le paiement
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ReservationDetailScreen(
+              reservation: reservation.copyWith(id: reservationId),
+            ),
           ),
         );
+
+        // Au retour, si le paiement est confirmé, l'offre doit disparaître
+        final refreshed = await _customOfferService.getCustomOfferById(offer.id);
+        if (refreshed != null && refreshed.status == CustomOfferStatus.confirmed) {
+          if (mounted) setState(() {});
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors du paiement: $e'),
+            content: Text('Erreur lors de l\'initialisation du paiement: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -490,6 +541,14 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
       });
       
       print('=== MISE À JOUR FIREBASE RÉUSSIE ===');
+
+      // Si une réservation liée existe déjà, la supprimer pour éviter les doublons
+      if (offer.reservationId != null && offer.reservationId!.isNotEmpty) {
+        await FirebaseFirestore.instance
+            .collection('reservations')
+            .doc(offer.reservationId)
+            .delete();
+      }
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
