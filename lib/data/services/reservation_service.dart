@@ -366,7 +366,19 @@ class ReservationService {
     );
   }
 
-  // Confirmer une réservation
+  // Accepter une réservation (mise en attente de paiement)
+  Future<void> acceptReservation(String reservationId) async {
+    await updateReservationStatus(reservationId, ReservationStatus.pending);
+    // Ajouter un flag pour indiquer qu'elle est en attente de paiement
+    await updateReservationField(reservationId, 'waitingForPayment', true);
+    await updateReservationField(
+      reservationId,
+      'acceptedAt',
+      DateTime.now().toIso8601String(),
+    );
+  }
+
+  // Confirmer une réservation (après paiement)
   Future<void> confirmReservation(String reservationId) async {
     await updateReservationStatus(reservationId, ReservationStatus.confirmed);
   }

@@ -16,9 +16,12 @@ class AdminGlobalNotificationService {
   final NotificationManager _notificationManager = NotificationManager();
   StreamSubscription<QuerySnapshot>? _reservationSubscription;
   BuildContext? _globalContext;
-  DateTime _lastSeenReservationAt = DateTime.now();
+  DateTime _lastSeenReservationAt = DateTime.now().subtract(
+    const Duration(minutes: 5),
+  );
   bool _isInitialized = false;
   Map<String, dynamic>? _pendingNotification;
+  Set<String> _processedReservations = <String>{};
 
   // Initialiser le service global pour l'admin
   void initialize(BuildContext context) {
@@ -39,6 +42,11 @@ class AdminGlobalNotificationService {
         '🔔 AdminGlobalNotificationService: Service déjà initialisé, mise à jour du contexte uniquement',
       );
     }
+
+    // Vérifier immédiatement les réservations en attente
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkPendingReservations();
+    });
   }
 
   // Initialiser le service sans contexte (pour le démarrage global)
@@ -48,6 +56,11 @@ class AdminGlobalNotificationService {
       print(
         '🔔 AdminGlobalNotificationService: Initialisation globale sans contexte',
       );
+      // Réinitialiser le timestamp pour capturer toutes les nouvelles réservations
+      _lastSeenReservationAt = DateTime.now().subtract(
+        const Duration(minutes: 1),
+      );
+      _processedReservations.clear();
       _startListeningToReservations();
     }
   }
@@ -65,6 +78,72 @@ class AdminGlobalNotificationService {
       _showNotificationForReservation(_pendingNotification!);
       _pendingNotification = null;
     }
+
+    // Vérifier les réservations en attente manquées
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkPendingReservations();
+    });
+  }
+
+  // Forcer la vérification des nouvelles réservations (pour les tests)
+  void forceCheckNewReservations() {
+    print(
+      '🔔 AdminGlobalNotificationService: Vérification forcée des nouvelles réservations',
+    );
+    _lastSeenReservationAt = DateTime.now().subtract(
+      const Duration(minutes: 10),
+    );
+    _processedReservations.clear();
+  }
+
+  // Vérifier et afficher toutes les réservations en attente manquées
+  Future<void> checkPendingReservations() async {
+    if (_globalContext == null || !_globalContext!.mounted) {
+      print(
+        '🔔 AdminGlobalNotificationService: Contexte non disponible pour vérifier les réservations',
+      );
+      return;
+    }
+
+    try {
+      print(
+        '🔔 AdminGlobalNotificationService: Vérification des réservations en attente',
+      );
+
+      final snapshot = await FirebaseFirestore.instance
+          .collection('reservations')
+          .where('status', isEqualTo: ReservationStatus.pending.name)
+          .orderBy('createdAt', descending: true)
+          .limit(5)
+          .get();
+
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final reservationId = doc.id;
+
+        // Vérifier si cette réservation a déjà été traitée
+        if (_processedReservations.contains(reservationId)) {
+          continue;
+        }
+
+        final createdAt = (data['createdAt'] as Timestamp).toDate();
+
+        // Afficher les réservations créées dans les 10 dernières minutes
+        if (createdAt.isAfter(
+          DateTime.now().subtract(const Duration(minutes: 10)),
+        )) {
+          print(
+            '🔔 AdminGlobalNotificationService: Réservation en attente trouvée: $reservationId',
+          );
+          _processedReservations.add(reservationId);
+          _showNotificationForReservation(data);
+        }
+      }
+    } catch (e) {
+      print(
+        '🔔 AdminGlobalNotificationService: Erreur lors de la vérification: $e',
+      );
+    }
   }
 
   // Forcer l'affichage d'une notification (pour les tests)
@@ -72,28 +151,49 @@ class AdminGlobalNotificationService {
     print(
       '🔔 AdminGlobalNotificationService: Forçage de l\'affichage de la notification',
     );
+    print('🔔 AdminGlobalNotificationService: Réservation: ${reservation.id}');
+    print(
+      '🔔 AdminGlobalNotificationService: Contexte fourni: ${context != null}',
+    );
+    print(
+      '🔔 AdminGlobalNotificationService: Contexte global: ${_globalContext != null}',
+    );
 
     // Utiliser le contexte fourni ou le contexte global
     final contextToUse = context ?? _globalContext;
 
-    if (contextToUse == null || !contextToUse.mounted) {
+    if (contextToUse == null) {
       print(
-        '🔔 AdminGlobalNotificationService: Contexte non disponible pour le forçage',
+        '🔔 AdminGlobalNotificationService: ERREUR - Aucun contexte disponible pour le forçage',
       );
       return;
     }
 
+    if (!contextToUse.mounted) {
+      print('🔔 AdminGlobalNotificationService: ERREUR - Contexte non monté');
+      return;
+    }
+
     print(
-      '🔔 AdminGlobalNotificationService: Affichage de la notification via NotificationManager',
+      '🔔 AdminGlobalNotificationService: Contexte OK, affichage de la notification via NotificationManager',
     );
 
-    _notificationManager.showGlobalNotification(
-      contextToUse,
-      reservation,
-      onAccept: () => _acceptReservation(reservation.id),
-      onDecline: () => _showRefusalOptions(reservation),
-      onCounterOffer: () => _showCounterOfferDialog(reservation),
-    );
+    try {
+      _notificationManager.showGlobalNotification(
+        contextToUse,
+        reservation,
+        onAccept: () => _acceptReservation(reservation.id),
+        onDecline: () => _showRefusalOptions(reservation),
+        onCounterOffer: () => _showCounterOfferDialog(reservation),
+      );
+      print(
+        '🔔 AdminGlobalNotificationService: NotificationManager appelé avec succès',
+      );
+    } catch (e) {
+      print(
+        '🔔 AdminGlobalNotificationService: ERREUR lors de l\'appel au NotificationManager: $e',
+      );
+    }
   }
 
   // Démarrer l'écoute des nouvelles réservations
@@ -143,12 +243,22 @@ class AdminGlobalNotificationService {
 
               // Ne traiter que les nouvelles réservations en attente
               if (status != null && status == ReservationStatus.pending.name) {
+                final reservationId = change.doc.id;
+
+                // Vérifier si cette réservation a déjà été traitée
+                if (_processedReservations.contains(reservationId)) {
+                  print(
+                    '🔔 AdminGlobalNotificationService: Réservation $reservationId déjà traitée, ignorée',
+                  );
+                  continue;
+                }
+
                 print(
-                  '🔔 AdminGlobalNotificationService: Réservation en attente détectée - ID: ${change.doc.id}',
+                  '🔔 AdminGlobalNotificationService: Réservation en attente détectée - ID: $reservationId',
                 );
 
                 // Vérifier si c'est une nouvelle réservation (créée après la dernière vue)
-                // Ajouter une marge de 2 secondes pour éviter les problèmes de timing
+                // Réduire la marge à 1 seconde pour être plus réactif
                 final timeDifference = createdAt
                     .difference(_lastSeenReservationAt)
                     .inSeconds;
@@ -157,15 +267,27 @@ class AdminGlobalNotificationService {
                   '🔔 AdminGlobalNotificationService: Différence de temps: ${timeDifference}s',
                 );
 
-                if (timeDifference > 2) {
+                // Accepter les réservations créées dans les 5 dernières minutes ou plus récentes
+                if (timeDifference > 1 ||
+                    createdAt.isAfter(
+                      DateTime.now().subtract(const Duration(minutes: 5)),
+                    )) {
                   print(
-                    '🔔 AdminGlobalNotificationService: Réservation plus récente que la dernière vue (diff: ${timeDifference}s), affichage de la notification',
+                    '🔔 AdminGlobalNotificationService: Nouvelle réservation détectée (diff: ${timeDifference}s), affichage de la notification',
                   );
-                  _lastSeenReservationAt = createdAt;
+
+                  // Marquer comme traitée pour éviter les doublons
+                  _processedReservations.add(reservationId);
+
+                  // Mettre à jour le timestamp seulement si c'est vraiment plus récent
+                  if (createdAt.isAfter(_lastSeenReservationAt)) {
+                    _lastSeenReservationAt = createdAt;
+                  }
+
                   _showNotificationForReservation(data);
                 } else {
                   print(
-                    '🔔 AdminGlobalNotificationService: Réservation trop récente (diff: ${timeDifference}s), ignorée pour éviter les doublons',
+                    '🔔 AdminGlobalNotificationService: Réservation trop ancienne (diff: ${timeDifference}s), ignorée',
                   );
                 }
               } else {
@@ -185,6 +307,16 @@ class AdminGlobalNotificationService {
 
   // Afficher la notification pour une réservation
   void _showNotificationForReservation(Map<String, dynamic> data) {
+    print(
+      '🔔 AdminGlobalNotificationService: Tentative d\'affichage de notification',
+    );
+    print(
+      '🔔 AdminGlobalNotificationService: Contexte disponible: ${_globalContext != null}',
+    );
+    print(
+      '🔔 AdminGlobalNotificationService: Contexte monté: ${_globalContext?.mounted ?? false}',
+    );
+
     if (_globalContext == null || !_globalContext!.mounted) {
       print(
         '🔔 AdminGlobalNotificationService: Contexte non disponible, notification mise en attente',
@@ -234,13 +366,47 @@ class AdminGlobalNotificationService {
       '🔔 AdminGlobalNotificationService: Réservation créée - ${reservation.userName} de ${reservation.departure} vers ${reservation.destination}',
     );
 
-    _notificationManager.showGlobalNotification(
-      _globalContext!,
-      reservation,
-      onAccept: () => _acceptReservation(reservation.id),
-      onDecline: () => _showRefusalOptions(reservation),
-      onCounterOffer: () => _showCounterOfferDialog(reservation),
-    );
+    try {
+      _notificationManager.showGlobalNotification(
+        _globalContext!,
+        reservation,
+        onAccept: () => _acceptReservation(reservation.id),
+        onDecline: () => _showRefusalOptions(reservation),
+        onCounterOffer: () => _showCounterOfferDialog(reservation),
+      );
+
+      print(
+        '🔔 AdminGlobalNotificationService: Notification affichée avec succès pour ${reservation.userName}',
+      );
+    } catch (e) {
+      print(
+        '🔔 AdminGlobalNotificationService: Erreur lors de l\'affichage de la notification: $e',
+      );
+
+      // Fallback: afficher une notification simple si le système principal échoue
+      if (_globalContext != null && _globalContext!.mounted) {
+        ScaffoldMessenger.of(_globalContext!).showSnackBar(
+          SnackBar(
+            content: Text(
+              '🔔 Nouvelle réservation de ${reservation.userName} de ${reservation.departure} vers ${reservation.destination}',
+            ),
+            backgroundColor: Colors.blue,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'Voir',
+              textColor: Colors.white,
+              onPressed: () {
+                // Optionnel: naviguer vers la page de gestion des réservations
+                print(
+                  '🔔 Action "Voir" cliquée pour la réservation ${reservation.id}',
+                );
+              },
+            ),
+          ),
+        );
+      }
+    }
   }
 
   // Accepter une réservation
@@ -250,13 +416,15 @@ class AdminGlobalNotificationService {
     );
 
     try {
-      await _reservationService.confirmReservation(reservationId);
+      await _reservationService.acceptReservation(reservationId);
 
       if (_globalContext != null && _globalContext!.mounted) {
         ScaffoldMessenger.of(_globalContext!).showSnackBar(
           SnackBar(
-            content: const Text('Réservation acceptée !'),
-            backgroundColor: Colors.green,
+            content: const Text(
+              'Réservation acceptée - En attente de paiement',
+            ),
+            backgroundColor: Colors.orange,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -642,10 +810,22 @@ class AdminGlobalNotificationService {
     }
   }
 
+  // Méthode de débogage pour afficher l'état du service
+  void debugServiceState() {
+    print('🔔 AdminGlobalNotificationService: État du service');
+    print('  - Initialisé: $_isInitialized');
+    print('  - Contexte disponible: ${_globalContext != null}');
+    print('  - Contexte monté: ${_globalContext?.mounted ?? false}');
+    print('  - Réservations traitées: ${_processedReservations.length}');
+    print('  - Dernière réservation vue: $_lastSeenReservationAt');
+    print('  - Notification en attente: ${_pendingNotification != null}');
+  }
+
   // Nettoyer les ressources
   void dispose() {
     _reservationSubscription?.cancel();
     _globalContext = null;
     _isInitialized = false;
+    _processedReservations.clear();
   }
 }

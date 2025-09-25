@@ -70,6 +70,7 @@ class Reservation {
   final String? promoCode; // code appliqué
   final double? discountAmount; // montant de la remise en devise
   final String? customOfferId; // ID de l'offre personnalisée liée
+  final bool? waitingForPayment; // en attente de paiement
 
   Reservation({
     required this.id,
@@ -96,6 +97,7 @@ class Reservation {
     this.promoCode,
     this.discountAmount,
     this.customOfferId,
+    this.waitingForPayment,
   });
 
   // Convertir en Map pour Firebase
@@ -127,6 +129,7 @@ class Reservation {
       'promoCode': promoCode,
       'discountAmount': discountAmount,
       'customOfferId': customOfferId,
+      'waitingForPayment': waitingForPayment,
     };
   }
 
@@ -139,7 +142,9 @@ class Reservation {
       vehicleName: map['vehicleName'] ?? '',
       departure: map['departure'] ?? '',
       destination: map['destination'] ?? '',
-      selectedDate: (map['selectedDate'] as Timestamp).toDate(),
+      selectedDate: map['selectedDate'] is Timestamp
+          ? (map['selectedDate'] as Timestamp).toDate()
+          : map['selectedDate'] as DateTime,
       selectedTime: map['selectedTime'] ?? '',
       estimatedArrival: map['estimatedArrival'] ?? '',
       paymentMethod: map['paymentMethod'] ?? '',
@@ -148,16 +153,22 @@ class Reservation {
         (e) => e.name == map['status'],
         orElse: () => ReservationStatus.pending,
       ),
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: map['createdAt'] is Timestamp
+          ? (map['createdAt'] as Timestamp).toDate()
+          : map['createdAt'] as DateTime,
       updatedAt: map['updatedAt'] != null
-          ? (map['updatedAt'] as Timestamp).toDate()
+          ? (map['updatedAt'] is Timestamp
+                ? (map['updatedAt'] as Timestamp).toDate()
+                : map['updatedAt'] as DateTime)
           : null,
       departureCoordinates: map['departureCoordinates'],
       destinationCoordinates: map['destinationCoordinates'],
       clientNote: map['clientNote'],
       hasCounterOffer: map['hasCounterOffer'] ?? false,
       driverProposedDate: map['driverProposedDate'] != null
-          ? (map['driverProposedDate'] as Timestamp).toDate()
+          ? (map['driverProposedDate'] is Timestamp
+                ? (map['driverProposedDate'] as Timestamp).toDate()
+                : map['driverProposedDate'] as DateTime)
           : null,
       driverProposedTime: map['driverProposedTime'],
       adminMessage: map['adminMessage'],
@@ -166,6 +177,7 @@ class Reservation {
           ? null
           : (map['discountAmount'] as num).toDouble(),
       customOfferId: map['customOfferId'],
+      waitingForPayment: map['waitingForPayment'],
     );
   }
 

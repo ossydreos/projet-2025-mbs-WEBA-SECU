@@ -9,7 +9,6 @@ class UberStyleNotification extends StatefulWidget {
   final VoidCallback onDecline;
   final VoidCallback onClose;
   final VoidCallback? onCounterOffer;
-  final VoidCallback? onPending;
 
   const UberStyleNotification({
     super.key,
@@ -18,7 +17,6 @@ class UberStyleNotification extends StatefulWidget {
     required this.onDecline,
     required this.onClose,
     this.onCounterOffer,
-    this.onPending,
   });
 
   @override
@@ -96,12 +94,8 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
 
         if (_remainingSeconds <= 0) {
           timer.cancel();
-          // Timeout - mettre en attente automatiquement
-          if (widget.onPending != null) {
-            widget.onPending?.call();
-          } else {
-            widget.onClose();
-          }
+          // Timeout - fermer automatiquement
+          widget.onClose();
         }
       }
     });
@@ -158,7 +152,6 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     return Material(
       color: Colors.transparent,
@@ -200,31 +193,23 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                     ),
                   ),
                   child: SafeArea(
-                    child: SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight:
-                              screenSize.height -
-                              MediaQuery.of(context).padding.top -
-                              MediaQuery.of(context).padding.bottom,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Column(
-                            children: [
-                              // Header avec icône de notification
-                              _buildHeader(),
+                    child: Column(
+                      children: [
+                        // Header avec icône de notification
+                        _buildHeader(),
 
-                              const SizedBox(height: 20),
+                        const SizedBox(height: 16),
 
-                              // Contenu principal de la notification
-                              Expanded(child: _buildNotificationContent()),
-
-                              // Boutons d'action
-                              _buildActionButtons(),
-                            ],
+                        // Contenu principal de la notification - Flexible pour s'adapter
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: _buildNotificationContent(),
                           ),
                         ),
-                      ),
+
+                        // Boutons d'action - toujours visibles en bas
+                        _buildActionButtons(),
+                      ],
                     ),
                   ),
                 ),
@@ -323,7 +308,7 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
           // Carte principale avec les détails
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -356,7 +341,7 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,12 +386,12 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                   ],
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
 
                 // Itinéraire
                 _buildRouteInfo(),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
 
                 // Détails du trajet
                 _buildTripDetails(),
@@ -496,27 +481,107 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
   }
 
   Widget _buildTripDetails() {
-    return Row(
+    return Column(
       children: [
-        // Véhicule
-        Expanded(
-          child: _buildDetailItem(
-            Icons.directions_car,
-            'Véhicule',
-            widget.reservation.vehicleName,
-          ),
+        Row(
+          children: [
+            // Véhicule
+            Expanded(
+              child: _buildDetailItem(
+                Icons.directions_car,
+                'Véhicule',
+                widget.reservation.vehicleName,
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Date et heure
+            Expanded(
+              child: _buildDetailItem(
+                Icons.access_time,
+                'Départ',
+                '${_formatDate(widget.reservation.selectedDate)} à ${widget.reservation.selectedTime}',
+              ),
+            ),
+          ],
         ),
 
-        const SizedBox(width: 16),
-
-        // Date et heure
-        Expanded(
-          child: _buildDetailItem(
-            Icons.access_time,
-            'Départ',
-            '${_formatDate(widget.reservation.selectedDate)} à ${widget.reservation.selectedTime}',
+        // Description du client si présente
+        if (widget.reservation.clientNote != null &&
+            widget.reservation.clientNote!.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue[200]!),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.note, color: Colors.blue[600], size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Description du client:',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue[600],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  widget.reservation.clientNote!,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
+
+        // Code promo si présent
+        if (widget.reservation.promoCode != null &&
+            widget.reservation.promoCode!.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.green[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.green[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.local_offer, color: Colors.green[600], size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'Code promo: ',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.green[600],
+                  ),
+                ),
+                Text(
+                  widget.reservation.promoCode!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -602,7 +667,7 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
 
   Widget _buildActionButtons() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -624,7 +689,7 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                           widget.onDecline();
                         },
                         child: Container(
-                          height: 55,
+                          height: 50,
                           decoration: BoxDecoration(
                             color: Colors.red,
                             borderRadius: BorderRadius.circular(28),
@@ -704,49 +769,7 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
           ),
 
           // Boutons secondaires
-          const SizedBox(height: 12),
-          // Bouton Mettre en attente (pleine largeur)
-          if (widget.onPending != null) ...[
-            SizedBox(
-              width: double.infinity,
-              child: GestureDetector(
-                onTap: widget.onPending,
-                child: Container(
-                  height: 45,
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(23),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.orange.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.pause, color: Colors.white, size: 18),
-                        SizedBox(width: 6),
-                        Text(
-                          'METTRE EN ATTENTE',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
+          const SizedBox(height: 10),
 
           // Bouton contre-offre (pleine largeur)
           if (widget.onCounterOffer != null) ...[
@@ -755,7 +778,7 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
               child: GestureDetector(
                 onTap: widget.onCounterOffer,
                 child: Container(
-                  height: 45,
+                  height: 42,
                   decoration: BoxDecoration(
                     color: AppColors.accent,
                     borderRadius: BorderRadius.circular(23),

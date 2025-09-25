@@ -4,10 +4,7 @@ import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 
-enum RefusalAction {
-  refuse,
-  counterOffer,
-}
+enum RefusalAction { refuse, counterOffer }
 
 class PendingReservationsWidget extends StatefulWidget {
   const PendingReservationsWidget({super.key});
@@ -26,7 +23,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
         reservation.id,
         ReservationStatus.confirmed,
       );
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -38,10 +35,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -49,7 +43,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
 
   Future<void> _cancelReservation(Reservation reservation) async {
     final action = await _showRefusalDialog();
-    
+
     switch (action) {
       case RefusalAction.refuse:
         try {
@@ -57,7 +51,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
             reservation.id,
             ReservationStatus.cancelled,
           );
-          
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -103,14 +97,18 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+              child: const Text(
+                'Annuler',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(RefusalAction.refuse),
               child: const Text('Refuser', style: TextStyle(color: Colors.red)),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(RefusalAction.counterOffer),
+              onPressed: () =>
+                  Navigator.of(context).pop(RefusalAction.counterOffer),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
               child: const Text('Contre-offre'),
             ),
@@ -159,15 +157,21 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
                       ),
                       Text(
                         '${selectedDate.day}/${selectedDate.month}/${selectedDate.year} à ${selectedTime.format(context)}',
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Nouvelle date
-                const Text('Nouvelle date:', style: TextStyle(color: Colors.white)),
+                const Text(
+                  'Nouvelle date:',
+                  style: TextStyle(color: Colors.white),
+                ),
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: () async {
@@ -202,9 +206,12 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Nouvelle heure
-                const Text('Nouvelle heure:', style: TextStyle(color: Colors.white)),
+                const Text(
+                  'Nouvelle heure:',
+                  style: TextStyle(color: Colors.white),
+                ),
                 const SizedBox(height: 8),
                 InkWell(
                   onTap: () async {
@@ -237,9 +244,12 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Message
-                const Text('Message (optionnel):', style: TextStyle(color: Colors.white)),
+                const Text(
+                  'Message (optionnel):',
+                  style: TextStyle(color: Colors.white),
+                ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: messageController,
@@ -249,15 +259,21 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
                     hintStyle: const TextStyle(color: Colors.white54),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: Colors.white.withOpacity(0.3),
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: Colors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.white.withOpacity(0.5)),
+                      borderSide: BorderSide(
+                        color: Colors.white.withOpacity(0.5),
+                      ),
                     ),
                   ),
                   maxLines: 3,
@@ -268,11 +284,15 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+              child: const Text(
+                'Annuler',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
-                final newTime = '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}';
+                final newTime =
+                    '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}';
                 Navigator.of(context).pop({
                   'newDate': selectedDate,
                   'newTime': newTime,
@@ -329,10 +349,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -357,7 +374,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
         // Exclure les réservations inProgress (déjà payées)
         final pendingReservations = reservations.where((reservation) {
           return reservation.status == ReservationStatus.pending ||
-                 reservation.status == ReservationStatus.confirmed;
+              reservation.status == ReservationStatus.confirmed;
         }).toList();
 
         if (pendingReservations.isEmpty) {
@@ -366,9 +383,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
 
         return Column(
           children: pendingReservations
-              .map(
-                (reservation) => _buildPendingReservationCard(reservation),
-              )
+              .map((reservation) => _buildPendingReservationCard(reservation))
               .toList(),
         );
       },
@@ -590,7 +605,10 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
                     } else {
                       return Text(
                         '${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year}',
-                        style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textWeak,
+                        ),
                       );
                     }
                   },
@@ -675,33 +693,25 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
           ],
 
           // Note du client (si présente)
-          if (reservation.clientNote != null && reservation.clientNote!.isNotEmpty) ...[
+          if (reservation.clientNote != null &&
+              reservation.clientNote!.isNotEmpty) ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: AppColors.accent.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.2),
-                ),
+                border: Border.all(color: AppColors.accent.withOpacity(0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    Icons.note,
-                    color: AppColors.accent,
-                    size: 16,
-                  ),
+                  Icon(Icons.note, color: AppColors.accent, size: 16),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       reservation.clientNote!,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.text,
-                      ),
+                      style: TextStyle(fontSize: 14, color: AppColors.text),
                     ),
                   ),
                 ],
@@ -710,7 +720,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
           ],
 
           // Boutons d'action ou barre d'attente
-          if (reservation.status == ReservationStatus.confirmed) ...[
+          if (reservation.waitingForPayment == true) ...[
             // Barre d'attente de paiement
             Container(
               width: double.infinity,
