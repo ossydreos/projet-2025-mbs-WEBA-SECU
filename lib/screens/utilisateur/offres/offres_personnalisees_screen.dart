@@ -38,121 +38,135 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
   }
 
   Widget _buildPendingOfferCard(CustomOffer offer) {
+    // Nouveau style aéré pleine largeur pour l'attente d'acceptation
     return GlassContainer(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // En-tête simple
+            // Bandeau de statut
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(Icons.schedule, color: Colors.orange, size: 24),
-                const SizedBox(width: 12),
-                const Expanded(
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.schedule, color: Colors.orange, size: 18),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
                   child: Text(
                     'En attente d\'acceptation du chauffeur',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.orange,
                       fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.2,
+                      height: 1.2,
                     ),
                   ),
                 ),
                 Text(
                   _formatDate(offer.createdAt),
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            
-            // Trajet
+            const SizedBox(height: 16),
+
+            // Bloc trajet + heures (même gabarit que carte acceptée)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  children: [
+                    Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)),
+                    Container(width: 1, height: 22, color: AppColors.textWeak.withOpacity(0.5)),
+                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFF6B6B), shape: BoxShape.circle)),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(offer.departure, style: TextStyle(color: AppColors.text, fontSize: 14, height: 1.25)),
+                      const SizedBox(height: 8),
+                      Text(offer.destination, style: TextStyle(color: AppColors.text, fontSize: 14, height: 1.25)),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Début', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
+                    Text(
+                      offer.startDateTime != null
+                          ? '${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}'
+                          : '--:--',
+                      style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('Fin', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
+                    Text(
+                      offer.endDateTime != null
+                          ? '${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}'
+                          : '--:--',
+                      style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 14),
+
+            // Ligne infos date + à définir
             Row(
               children: [
-                const Icon(Icons.location_on, color: Colors.white70, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    '${offer.departure} → ${offer.destination}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                Icon(Icons.calendar_today, size: 16, color: AppColors.textWeak),
+                const SizedBox(width: 8),
+                Text(
+                  offer.startDateTime != null
+                      ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
+                      : 'Date non définie',
+                  style: TextStyle(color: AppColors.textWeak, fontSize: 14),
                 ),
+                const Spacer(),
+                Icon(Icons.account_balance_wallet, size: 16, color: AppColors.textWeak),
+                const SizedBox(width: 8),
+                Text('À définir', style: TextStyle(color: AppColors.textWeak, fontSize: 14)),
               ],
             ),
-            const SizedBox(height: 12),
-            
-            // Dates et heures
-            if (offer.startDateTime != null && offer.endDateTime != null) ...[
-              Row(
-                children: [
-                  const Icon(Icons.schedule, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Début: ${_formatDateTime(offer.startDateTime)}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          'Fin: ${_formatDateTime(offer.endDateTime)}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ] else ...[
-              // Fallback vers la durée si pas de dates
-              Row(
-                children: [
-                  const Icon(Icons.access_time, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Text(
-                    '${offer.durationHours}h ${offer.durationMinutes}min',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            
-            // Note du client (si présente)
+
             if (offer.clientNote != null && offer.clientNote!.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.note, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      offer.clientNote!,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.accent.withOpacity(0.18)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.note, color: AppColors.accent, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        offer.clientNote!,
+                        style: TextStyle(color: AppColors.text, fontSize: 14, height: 1.25),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ],
@@ -162,189 +176,182 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
   }
 
   Widget _buildAcceptedOfferCard(CustomOffer offer) {
+    // Nouveau style: carte premium, hiérarchie claire, alignements propres
     return GlassContainer(
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // En-tête avec prix en évidence
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.accent.withOpacity(0.8),
-                    AppColors.accent.withOpacity(0.6),
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
+            // Header
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.check_circle, color: Colors.white, size: 22),
                 ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.accent.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.white, size: 24),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Offre acceptée !',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Offre personnalisée',
+                        style: TextStyle(
+                          color: AppColors.textStrong,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Chauffeur: ${offer.driverName ?? 'Non spécifié'}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Chauffeur: ${offer.driverName ?? 'Non spécifié'}',
+                        style: TextStyle(color: AppColors.textWeak, fontSize: 12),
+                      ),
+                    ],
                   ),
-                  Column(
+                ),
+                // Price badge
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withOpacity(0.25),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         '${offer.proposedPrice?.toStringAsFixed(2) ?? '0.00'} CHF',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
                       ),
-                      const Text(
+                      Text(
                         'Prix proposé',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 10),
                       ),
                     ],
-                  ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Trajet
-            Row(
-              children: [
-                const Icon(Icons.location_on, color: Colors.white70, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    '${offer.departure} → ${offer.destination}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            
-            // Dates et heures
-            if (offer.startDateTime != null && offer.endDateTime != null) ...[
-              Row(
-                children: [
-                  const Icon(Icons.schedule, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Début: ${_formatDateTime(offer.startDateTime)}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                        Text(
-                          'Fin: ${_formatDateTime(offer.endDateTime)}',
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
+
+            const SizedBox(height: 16),
+
+            // Trip block (départ -> arrivée) avec points et ligne
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Timeline
+                Column(
+                  children: [
+                    Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)),
+                    Container(width: 1, height: 22, color: AppColors.textWeak.withOpacity(0.5)),
+                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFF6B6B), shape: BoxShape.circle)),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        offer.departure,
+                        style: TextStyle(color: AppColors.text, fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        offer.destination,
+                        style: TextStyle(color: AppColors.text, fontSize: 14),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ] else ...[
-              // Fallback vers la durée si pas de dates
-              Row(
-                children: [
-                  const Icon(Icons.access_time, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Text(
-                    '${offer.durationHours}h ${offer.durationMinutes}min',
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
+                ),
+                const SizedBox(width: 8),
+                // Heures
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Début', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
+                    Text(
+                      offer.startDateTime != null
+                          ? '${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}'
+                          : '--:--',
+                      style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
                     ),
-                  ),
-                ],
-              ),
-            ],
-            
-            // Message du chauffeur (si présent)
+                    const SizedBox(height: 8),
+                    Text('Fin', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
+                    Text(
+                      offer.endDateTime != null
+                          ? '${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}'
+                          : '--:--',
+                      style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 14),
+
+            // Date + note chauffeur
+            Row(
+              children: [
+                Icon(Icons.calendar_today, size: 16, color: AppColors.textWeak),
+                const SizedBox(width: 8),
+                Text(
+                  offer.startDateTime != null
+                      ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
+                      : 'Date non définie',
+                  style: TextStyle(color: AppColors.textWeak, fontSize: 14),
+                ),
+                const Spacer(),
+                Icon(Icons.account_balance_wallet, size: 16, color: AppColors.textWeak),
+                const SizedBox(width: 8),
+                Text('À définir', style: TextStyle(color: AppColors.textWeak, fontSize: 14)),
+              ],
+            ),
+
             if (offer.driverMessage != null && offer.driverMessage!.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.message, color: Colors.white70, size: 20),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Message du chauffeur:',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          offer.driverMessage!,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.accent.withOpacity(0.2)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.message, color: AppColors.accent, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        offer.driverMessage!,
+                        style: TextStyle(color: AppColors.text, fontSize: 14),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
-            
-            const SizedBox(height: 20),
-            
-            // Boutons d'action
+
+            const SizedBox(height: 16),
+
+            // Actions
             Row(
               children: [
                 Expanded(
@@ -353,18 +360,10 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text(
-                      'Valider et payer',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: const Text('Valider et payer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -374,18 +373,10 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const Text(
-                      'Refuser',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: const Text('Refuser', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],
@@ -608,7 +599,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
                 : null;
 
             return Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Column(
                 children: [
                   if (pendingOffer == null && acceptedOffer == null) ...[
@@ -645,12 +636,13 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
                     ),
                   ],
                   
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   
                   if (pendingOffer != null) ...[
                     // Afficher l'offre en attente avec style amélioré
-                    _buildPendingOfferCard(pendingOffer),
-                    const SizedBox(height: 16),
+                    // Carte pleine largeur
+                    SizedBox(width: double.infinity, child: _buildPendingOfferCard(pendingOffer)),
+                    const SizedBox(height: 20),
                     // Bouton pour annuler l'offre
                     SizedBox(
                       width: double.infinity,
@@ -676,7 +668,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
                     ),
                   ] else if (acceptedOffer != null) ...[
                     // Afficher l'offre acceptée avec prix et boutons d'action
-                    _buildAcceptedOfferCard(acceptedOffer),
+                    SizedBox(width: double.infinity, child: _buildAcceptedOfferCard(acceptedOffer)),
                   ] else ...[
                     // Bouton de création (seulement si pas d'offre en attente)
                     SizedBox(
