@@ -21,6 +21,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/data/services/support_chat_service.dart';
+import 'package:my_mobility_services/data/models/support_thread.dart';
+import 'package:my_mobility_services/screens/support/support_home_screen.dart';
 
 class AccueilScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -772,6 +775,23 @@ class _AccueilScreenState extends State<AccueilScreen>
               ),
             ),
 
+          // --- BULLE SUPPORT ---
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: 16 + 56, // laisser un espace à gauche du bouton GPS
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SupportHomeScreen(),
+                  ),
+                );
+              },
+              child: _SupportUnreadBubble(),
+            ),
+          ),
+
             // --- ERREUR LOCALISATION ---
             if (_locationError.isNotEmpty)
               Positioned(
@@ -1041,5 +1061,50 @@ class _AccueilScreenState extends State<AccueilScreen>
         ),
       );
     }
+  }
+}
+
+class _SupportUnreadBubble extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<SupportThread>>(
+      stream: SupportChatService().watchThreadsForCurrentUser(),
+      builder: (context, snap) {
+        final threads = snap.data ?? const <SupportThread>[];
+        final unreadConversations = threads.where((t) => t.unreadForUser > 0).length;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.glass,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.glassStroke, width: 1),
+                boxShadow: Fx.glow,
+              ),
+              child: const Icon(Icons.chat_bubble, size: 24, color: Colors.white),
+            ),
+            if (unreadConversations > 0)
+              Positioned(
+                right: -4,
+                top: -4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    unreadConversations > 99 ? '99+' : '$unreadConversations',
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 }
