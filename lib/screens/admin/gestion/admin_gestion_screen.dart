@@ -81,8 +81,8 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                 _buildMenuItem(
                   icon: Icons.people,
                   title: 'Gestion des utilisateurs',
-                  subtitle: 'Activer/désactiver les comptes',
-                  onTap: () => _showUserManagement(),
+                  subtitle: 'Voir les profils et réservations',
+                  onTap: () => _navigateToUsers(),
                 ),
                 _buildMenuItem(
                   icon: Icons.analytics,
@@ -232,14 +232,15 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     Navigator.pushNamed(context, '/admin/promo/active');
   }
 
-  void _showUserManagement() {
-    _showFeatureDialog('Gestion utilisateurs');
+  // Supprimé: navigation dédiée via _navigateToUsers()
+
+  void _navigateToUsers() {
+    Navigator.pushNamed(context, '/admin/users');
   }
 
   void _showStatistics() {
     _showFeatureDialog('Statistiques');
   }
-
 
   void _showFeatureDialog(String feature) {
     showDialog(

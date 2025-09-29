@@ -26,13 +26,14 @@ import 'theme/glassmorphism_theme.dart';
 import 'l10n/generated/app_localizations.dart';
 // Import des écrans pour les routes
 // Import des écrans admin
-import 'screens/admin/reception/admin_reception_screen.dart';
+import 'screens/admin/reception/admin_reception_screen_complete.dart';
 import 'screens/admin/gestion/admin_gestion_screen.dart';
 import 'screens/admin/gestion/vehicules/vehicle_gestion_screen.dart';
 import 'screens/admin/trajets/admin_trajets_screen.dart';
 import 'screens/admin/profile/admin_profile_screen.dart';
 import 'screens/admin/gestion/code_promo/codePromo_cree_screen.dart';
 import 'screens/admin/gestion/code_promo/codePromo_actif_screen.dart';
+import 'screens/admin/gestion/users/admin_users_screen.dart';
 import 'widgets/admin/test_notification_demo.dart';
 import 'data/services/reservation_timeout_service.dart';
 import 'data/services/admin_global_notification_service.dart';
@@ -138,6 +139,12 @@ class MyApp extends StatelessWidget {
             page = AdminScreenWrapper(
               title: 'Codes Promo Actifs',
               child: ActivePromoCodesScreen(),
+            );
+            break;
+          case '/admin/users':
+            page = AdminScreenWrapper(
+              title: 'Utilisateurs',
+              child: const AdminUsersScreen(),
             );
             break;
           case '/admin/demo/notification':

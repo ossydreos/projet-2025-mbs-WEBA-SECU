@@ -106,10 +106,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -121,7 +118,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       // Si une réservation a déjà été créée pour cette offre, ne pas afficher cette barre
       return const SizedBox.shrink();
     }
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(
@@ -162,7 +159,10 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       const SizedBox(height: 4),
                       Text(
                         'Offre personnalisée',
-                        style: TextStyle(fontSize: 14, color: AppColors.textWeak),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textWeak,
+                        ),
                       ),
                     ],
                   ),
@@ -265,9 +265,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       style: TextStyle(fontSize: 12, color: AppColors.textWeak),
                     ),
                     Text(
-                      offer.startDateTime != null 
-                        ? '${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}'
-                        : '--:--',
+                      offer.startDateTime != null
+                          ? '${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}'
+                          : '--:--',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -280,9 +280,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       style: TextStyle(fontSize: 12, color: AppColors.textWeak),
                     ),
                     Text(
-                      offer.endDateTime != null 
-                        ? '${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}'
-                        : '--:--',
+                      offer.endDateTime != null
+                          ? '${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}'
+                          : '--:--',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -302,12 +302,16 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 Expanded(
                   child: Row(
                     children: [
-                      Icon(Icons.calendar_today, size: 16, color: AppColors.textWeak),
+                      Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: AppColors.textWeak,
+                      ),
                       const SizedBox(width: 8),
                       Text(
-                        offer.startDateTime != null 
-                          ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
-                          : 'Date non définie',
+                        offer.startDateTime != null
+                            ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
+                            : 'Date non définie',
                         style: TextStyle(fontSize: 14, color: AppColors.text),
                       ),
                     ],
@@ -316,7 +320,11 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 // Méthode de paiement
                 Row(
                   children: [
-                    Icon(Icons.account_balance_wallet, size: 16, color: AppColors.textWeak),
+                    Icon(
+                      Icons.account_balance_wallet,
+                      size: 16,
+                      color: AppColors.textWeak,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'À définir',
@@ -348,7 +356,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             ],
 
             const SizedBox(height: 16),
-
             // Barre d'attente de paiement (EXACTEMENT comme les réservations normales)
             Container(
               width: double.infinity,
@@ -383,28 +390,15 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'En attente du paiement du client',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Le client doit valider et payer son offre personnalisée',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      'En attente du paiement',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                   Icon(Icons.payment, color: Colors.white, size: 24),
@@ -436,10 +430,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -500,7 +491,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             child: ElevatedButton.icon(
               onPressed: _testNotification,
               icon: const Icon(Icons.notifications_active),
-              label: const Text('🧪 Tester la notification'),
+              label: const Text('Tester'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
@@ -518,7 +509,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
   Future<void> _testNotification() async {
     try {
-      print('🧪 Test de notification démarré');
+      print('Test démarré');
 
       // Créer une réservation de test
       final testReservation = Reservation(
@@ -1327,28 +1318,15 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'En attente du paiement du client',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Le client doit valider et payer sa réservation',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      'En attente du paiement',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                   Icon(Icons.payment, color: Colors.white, size: 24),
@@ -1356,9 +1334,10 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               ),
             ),
           ] else ...[
-            // Boutons d'action normaux
+            // Boutons d'action normaux (Confirmer, Offre personnalisée, Refuser)
             Row(
               children: [
+                // Confirmer
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => _confirmReservation(reservation),
@@ -1376,9 +1355,27 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
+                // Contre-offre (handshake)
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _showCounterOfferDialog(reservation),
+                    icon: const Icon(Icons.handshake),
+                    label: const Text('Contre-offre'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Refuser (direct, sans menu)
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _cancelReservation(reservation),
+                    onPressed: () => _refuseReservation(reservation),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
@@ -1387,7 +1384,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: Text(hasCounterOffer ? 'Nouvelle offre' : 'Refuser'),
+                    child: const Text('Refuser'),
                   ),
                 ),
               ],
@@ -1510,52 +1507,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     }
   }
 
-  Future<void> _cancelReservation(Reservation reservation) async {
-    final action = await _showRefusalDialog();
-    if (action == null) return;
+  // Supprimé: _cancelReservation n'est plus utilisé (refus direct via bouton)
 
-    switch (action) {
-      case RefusalAction.refuse:
-        await _refuseReservation(reservation);
-        break;
-      case RefusalAction.counterOffer:
-        await _showCounterOfferDialog(reservation);
-        break;
-    }
-  }
-
-  Future<RefusalAction?> _showRefusalDialog() async {
-    return showDialog<RefusalAction>(
-      context: context,
-      builder: (BuildContext context) {
-        return GlassActionDialog(
-          title: AppLocalizations.of(context).reservationAction,
-          message: 'Que souhaitez-vous faire avec cette réservation ?',
-          actions: [
-            GlassActionButton(
-              label: 'Annuler',
-              onPressed: () => Navigator.of(context).pop(),
-              color: AppColors.textWeak,
-            ),
-            GlassActionButton(
-              label: 'Refuser',
-              onPressed: () => Navigator.of(context).pop(RefusalAction.refuse),
-              icon: Icons.close,
-              color: Colors.red,
-            ),
-            GlassActionButton(
-              label: 'Contre-offre',
-              onPressed: () =>
-                  Navigator.of(context).pop(RefusalAction.counterOffer),
-              icon: Icons.handshake,
-              color: AppColors.accent,
-              isPrimary: true,
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // Ancien _showRefusalDialog supprimé (plus de menu de confirmation/contre-offre)
 
   Future<void> _refuseReservation(Reservation reservation) async {
     try {
@@ -2013,10 +1967,10 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           ],
         ),
         const SizedBox(height: 16),
-        
+
         // Widget des réservations en attente
         const PendingReservationsWidget(),
-        
+
         // Offres personnalisées (section dédiée)
         StreamBuilder<QuerySnapshot>(
           stream: _customOfferService.getCustomOffersStream(),
@@ -2029,9 +1983,15 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               return const SizedBox.shrink(); // Pas d'erreur visible pour les offres
             }
 
-            final offers = snapshot.data?.docs
-                .map((doc) => CustomOffer.fromMap(doc.data() as Map<String, dynamic>))
-                .toList() ?? [];
+            final offers =
+                snapshot.data?.docs
+                    .map(
+                      (doc) => CustomOffer.fromMap(
+                        doc.data() as Map<String, dynamic>,
+                      ),
+                    )
+                    .toList() ??
+                [];
 
             // Séparer en deux groupes: en attente et acceptées (en attente de paiement)
             final pendingOffers = offers
@@ -2044,7 +2004,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             // DEBUG: Afficher les statuts des offres
             print('🔍 DEBUG - Offres trouvées: ${offers.length}');
             for (var offer in offers) {
-              print('🔍 DEBUG - Offre ${offer.id}: statut=${offer.status.name}');
+              print(
+                '🔍 DEBUG - Offre ${offer.id}: statut=${offer.status.name}',
+              );
             }
             print('🔍 DEBUG - Offres pending: ${pendingOffers.length}');
             print('🔍 DEBUG - Offres accepted: ${acceptedOffers.length}');
@@ -2075,7 +2037,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     if (offer.status != CustomOfferStatus.pending) {
       return const SizedBox.shrink();
     }
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(
@@ -2126,11 +2088,15 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Trajet
                 Row(
                   children: [
-                    const Icon(Icons.location_on, color: Colors.white70, size: 16),
+                    const Icon(
+                      Icons.location_on,
+                      color: Colors.white70,
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -2144,11 +2110,15 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                
+
                 // Durée
                 Row(
                   children: [
-                    const Icon(Icons.access_time, color: Colors.white70, size: 16),
+                    const Icon(
+                      Icons.access_time,
+                      color: Colors.white70,
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       '${offer.durationHours}h ${offer.durationMinutes}min',
@@ -2156,9 +2126,10 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     ),
                   ],
                 ),
-                
+
                 // Note du client (si présente)
-                if (offer.clientNote != null && offer.clientNote!.isNotEmpty) ...[
+                if (offer.clientNote != null &&
+                    offer.clientNote!.isNotEmpty) ...[
                   const SizedBox(height: 8),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2187,7 +2158,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
-    
+
     if (difference.inDays > 0) {
       return '${difference.inDays}j';
     } else if (difference.inHours > 0) {
