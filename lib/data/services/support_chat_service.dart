@@ -5,7 +5,7 @@ import '../models/support_message.dart';
 
 class SupportChatService {
   static const String threadsCollection = 'support_threads';
-  static const String messagesCollection = 'support_messages';
+  static const String messagesSubcollection = 'messages';
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -121,20 +121,17 @@ class SupportChatService {
     return thread;
   }
 
-  // Messages d'un thread
+  // Messages d'un thread (sous-collection)
   Stream<List<SupportMessage>> watchMessages(String threadId) {
     return _firestore
-        .collection(messagesCollection)
-        .where('threadId', isEqualTo: threadId)
+        .collection(threadsCollection)
+        .doc(threadId)
+        .collection(messagesSubcollection)
+        .orderBy('createdAt', descending: false)
         .snapshots()
-        .map((s) {
-          final messages = s.docs
-              .map((d) => SupportMessage.fromMap(d.data(), d.id))
-              .toList();
-          // Trier manuellement par createdAt
-          messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-          return messages;
-        });
+        .map((s) => s.docs
+            .map((d) => SupportMessage.fromMap(d.data(), d.id))
+            .toList());
   }
 
   // Watch un thread par son id
@@ -163,7 +160,11 @@ class SupportChatService {
     final uid = currentUserId ?? 'admin';
     final now = DateTime.now();
 
-    final msgRef = _firestore.collection(messagesCollection).doc();
+    final msgRef = _firestore
+        .collection(threadsCollection)
+        .doc(threadId)
+        .collection(messagesSubcollection)
+        .doc();
     final msg = SupportMessage(
       id: msgRef.id,
       threadId: threadId,
@@ -214,8 +215,9 @@ class SupportChatService {
     if (senderRole == SupportSenderRole.user) {
       print('🔍 Vérification message auto pour thread: $threadId');
       final allMessagesSnap = await _firestore
-          .collection(messagesCollection)
-          .where('threadId', isEqualTo: threadId)
+          .collection(threadsCollection)
+          .doc(threadId)
+          .collection(messagesSubcollection)
           .get();
       print('📊 Nombre total de messages dans le thread: ${allMessagesSnap.docs.length}');
       
@@ -229,8 +231,9 @@ class SupportChatService {
           
           // Vérifier si un admin a répondu entre-temps
           final adminMessages = await _firestore
-              .collection(messagesCollection)
-              .where('threadId', isEqualTo: threadId)
+              .collection(threadsCollection)
+              .doc(threadId)
+              .collection(messagesSubcollection)
               .where('senderRole', isEqualTo: SupportSenderRole.admin.name)
               .get();
           
@@ -242,7 +245,11 @@ class SupportChatService {
           }
 
           print('✅ Envoi du message automatique...');
-          final autoRef = _firestore.collection(messagesCollection).doc();
+          final autoRef = _firestore
+              .collection(threadsCollection)
+              .doc(threadId)
+              .collection(messagesSubcollection)
+              .doc();
           final autoNow = DateTime.now();
           const autoText = 'Merci, votre message a bien été envoyé. Notre équipe vous répond généralement en quelques minutes.\n\n— Message automatique';
           final autoMsg = SupportMessage(
@@ -294,8 +301,9 @@ class SupportChatService {
   // Marquer tous les messages comme lus côté ADMIN (messages envoyés par USER)
   Future<void> markMessagesAsReadForAdmin(String threadId) async {
     final q = await _firestore
-        .collection(messagesCollection)
-        .where('threadId', isEqualTo: threadId)
+        .collection(threadsCollection)
+        .doc(threadId)
+        .collection(messagesSubcollection)
         .where('senderRole', isEqualTo: SupportSenderRole.user.name)
         .where('readByAdmin', isEqualTo: false)
         .get();
@@ -310,8 +318,9 @@ class SupportChatService {
   // Marquer tous les messages comme lus côté USER (messages envoyés par ADMIN)
   Future<void> markMessagesAsReadForUser(String threadId) async {
     final q = await _firestore
-        .collection(messagesCollection)
-        .where('threadId', isEqualTo: threadId)
+        .collection(threadsCollection)
+        .doc(threadId)
+        .collection(messagesSubcollection)
         .where('senderRole', isEqualTo: SupportSenderRole.admin.name)
         .where('readByUser', isEqualTo: false)
         .get();
