@@ -492,48 +492,95 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             const SizedBox(height: 16),
 
             // Boutons d'action
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _confirmReservation(reservation),
-                    icon: const Icon(Icons.check, size: 16),
-                    label: const Text('Accepter'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+            if (reservation.status == ReservationStatus.pending) ...[
+              // Demande en attente: Accepter | Contre-offre (handshake) | Refuser
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _confirmReservation(reservation),
+                      icon: const Icon(Icons.check, size: 16),
+                      label: const Text('Accepter'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _refuseReservation(reservation),
-                    icon: const Icon(Icons.close, size: 16),
-                    label: const Text('Refuser'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showCounterOfferDialog(reservation),
+                      icon: const Icon(Icons.handshake, size: 16),
+                      label: const Text('Contre-offre'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _showCounterOfferDialog(reservation),
-                    icon: const Icon(Icons.swap_horiz, size: 16),
-                    label: const Text('Contre-offre'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _refuseReservation(reservation),
+                      icon: const Icon(Icons.close, size: 16),
+                      label: const Text('Refuser'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
+            ] else ...[
+              // Autres statuts: Accepter | Refuser | Contre-offre (swap)
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _confirmReservation(reservation),
+                      icon: const Icon(Icons.check, size: 16),
+                      label: const Text('Accepter'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _refuseReservation(reservation),
+                      icon: const Icon(Icons.close, size: 16),
+                      label: const Text('Refuser'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showCounterOfferDialog(reservation),
+                      icon: const Icon(Icons.swap_horiz, size: 16),
+                      label: const Text('Contre-offre'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -547,20 +594,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         ReservationStatus.confirmed,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Réservation confirmée'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
+      // Notifications UI désactivées
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
-        );
-      }
+      // Notifications UI désactivées
     }
   }
 
@@ -575,23 +611,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             ReservationStatus.cancelled,
           );
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Réservation refusée'),
-                backgroundColor: Colors.orange,
-              ),
-            );
-          }
+          // Notifications UI désactivées
         } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Erreur: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+          // Notifications UI désactivées
         }
         break;
       case RefusalAction.counterOffer:
@@ -837,20 +859,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       // Ici vous pouvez implémenter l'envoi de la contre-offre
       // Par exemple, créer une nouvelle réservation avec le statut "counter_offer"
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contre-offre envoyée'),
-            backgroundColor: Colors.blue,
-          ),
-        );
-      }
+      // Notifications UI désactivées
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
-        );
-      }
+      // Notifications UI désactivées
     }
   }
 
@@ -862,20 +873,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         ReservationStatus.pending,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Réservation mise en attente'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
+      // Notifications UI désactivées
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
-        );
-      }
+      // Notifications UI désactivées
     }
   }
 
