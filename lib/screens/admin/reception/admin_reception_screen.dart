@@ -2228,6 +2228,8 @@ class _AdminSupportUnreadBubble extends StatelessWidget {
           .snapshots(),
         builder: (context, snap) {
           final unread = snap.data?.docs.length ?? 0;
+          
+          // Ne pas marquer comme lu automatiquement - seulement quand on ouvre la conversation
           return Stack(
             clipBehavior: Clip.none,
             children: [
@@ -2328,6 +2330,8 @@ class _AdminTicketsList extends StatelessWidget {
           itemBuilder: (context, i) {
             final d = docs[i];
             final t = SupportThread.fromMap(d.data() as Map<String, dynamic>, d.id);
+            
+            // Ne pas marquer comme lu automatiquement - seulement quand on ouvre la conversation
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: GlassContainer(

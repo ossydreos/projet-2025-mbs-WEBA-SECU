@@ -84,6 +84,8 @@ class SupportHomeScreen extends StatelessWidget {
         final thread = snapshot.data;
         final hasUnread = (thread?.unreadForUser ?? 0) > 0;
         
+        // Ne pas marquer comme lu automatiquement - seulement quand on ouvre la conversation
+        
         return GlassContainer(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -352,6 +354,9 @@ class _SupportThreadsListScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final t = threads[index];
                 final hasUnread = t.unreadForUser > 0;
+                
+                // Ne pas marquer comme lu automatiquement - seulement quand on ouvre la conversation
+                
                 return GestureDetector(
                   onTap: () => Navigator.push(
                     context,

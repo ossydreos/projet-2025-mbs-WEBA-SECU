@@ -1072,6 +1072,8 @@ class _SupportUnreadBubble extends StatelessWidget {
       builder: (context, snap) {
         final threads = snap.data ?? const <SupportThread>[];
         final unreadConversations = threads.where((t) => t.unreadForUser > 0).length;
+        
+        // Ne pas marquer comme lu automatiquement - seulement quand on ouvre la conversation
         return Stack(
           clipBehavior: Clip.none,
           children: [

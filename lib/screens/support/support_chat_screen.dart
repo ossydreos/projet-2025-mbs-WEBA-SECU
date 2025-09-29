@@ -180,12 +180,31 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         ),
         body: _thread == null
             ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  Expanded(
-                    child: StreamBuilder<List<SupportMessage>>(
-                      stream: _service.watchMessages(_thread!.id),
-                      builder: (context, snapshot) {
+            : StreamBuilder<SupportThread?>(
+                stream: _service.watchThreadById(_thread!.id),
+                builder: (context, threadSnapshot) {
+                  final currentThread = threadSnapshot.data ?? _thread;
+                  if (currentThread == null) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  
+                  // Marquer les messages comme lus en temps réel quand on est dans la conversation
+                  WidgetsBinding.instance.addPostFrameCallback((_) async {
+                    if (widget.isAdmin) {
+                      await _service.markAsReadForAdmin(currentThread.id);
+                      await _service.markMessagesAsReadForAdmin(currentThread.id);
+                    } else {
+                      await _service.markAsReadForUser(currentThread.id);
+                      await _service.markMessagesAsReadForUser(currentThread.id);
+                    }
+                  });
+                  
+                  return Column(
+                    children: [
+                      Expanded(
+                        child: StreamBuilder<List<SupportMessage>>(
+                          stream: _service.watchMessages(currentThread.id),
+                          builder: (context, snapshot) {
                         print('StreamBuilder - hasData: ${snapshot.hasData}, hasError: ${snapshot.hasError}');
                         if (snapshot.hasError) {
                           print('Erreur stream: ${snapshot.error}');
@@ -300,8 +319,10 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                       },
                     ),
                   ),
-                  if (!(_thread?.isClosed ?? false)) _buildInputBar(),
-                ],
+                  if (!(currentThread.isClosed)) _buildInputBar(),
+                    ],
+                  );
+                },
               ),
       ),
     );
