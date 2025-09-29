@@ -34,12 +34,21 @@ class AdminUsersScreen extends StatelessWidget {
                 final data = docs[i].data() as Map<String, dynamic>;
                 final uid = docs[i].id;
                 final displayName = (data['displayName'] ?? '').toString();
+                final firstName = (data['firstName'] ?? '').toString();
+                final lastName = (data['lastName'] ?? '').toString();
+                final nameField = (data['name'] ?? '').toString();
                 final email = (data['email'] ?? '').toString();
                 final photoUrl = (data['photoURL'] ?? data['photoUrl'] ?? '')
                     .toString();
+                final fullName = ('$firstName $lastName').trim();
+                final nameToShow = nameField.isNotEmpty
+                    ? nameField
+                    : (fullName.isNotEmpty
+                          ? fullName
+                          : (displayName.isNotEmpty ? displayName : ''));
                 final firstChar =
-                    (displayName.isNotEmpty
-                            ? displayName[0]
+                    (nameToShow.isNotEmpty
+                            ? nameToShow[0]
                             : email.isNotEmpty
                             ? email[0]
                             : '?')
@@ -64,7 +73,7 @@ class AdminUsersScreen extends StatelessWidget {
                           : null,
                     ),
                     title: Text(
-                      displayName.isNotEmpty ? displayName : 'Utilisateur',
+                      nameToShow.isNotEmpty ? nameToShow : 'Nom du client',
                       style: TextStyle(
                         color: AppColors.textStrong,
                         fontWeight: FontWeight.w600,
@@ -133,6 +142,7 @@ class AdminUserDetailScreen extends StatelessWidget {
                   final displayName = (data['displayName'] ?? '').toString();
                   final firstName = (data['firstName'] ?? '').toString();
                   final lastName = (data['lastName'] ?? '').toString();
+                  final nameField = (data['name'] ?? '').toString();
                   final email = (data['email'] ?? '').toString();
                   final phone = (data['phoneNumber'] ?? data['number'] ?? '')
                       .toString();
@@ -169,11 +179,13 @@ class AdminUserDetailScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                '$firstName $lastName'.trim().isNotEmpty
-                                    ? '$firstName $lastName'
-                                    : (displayName.isNotEmpty
-                                          ? displayName
-                                          : 'Utilisateur'),
+                                nameField.isNotEmpty
+                                    ? nameField
+                                    : ('$firstName $lastName'.trim().isNotEmpty
+                                          ? '$firstName $lastName'
+                                          : (displayName.isNotEmpty
+                                                ? displayName
+                                                : 'Nom du client')),
                                 style: TextStyle(
                                   color: AppColors.textStrong,
                                   fontWeight: FontWeight.w600,
