@@ -409,41 +409,15 @@ class AdminGlobalNotificationService {
     }
   }
 
-  // Accepter une réservation
+  // Accepter une réservation (délègue à l'écran de réception)
   Future<void> _acceptReservation(String reservationId) async {
     print(
       '🔔 AdminGlobalNotificationService: Acceptation de la réservation $reservationId',
     );
 
-    try {
-      await _reservationService.acceptReservation(reservationId);
-
-      if (_globalContext != null && _globalContext!.mounted) {
-        ScaffoldMessenger.of(_globalContext!).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'Réservation acceptée - En attente de paiement',
-            ),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      print('Erreur lors de l\'acceptation: $e');
-      if (_globalContext != null && _globalContext!.mounted) {
-        ScaffoldMessenger.of(_globalContext!).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+    // Notifier que la réservation est en cours de traitement (pour afficher la bulle)
+    // L'écran de réception se chargera de faire toutes les actions nécessaires
+    _notifyReservationProcessing(reservationId);
   }
 
   // Refuser directement la réservation
@@ -819,6 +793,58 @@ class AdminGlobalNotificationService {
     print('  - Réservations traitées: ${_processedReservations.length}');
     print('  - Dernière réservation vue: $_lastSeenReservationAt');
     print('  - Notification en attente: ${_pendingNotification != null}');
+  }
+
+  // Envoyer une notification de demande de paiement au client
+  Future<void> sendPaymentRequestNotification(
+    String userId,
+    String reservationId,
+    double amount,
+  ) async {
+    try {
+      print(
+        '💳 Envoi de la demande de paiement pour la réservation $reservationId',
+      );
+
+      // Créer la notification de paiement
+      final notification = {
+        'id': 'payment_request_${DateTime.now().millisecondsSinceEpoch}',
+        'userId': userId,
+        'reservationId': reservationId,
+        'type': 'payment_request',
+        'title': 'Paiement requis',
+        'body':
+            'Veuillez effectuer le paiement de ${amount.toStringAsFixed(2)} CHF pour votre réservation',
+        'amount': amount,
+        'createdAt': Timestamp.now(),
+        'isRead': false,
+        'priority': 'high',
+      };
+
+      // Sauvegarder la notification dans Firestore
+      await FirebaseFirestore.instance
+          .collection('notifications')
+          .doc(notification['id'] as String)
+          .set(notification);
+
+      print('✅ Notification de paiement envoyée avec succès');
+    } catch (e) {
+      print('❌ Erreur lors de l\'envoi de la notification de paiement: $e');
+      rethrow;
+    }
+  }
+
+  // Callback pour notifier qu'une réservation est en cours de traitement
+  static void Function(String)? _onReservationProcessing;
+
+  static void setReservationProcessingCallback(void Function(String) callback) {
+    _onReservationProcessing = callback;
+  }
+
+  void _notifyReservationProcessing(String reservationId) {
+    if (_onReservationProcessing != null) {
+      _onReservationProcessing!(reservationId);
+    }
   }
 
   // Nettoyer les ressources

@@ -234,46 +234,158 @@ class AdminUserDetailScreen extends StatelessWidget {
                     return const Text('Aucune réservation');
                   }
                   return Column(
-                    children: docs.map((d) {
+                    children: docs.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final d = entry.value;
                       final data = d.data() as Map<String, dynamic>;
                       // Construire l'objet Reservation pour l'écran détail
                       final reservation = Reservation.fromMap({
                         ...data,
                         'id': d.id,
                       });
-                      return InkWell(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ReservationDetailScreen(
-                              reservation: reservation,
+                      return Container(
+                        margin: EdgeInsets.only(
+                          bottom: index < docs.length - 1 ? 16 : 0,
+                        ),
+                        child: InkWell(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ReservationDetailScreen(
+                                reservation: reservation,
+                              ),
                             ),
                           ),
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        child: GlassContainer(
-                          padding: const EdgeInsets.all(12),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.directions_car,
-                                color: AppColors.accent,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          borderRadius: BorderRadius.circular(16),
+                          child: GlassContainer(
+                            padding: const EdgeInsets.all(16),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // En-tête avec véhicule et bouton info
+                                Row(
                                   children: [
-                                    Text(
-                                      '${reservation.departure} → ${reservation.destination}',
-                                      style: TextStyle(
-                                        color: AppColors.textStrong,
+                                    // Icône véhicule
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.accent.withOpacity(
+                                          0.1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: AppColors.accent.withOpacity(
+                                            0.3,
+                                          ),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        Icons.directions_car,
+                                        color: AppColors.accent,
+                                        size: 20,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(width: 12),
+
+                                    // Informations du véhicule
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            reservation.vehicleName,
+                                            style: TextStyle(
+                                              color: AppColors.textStrong,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            '${reservation.departure} → ${reservation.destination}',
+                                            style: TextStyle(
+                                              color: AppColors.textWeak,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // Bouton d'informations détaillées
+                                    _buildInfoButton(context, reservation),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                // Informations supplémentaires
+                                Row(
+                                  children: [
+                                    // Statut
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _getStatusColor(
+                                          reservation.status,
+                                        ).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: _getStatusColor(
+                                            reservation.status,
+                                          ).withOpacity(0.3),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        _getStatusText(reservation.status),
+                                        style: TextStyle(
+                                          color: _getStatusColor(
+                                            reservation.status,
+                                          ),
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+
+                                    const Spacer(),
+
+                                    // Prix
                                     Text(
-                                      'Statut: ${reservation.status.name}',
+                                      '${reservation.totalPrice.toStringAsFixed(2)} CHF',
+                                      style: TextStyle(
+                                        color: AppColors.accent,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                const SizedBox(height: 8),
+
+                                // Date et heure
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.schedule,
+                                      size: 14,
+                                      color: AppColors.textWeak,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _formatDateTime(
+                                        reservation.selectedDate,
+                                        reservation.selectedTime,
+                                      ),
                                       style: TextStyle(
                                         color: AppColors.textWeak,
                                         fontSize: 12,
@@ -281,15 +393,8 @@ class AdminUserDetailScreen extends StatelessWidget {
                                     ),
                                   ],
                                 ),
-                              ),
-                              Text(
-                                '${reservation.totalPrice.toStringAsFixed(2)} CHF',
-                                style: TextStyle(
-                                  color: AppColors.accent,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );
@@ -317,5 +422,213 @@ class AdminUserDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Bouton d'informations détaillées
+  Widget _buildInfoButton(BuildContext context, Reservation reservation) {
+    return GestureDetector(
+      onTap: () => _showVehicleDetailsDialog(context, reservation),
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: AppColors.accent.withOpacity(0.1),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColors.accent.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Icon(Icons.info_outline, size: 16, color: AppColors.accent),
+      ),
+    );
+  }
+
+  // Dialog d'informations détaillées du véhicule
+  void _showVehicleDetailsDialog(
+    BuildContext context,
+    Reservation reservation,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black87,
+          title: Row(
+            children: [
+              Icon(Icons.directions_car, color: AppColors.accent, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Détails du véhicule',
+                  style: TextStyle(
+                    color: AppColors.textStrong,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Informations du véhicule
+                _buildDetailSection(
+                  'Véhicule',
+                  Icons.directions_car,
+                  reservation.vehicleName,
+                ),
+                const SizedBox(height: 12),
+
+                // Trajet
+                _buildDetailSection(
+                  'Départ',
+                  Icons.location_on,
+                  reservation.departure,
+                ),
+                const SizedBox(height: 8),
+                _buildDetailSection(
+                  'Destination',
+                  Icons.flag,
+                  reservation.destination,
+                ),
+                const SizedBox(height: 12),
+
+                // Date et heure
+                _buildDetailSection(
+                  'Date',
+                  Icons.calendar_today,
+                  '${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year}',
+                ),
+                const SizedBox(height: 8),
+                _buildDetailSection(
+                  'Heure',
+                  Icons.schedule,
+                  reservation.selectedTime,
+                ),
+                const SizedBox(height: 12),
+
+                // Prix
+                _buildDetailSection(
+                  'Prix total',
+                  Icons.attach_money,
+                  '${reservation.totalPrice.toStringAsFixed(2)} CHF',
+                ),
+                const SizedBox(height: 8),
+                _buildDetailSection(
+                  'Méthode de paiement',
+                  Icons.payment,
+                  reservation.paymentMethod,
+                ),
+                const SizedBox(height: 12),
+
+                // Statut
+                _buildDetailSection(
+                  'Statut',
+                  Icons.info,
+                  _getStatusText(reservation.status),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Fermer', style: TextStyle(color: AppColors.accent)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Section de détail dans le dialog
+  Widget _buildDetailSection(String label, IconData icon, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: AppColors.accent),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: AppColors.textWeak,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: TextStyle(
+                  color: AppColors.textStrong,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Couleur du statut
+  Color _getStatusColor(ReservationStatus status) {
+    switch (status) {
+      case ReservationStatus.pending:
+        return Colors.orange;
+      case ReservationStatus.confirmed:
+        return Colors.green;
+      case ReservationStatus.inProgress:
+        return AppColors.accent;
+      case ReservationStatus.completed:
+        return Colors.green;
+      case ReservationStatus.cancelled:
+        return Colors.red;
+    }
+  }
+
+  // Texte du statut
+  String _getStatusText(ReservationStatus status) {
+    switch (status) {
+      case ReservationStatus.pending:
+        return 'En attente';
+      case ReservationStatus.confirmed:
+        return 'Confirmée';
+      case ReservationStatus.inProgress:
+        return 'En cours';
+      case ReservationStatus.completed:
+        return 'Terminée';
+      case ReservationStatus.cancelled:
+        return 'Annulée';
+    }
+  }
+
+  // Formatage de la date et heure
+  String _formatDateTime(DateTime date, String time) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDay = DateTime(date.year, date.month, date.day);
+
+    String dateText;
+    if (selectedDay == today) {
+      dateText = 'Aujourd\'hui';
+    } else if (selectedDay == today.add(const Duration(days: 1))) {
+      dateText = 'Demain';
+    } else {
+      dateText =
+          '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
+    }
+
+    return '$dateText à $time';
   }
 }

@@ -15,6 +15,7 @@ class NotificationService {
             .name, // ✅ CORRECTION : Passer en inProgress après paiement
         'lastUpdated': Timestamp.now(),
         'paymentConfirmedAt': Timestamp.now(),
+        'isPaid': true, // Marquer comme payé
       });
     } catch (e) {
       throw Exception('Erreur lors de la confirmation du paiement: $e');

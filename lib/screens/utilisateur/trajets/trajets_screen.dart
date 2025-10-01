@@ -3,8 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/data/models/reservation_filter.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_service.dart';
+import 'package:my_mobility_services/data/services/pdf_export_service.dart';
+import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -28,6 +31,19 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   final ReservationService _reservationService = ReservationService();
   final AdminService _adminService = AdminService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // Variables pour le filtrage avancé
+  ReservationFilter _upcomingFilter = const ReservationFilter(isUpcoming: true);
+  ReservationFilter _completedFilter = const ReservationFilter(
+    isUpcoming: false,
+  );
+
+  // Variables pour l'export
+  List<Reservation> _currentReservations = [];
+
+  // Variables pour la sélection directe
+  bool _isSelectionMode = false;
+  Set<String> _selectedReservations = <String>{};
 
   @override
   void initState() {
@@ -60,7 +76,14 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       child: Scaffold(
         backgroundColor: Colors.transparent,
 
-        appBar: GlassAppBar(title: AppLocalizations.of(context).trips),
+        appBar: GlassAppBar(
+          title: _isSelectionMode
+              ? 'Sélectionner les courses (${_selectedReservations.length})'
+              : AppLocalizations.of(context).trips,
+          actions: _isSelectionMode
+              ? _buildSelectionActions()
+              : _buildNormalActions(),
+        ),
 
         body: Column(
           children: [
@@ -68,6 +91,22 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             Padding(
               padding: const EdgeInsets.only(top: 16),
               child: TrajetNav(_tabController),
+            ),
+            // Widget de filtrage
+            ReservationFilterWidget(
+              currentFilter: _tabController.index == 0
+                  ? _upcomingFilter
+                  : _completedFilter,
+              isUpcoming: _tabController.index == 0,
+              onFilterChanged: (filter) {
+                setState(() {
+                  if (_tabController.index == 0) {
+                    _upcomingFilter = filter;
+                  } else {
+                    _completedFilter = filter;
+                  }
+                });
+              },
             ),
             // Contenu des onglets
             Expanded(
@@ -84,12 +123,14 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           ],
         ),
 
-        bottomNavigationBar: widget.showBottomBar
-            ? CustomBottomNavigationBar(
-                currentIndex: _selectedIndex,
-                onTap: _onItemTapped,
-              )
-            : null,
+        bottomNavigationBar: _isSelectionMode
+            ? _buildSelectionBottomBar()
+            : (widget.showBottomBar
+                  ? CustomBottomNavigationBar(
+                      currentIndex: _selectedIndex,
+                      onTap: _onItemTapped,
+                    )
+                  : null),
       ),
     );
   }
@@ -102,7 +143,10 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     }
 
     return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getUserConfirmedReservationsStream(),
+      stream: _reservationService.getUserUpcomingReservationsStreamWithFilter(
+        currentUser.uid,
+        _upcomingFilter,
+      ),
       initialData: const [],
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -150,26 +194,56 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         }
 
         final reservations = snapshot.data ?? [];
-        final upcomingReservations = reservations
-            .where(
-              (r) =>
-                  r.status == ReservationStatus.pending ||
-                  r.status == ReservationStatus.confirmed ||
-                  r.status == ReservationStatus.inProgress,
-            )
-            .toList();
 
-        if (upcomingReservations.isEmpty) {
+        // Mettre à jour les réservations actuelles pour l'export
+        _currentReservations = reservations;
+
+        if (reservations.isEmpty) {
           return _buildEmptyUpcomingView();
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: upcomingReservations.length,
-          itemBuilder: (context, index) {
-            final reservation = upcomingReservations[index];
-            return _buildReservationCard(reservation);
-          },
+        return Column(
+          children: [
+            // Indicateur du nombre de résultats
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.filter_list, color: AppColors.accent, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${reservations.length} résultat${reservations.length > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Liste des réservations
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: reservations.length,
+                itemBuilder: (context, index) {
+                  final reservation = reservations[index];
+                  return _buildReservationCard(reservation);
+                },
+              ),
+            ),
+          ],
         );
       },
     );
@@ -198,6 +272,8 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   Widget _buildEmptyUpcomingView() {
+    final hasActiveFilter = _upcomingFilter.hasActiveFilter;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
@@ -330,10 +406,10 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
                   const SizedBox(height: 32),
 
-                  // Message principal en anglais
-                  const Text(
-                    'No Upcoming rides',
-                    style: TextStyle(
+                  // Message principal
+                  Text(
+                    hasActiveFilter ? 'Aucun résultat' : 'No Upcoming rides',
+                    style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -344,9 +420,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
                   const SizedBox(height: 16),
 
-                  // Message secondaire en français
+                  // Message secondaire
                   Text(
-                    'Emploi du temps compliqué? Optez pour un trajet planifié pour arriver à l\'heure.',
+                    hasActiveFilter
+                        ? 'Aucun trajet à venir ne correspond à vos filtres. Essayez de modifier vos critères de recherche.'
+                        : 'Emploi du temps compliqué? Optez pour un trajet planifié pour arriver à l\'heure.',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[300],
@@ -375,7 +453,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                     Navigator.pushReplacementNamed(context, '/home');
                   }
                 },
-                label: 'Planifiez un trajet',
+                label: hasActiveFilter
+                    ? 'Réinitialiser les filtres'
+                    : 'Planifiez un trajet',
               ),
             ),
           ),
@@ -385,125 +465,171 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   Widget _buildReservationCard(Reservation reservation) {
-    return GlassContainer(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final isSelected = _selectedReservations.contains(reservation.id);
+
+    return GestureDetector(
+      onTap: _isSelectionMode
+          ? () => _toggleReservationSelection(reservation.id)
+          : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: _isSelectionMode && isSelected
+              ? AppColors.accent.withOpacity(0.1)
+              : null,
+          border: _isSelectionMode && isSelected
+              ? Border.all(color: AppColors.accent, width: 2)
+              : null,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: GlassContainer(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.directions_car,
-                  color: AppColors.accent,
-                  size: 20,
-                ),
+              Row(
+                children: [
+                  // Checkbox en mode sélection
+                  if (_isSelectionMode) ...[
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.accent
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.accent
+                              : AppColors.glassStroke,
+                          width: 2,
+                        ),
+                      ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.directions_car,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          reservation.vehicleName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textStrong,
+                          ),
+                        ),
+                        Text(
+                          reservation.statusInFrench,
+                          style: TextStyle(fontSize: 12, color: AppColors.text),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${reservation.totalPrice.toStringAsFixed(2)} CHF',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textStrong,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      reservation.vehicleName,
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(Icons.location_on, color: AppColors.accent, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${reservation.departure} → ${reservation.destination}',
                       style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
                         color: AppColors.textStrong,
                       ),
                     ),
-                    Text(
-                      reservation.statusInFrench,
-                      style: TextStyle(fontSize: 12, color: AppColors.text),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.schedule, color: AppColors.text, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                    style: TextStyle(fontSize: 14, color: AppColors.text),
+                  ),
+                ],
+              ),
+              // Boutons de contact pour les réservations confirmées
+              if (reservation.status == ReservationStatus.confirmed ||
+                  reservation.status == ReservationStatus.inProgress) ...[
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _makePhoneCall,
+                        icon: const Icon(Icons.phone, size: 18),
+                        label: Text(AppLocalizations.of(context).call),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _sendSMS,
+                        icon: const Icon(Icons.message, size: 18),
+                        label: Text(AppLocalizations.of(context).message),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.accent,
+                          side: BorderSide(color: AppColors.accent),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              Text(
-                '${reservation.totalPrice.toStringAsFixed(2)} CHF',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textStrong,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(Icons.location_on, color: AppColors.accent, size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textStrong,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.schedule, color: AppColors.text, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(fontSize: 14, color: AppColors.text),
-              ),
-            ],
-          ),
-          // Boutons de contact pour les réservations confirmées
-          if (reservation.status == ReservationStatus.confirmed ||
-              reservation.status == ReservationStatus.inProgress) ...[
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: _makePhoneCall,
-                    icon: const Icon(Icons.phone, size: 18),
-                    label: Text(AppLocalizations.of(context).call),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _sendSMS,
-                    icon: const Icon(Icons.message, size: 18),
-                    label: Text(AppLocalizations.of(context).message),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.accent,
-                      side: BorderSide(color: AppColors.accent),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
               ],
-            ),
-          ],
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -516,7 +642,10 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     }
 
     return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getUserCompletedReservationsStream(),
+      stream: _reservationService.getUserCompletedReservationsStreamWithFilter(
+        currentUser.uid,
+        _completedFilter,
+      ),
       initialData: const [],
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -543,11 +672,11 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         }
 
         final reservations = snapshot.data ?? [];
-        final completedReservations = reservations
-            .where((r) => r.status == ReservationStatus.completed)
-            .toList();
 
-        if (completedReservations.isEmpty) {
+        // Mettre à jour les réservations actuelles pour l'export
+        _currentReservations = reservations;
+
+        if (reservations.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -555,10 +684,23 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 Icon(Icons.history, size: 80, color: Colors.grey[400]),
                 const SizedBox(height: 24),
                 Text(
-                  'Aucun trajet terminé',
+                  _completedFilter.hasActiveFilter
+                      ? 'Aucun résultat pour les filtres sélectionnés'
+                      : 'Aucun trajet terminé',
                   style: TextStyle(
                     fontSize: 20,
                     color: Colors.grey[400],
+                    fontFamily: 'Poppins',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _completedFilter.hasActiveFilter
+                      ? 'Essayez de modifier vos critères de filtrage'
+                      : 'Vos trajets terminés apparaîtront ici',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[500],
                     fontFamily: 'Poppins',
                   ),
                 ),
@@ -567,109 +709,193 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: completedReservations.length,
-          itemBuilder: (context, index) {
-            final reservation = completedReservations[index];
-            return _buildCompletedReservationCard(reservation);
-          },
+        return Column(
+          children: [
+            // Indicateur du nombre de résultats
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.filter_list, color: AppColors.accent, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${reservations.length} résultat${reservations.length > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Liste des réservations
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: reservations.length,
+                itemBuilder: (context, index) {
+                  final reservation = reservations[index];
+                  return _buildCompletedReservationCard(reservation);
+                },
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
   Widget _buildCompletedReservationCard(Reservation reservation) {
-    return GlassContainer(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final isSelected = _selectedReservations.contains(reservation.id);
+
+    return GestureDetector(
+      onTap: _isSelectionMode
+          ? () => _toggleReservationSelection(reservation.id)
+          : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: _isSelectionMode && isSelected
+              ? AppColors.accent.withOpacity(0.1)
+              : null,
+          border: _isSelectionMode && isSelected
+              ? Border.all(color: AppColors.accent, width: 2)
+              : null,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: GlassContainer(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      reservation.vehicleName,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+              Row(
+                children: [
+                  // Checkbox en mode sélection
+                  if (_isSelectionMode) ...[
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.accent
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.accent
+                              : AppColors.glassStroke,
+                          width: 2,
+                        ),
                       ),
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : null,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${reservation.totalPrice.toStringAsFixed(2)} CHF',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.accent,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.end,
-                    ),
+                    const SizedBox(width: 12),
                   ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'Terminée',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
+
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 20,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          reservation.vehicleName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${reservation.totalPrice.toStringAsFixed(2)} CHF',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.end,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Terminée',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.green,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(Icons.location_on, color: AppColors.accent, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '${reservation.departure} → ${reservation.destination}',
+                      style: const TextStyle(fontSize: 14, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.schedule, color: AppColors.text, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                    style: TextStyle(fontSize: 14, color: AppColors.text),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(Icons.location_on, color: AppColors.accent, size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${reservation.departure} → ${reservation.destination}',
-                  style: const TextStyle(fontSize: 14, color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(Icons.schedule, color: AppColors.text, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                style: TextStyle(fontSize: 14, color: AppColors.text),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -731,6 +957,141 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         SnackBar(content: Text(message), backgroundColor: AppColors.hot),
       );
     }
+  }
+
+  List<Widget> _buildNormalActions() {
+    return [
+      IconButton(
+        onPressed: _toggleSelectionMode,
+        icon: const Icon(Icons.checklist, color: AppColors.accent),
+        tooltip: 'Sélectionner pour export',
+      ),
+    ];
+  }
+
+  List<Widget> _buildSelectionActions() {
+    return [
+      if (_selectedReservations.isNotEmpty)
+        IconButton(
+          onPressed: _exportSelectedReservations,
+          icon: const Icon(Icons.picture_as_pdf, color: AppColors.accent),
+          tooltip: 'Exporter sélection',
+        ),
+      IconButton(
+        onPressed: _cancelSelection,
+        icon: const Icon(Icons.close, color: AppColors.hot),
+        tooltip: 'Annuler sélection',
+      ),
+    ];
+  }
+
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedReservations.clear();
+    });
+  }
+
+  void _cancelSelection() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedReservations.clear();
+    });
+  }
+
+  void _toggleReservationSelection(String reservationId) {
+    setState(() {
+      if (_selectedReservations.contains(reservationId)) {
+        _selectedReservations.remove(reservationId);
+      } else {
+        _selectedReservations.add(reservationId);
+      }
+    });
+  }
+
+  Future<void> _exportSelectedReservations() async {
+    if (_selectedReservations.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez sélectionner au moins une course'),
+          backgroundColor: AppColors.hot,
+        ),
+      );
+      return;
+    }
+
+    final selectedReservations = _currentReservations
+        .where((r) => _selectedReservations.contains(r.id))
+        .toList();
+
+    try {
+      final pdfBytes = await PdfExportService.exportReservationsToPdf(
+        reservations: selectedReservations,
+        title: 'Mes Courses',
+        subtitle: 'Export des courses sélectionnées',
+        isAdmin: false,
+      );
+
+      await PdfExportService.sharePdf(pdfBytes, 'mes_courses');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('PDF exporté avec succès !'),
+          backgroundColor: AppColors.accent,
+        ),
+      );
+
+      // Sortir du mode sélection après export
+      _cancelSelection();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de l\'export: $e'),
+          backgroundColor: AppColors.hot,
+        ),
+      );
+    }
+  }
+
+  Widget _buildSelectionBottomBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.glass,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        border: Border.all(color: AppColors.glassStroke),
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            // Compteur de sélection
+            Expanded(
+              child: Text(
+                '${_selectedReservations.length} course${_selectedReservations.length > 1 ? 's' : ''} sélectionnée${_selectedReservations.length > 1 ? 's' : ''}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textStrong,
+                ),
+              ),
+            ),
+
+            // Bouton d'export
+            if (_selectedReservations.isNotEmpty) ...[
+              const SizedBox(width: 16),
+              GlassButton(
+                label: 'Exporter PDF',
+                onPressed: _exportSelectedReservations,
+                icon: Icons.picture_as_pdf,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 
   @override

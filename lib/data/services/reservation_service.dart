@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/reservation.dart';
+import '../models/reservation_filter.dart';
 import 'client_notification_service.dart';
 
 class ReservationService {
@@ -161,7 +162,12 @@ class ReservationService {
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .map(
+                (doc) => Reservation.fromMap({
+                  ...doc.data() as Map<String, dynamic>,
+                  'id': doc.id,
+                }),
+              )
               .toList(),
         );
   }
@@ -181,7 +187,12 @@ class ReservationService {
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .map(
+                (doc) => Reservation.fromMap({
+                  ...doc.data() as Map<String, dynamic>,
+                  'id': doc.id,
+                }),
+              )
               .toList(),
         );
   }
@@ -201,7 +212,12 @@ class ReservationService {
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => Reservation.fromMap({...doc.data(), 'id': doc.id}))
+              .map(
+                (doc) => Reservation.fromMap({
+                  ...doc.data() as Map<String, dynamic>,
+                  'id': doc.id,
+                }),
+              )
               .toList(),
         );
   }
@@ -368,7 +384,12 @@ class ReservationService {
 
   // Accepter une réservation (mise en attente de paiement)
   Future<void> acceptReservation(String reservationId) async {
-    await updateReservationStatus(reservationId, ReservationStatus.pending);
+    // Mettre à jour le statut de la réservation à "confirmed"
+    await updateReservationStatus(reservationId, ReservationStatus.confirmed);
+
+    // Marquer comme payé (car l'admin accepte = le client doit payer)
+    await updateReservationField(reservationId, 'isPaid', true);
+
     // Ajouter un flag pour indiquer qu'elle est en attente de paiement
     await updateReservationField(reservationId, 'waitingForPayment', true);
     await updateReservationField(
@@ -376,6 +397,26 @@ class ReservationService {
       'acceptedAt',
       DateTime.now().toIso8601String(),
     );
+  }
+
+  // Récupérer une réservation par son ID
+  Future<Reservation?> getReservationById(String reservationId) async {
+    try {
+      final doc = await _firestore
+          .collection(_collection)
+          .doc(reservationId)
+          .get();
+      if (doc.exists) {
+        return Reservation.fromMap({
+          ...doc.data() as Map<String, dynamic>,
+          'id': doc.id,
+        });
+      }
+      return null;
+    } catch (e) {
+      print('Erreur lors de la récupération de la réservation: $e');
+      return null;
+    }
   }
 
   // Confirmer une réservation (après paiement)
@@ -390,6 +431,390 @@ class ReservationService {
 
   // Marquer une réservation comme terminée
   Future<void> completeReservation(String reservationId) async {
-    await updateReservationStatus(reservationId, ReservationStatus.completed);
+    await _firestore.collection(_collection).doc(reservationId).update({
+      'status': ReservationStatus.completed.name,
+      'isCompleted': true, // Marquer comme terminé
+      'lastUpdated': Timestamp.now(),
+    });
+  }
+
+  // ✅ Nouvelles méthodes de filtrage avancé
+
+  /// Obtenir les réservations avec filtres avancés
+  Future<List<Reservation>> getReservationsWithFilter(
+    ReservationFilter filter,
+  ) async {
+    try {
+      Query query = _firestore.collection(_collection);
+
+      // Filtrer par statut selon le type de réservation (à venir vs terminées)
+      if (filter.isUpcoming) {
+        // Pour les courses à venir : pending, confirmed, inProgress
+        query = query.where(
+          'status',
+          whereIn: [
+            ReservationStatus.pending.name,
+            ReservationStatus.confirmed.name,
+            ReservationStatus.inProgress.name,
+          ],
+        );
+      } else {
+        // Pour les courses terminées : completed, cancelled
+        query = query.where(
+          'status',
+          whereIn: [
+            ReservationStatus.completed.name,
+            ReservationStatus.cancelled.name,
+          ],
+        );
+      }
+
+      // Appliquer les filtres spécifiques
+      switch (filter.filterType) {
+        case ReservationFilterType.demand:
+          query = query.where(
+            'status',
+            isEqualTo: ReservationStatus.pending.name,
+          );
+          break;
+        case ReservationFilterType.counterOffer:
+          query = query.where('hasCounterOffer', isEqualTo: true);
+          break;
+        case ReservationFilterType.dateRange:
+          if (filter.startDate != null) {
+            query = query.where(
+              'selectedDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(filter.startDate!),
+            );
+          }
+          if (filter.endDate != null) {
+            final endDate = DateTime(
+              filter.endDate!.year,
+              filter.endDate!.month,
+              filter.endDate!.day,
+              23,
+              59,
+              59,
+              999,
+              999,
+            );
+            query = query.where(
+              'selectedDate',
+              isLessThanOrEqualTo: Timestamp.fromDate(endDate),
+            );
+          }
+          break;
+        case ReservationFilterType.all:
+          break;
+      }
+
+      // Filtrer par type de réservation si demandé
+      if (filter.typeFilter != ReservationTypeFilter.all) {
+        switch (filter.typeFilter) {
+          case ReservationTypeFilter.simple:
+            query = query
+                .where('hasCounterOffer', isEqualTo: false)
+                .where('status', isEqualTo: 'pending');
+            break;
+          case ReservationTypeFilter.customOffer:
+            query = query.where('hasCounterOffer', isEqualTo: true);
+            break;
+          case ReservationTypeFilter.counterOffer:
+            query = query
+                .where('hasCounterOffer', isEqualTo: true)
+                .where('status', isEqualTo: 'confirmed');
+            break;
+          case ReservationTypeFilter.all:
+            break;
+        }
+      }
+
+      // Trier par défaut par date de création (descendant)
+      query = query.orderBy('createdAt', descending: true);
+
+      final querySnapshot = await query.get();
+      final reservations = querySnapshot.docs
+          .map(
+            (doc) => Reservation.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
+          .toList();
+
+      // Enrichir avec les noms d'utilisateurs
+      final enrichedReservations = <Reservation>[];
+      for (var reservation in reservations) {
+        final enriched = await _enrichReservationWithUserName(reservation);
+        enrichedReservations.add(enriched);
+      }
+
+      // Appliquer le tri final côté client
+      return filter.applyFilter(enrichedReservations);
+    } catch (e) {
+      throw Exception(
+        'Erreur lors de la récupération des réservations filtrées: $e',
+      );
+    }
+  }
+
+  /// Stream des réservations avec filtres avancés
+  Stream<List<Reservation>> getReservationsStreamWithFilter(
+    ReservationFilter filter,
+  ) {
+    Query query = _firestore.collection(_collection);
+
+    // Requête simple pour éviter les index complexes
+    // On récupère toutes les réservations de l'utilisateur et on filtre côté client
+    query = query.orderBy('createdAt', descending: true);
+
+    return query.snapshots().asyncMap((snapshot) async {
+      final reservations = snapshot.docs
+          .map(
+            (doc) => Reservation.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
+          .toList();
+
+      // Enrichir avec les noms d'utilisateurs
+      final enrichedReservations = <Reservation>[];
+      for (var reservation in reservations) {
+        final enriched = await _enrichReservationWithUserName(reservation);
+        enrichedReservations.add(enriched);
+      }
+
+      // Appliquer le tri final côté client
+      return filter.applyFilter(enrichedReservations);
+    });
+  }
+
+  /// Obtenir les réservations terminées avec filtres
+  Future<List<Reservation>> getCompletedReservationsWithFilter(
+    ReservationFilter filter,
+  ) async {
+    final completedFilter = filter.copyWith(isUpcoming: false);
+    return getReservationsWithFilter(completedFilter);
+  }
+
+  /// Obtenir les réservations à venir avec filtres
+  Future<List<Reservation>> getUpcomingReservationsWithFilter(
+    ReservationFilter filter,
+  ) async {
+    final upcomingFilter = filter.copyWith(isUpcoming: true);
+    return getReservationsWithFilter(upcomingFilter);
+  }
+
+  /// Stream des réservations terminées avec filtres
+  Stream<List<Reservation>> getCompletedReservationsStreamWithFilter(
+    ReservationFilter filter,
+  ) {
+    final completedFilter = filter.copyWith(isUpcoming: false);
+    return getReservationsStreamWithFilter(completedFilter);
+  }
+
+  /// Stream des réservations à venir avec filtres
+  Stream<List<Reservation>> getUpcomingReservationsStreamWithFilter(
+    ReservationFilter filter,
+  ) {
+    final upcomingFilter = filter.copyWith(isUpcoming: true);
+    return getReservationsStreamWithFilter(upcomingFilter);
+  }
+
+  // ✅ Nouvelles méthodes pour les utilisateurs avec filtres
+
+  /// Obtenir les réservations d'un utilisateur avec filtres avancés
+  Future<List<Reservation>> getUserReservationsWithFilter(
+    String userId,
+    ReservationFilter filter,
+  ) async {
+    try {
+      Query query = _firestore.collection(_collection);
+
+      // Filtrer par utilisateur
+      query = query.where('userId', isEqualTo: userId);
+
+      // Filtrer par statut selon le type de réservation (à venir vs terminées)
+      if (filter.isUpcoming) {
+        // Pour les courses à venir : pending, confirmed, inProgress
+        query = query.where(
+          'status',
+          whereIn: [
+            ReservationStatus.pending.name,
+            ReservationStatus.confirmed.name,
+            ReservationStatus.inProgress.name,
+          ],
+        );
+      } else {
+        // Pour les courses terminées : completed, cancelled
+        query = query.where(
+          'status',
+          whereIn: [
+            ReservationStatus.completed.name,
+            ReservationStatus.cancelled.name,
+          ],
+        );
+      }
+
+      // Appliquer les filtres spécifiques
+      switch (filter.filterType) {
+        case ReservationFilterType.demand:
+          query = query.where(
+            'status',
+            isEqualTo: ReservationStatus.pending.name,
+          );
+          break;
+        case ReservationFilterType.counterOffer:
+          query = query.where('hasCounterOffer', isEqualTo: true);
+          break;
+        case ReservationFilterType.dateRange:
+          if (filter.startDate != null) {
+            query = query.where(
+              'selectedDate',
+              isGreaterThanOrEqualTo: Timestamp.fromDate(filter.startDate!),
+            );
+          }
+          if (filter.endDate != null) {
+            final endDate = DateTime(
+              filter.endDate!.year,
+              filter.endDate!.month,
+              filter.endDate!.day,
+              23,
+              59,
+              59,
+              999,
+              999,
+            );
+            query = query.where(
+              'selectedDate',
+              isLessThanOrEqualTo: Timestamp.fromDate(endDate),
+            );
+          }
+          break;
+        case ReservationFilterType.all:
+          break;
+      }
+
+      // Filtrer par type de réservation si demandé
+      if (filter.typeFilter != ReservationTypeFilter.all) {
+        switch (filter.typeFilter) {
+          case ReservationTypeFilter.simple:
+            query = query
+                .where('hasCounterOffer', isEqualTo: false)
+                .where('status', isEqualTo: 'pending');
+            break;
+          case ReservationTypeFilter.customOffer:
+            query = query.where('hasCounterOffer', isEqualTo: true);
+            break;
+          case ReservationTypeFilter.counterOffer:
+            query = query
+                .where('hasCounterOffer', isEqualTo: true)
+                .where('status', isEqualTo: 'confirmed');
+            break;
+          case ReservationTypeFilter.all:
+            break;
+        }
+      }
+
+      // Trier par défaut par date de création (descendant)
+      query = query.orderBy('createdAt', descending: true);
+
+      final querySnapshot = await query.get();
+      final reservations = querySnapshot.docs
+          .map(
+            (doc) => Reservation.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
+          .toList();
+
+      // Enrichir avec les noms d'utilisateurs
+      final enrichedReservations = <Reservation>[];
+      for (var reservation in reservations) {
+        final enriched = await _enrichReservationWithUserName(reservation);
+        enrichedReservations.add(enriched);
+      }
+
+      // Appliquer le tri final côté client
+      return filter.applyFilter(enrichedReservations);
+    } catch (e) {
+      throw Exception(
+        'Erreur lors de la récupération des réservations filtrées: $e',
+      );
+    }
+  }
+
+  /// Stream des réservations d'un utilisateur avec filtres avancés
+  Stream<List<Reservation>> getUserReservationsStreamWithFilter(
+    String userId,
+    ReservationFilter filter,
+  ) {
+    Query query = _firestore.collection(_collection);
+
+    // Filtrer par utilisateur
+    query = query.where('userId', isEqualTo: userId);
+
+    // Requête simple pour éviter les index complexes
+    // On récupère toutes les réservations de l'utilisateur et on filtre côté client
+    query = query.orderBy('createdAt', descending: true);
+
+    return query.snapshots().asyncMap((snapshot) async {
+      final reservations = snapshot.docs
+          .map(
+            (doc) => Reservation.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
+          .toList();
+
+      // Enrichir avec les noms d'utilisateurs
+      final enrichedReservations = <Reservation>[];
+      for (var reservation in reservations) {
+        final enriched = await _enrichReservationWithUserName(reservation);
+        enrichedReservations.add(enriched);
+      }
+
+      // Appliquer le tri final côté client
+      return filter.applyFilter(enrichedReservations);
+    });
+  }
+
+  /// Obtenir les réservations terminées d'un utilisateur avec filtres
+  Future<List<Reservation>> getUserCompletedReservationsWithFilter(
+    String userId,
+    ReservationFilter filter,
+  ) async {
+    final completedFilter = filter.copyWith(isUpcoming: false);
+    return getUserReservationsWithFilter(userId, completedFilter);
+  }
+
+  /// Obtenir les réservations à venir d'un utilisateur avec filtres
+  Future<List<Reservation>> getUserUpcomingReservationsWithFilter(
+    String userId,
+    ReservationFilter filter,
+  ) async {
+    final upcomingFilter = filter.copyWith(isUpcoming: true);
+    return getUserReservationsWithFilter(userId, upcomingFilter);
+  }
+
+  /// Stream des réservations terminées d'un utilisateur avec filtres
+  Stream<List<Reservation>> getUserCompletedReservationsStreamWithFilter(
+    String userId,
+    ReservationFilter filter,
+  ) {
+    final completedFilter = filter.copyWith(isUpcoming: false);
+    return getUserReservationsStreamWithFilter(userId, completedFilter);
+  }
+
+  /// Stream des réservations à venir d'un utilisateur avec filtres
+  Stream<List<Reservation>> getUserUpcomingReservationsStreamWithFilter(
+    String userId,
+    ReservationFilter filter,
+  ) {
+    final upcomingFilter = filter.copyWith(isUpcoming: true);
+    return getUserReservationsStreamWithFilter(userId, upcomingFilter);
   }
 }

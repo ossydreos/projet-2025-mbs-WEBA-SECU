@@ -5,9 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/reservation.dart';
 
 class PaymentService {
-  static const String _stripePublishableKey = 'pk_test_51SA4Pk0xP2bV4rW1o0e3BSzzRNOICsoXLfA2hexPWAaRvNYxYGpM9EXZeOibyR0NMhAeMJoDR9XsM8NVBCbqWxpt00Vr2CovbL';
-  static const String _stripeSecretKey = 'sk_test_51SA4Pk0xP2bV4rW12MnpPYIjYeNTOJCYIES1TramydQGjEtqw0uUnYYJBwWjAIyVAOjK2VKsLEzva0kTIWIg9svj00j2ERKneZ';
-  
+  static const String _stripePublishableKey =
+      'pk_test_51SA4Pk0xP2bV4rW1o0e3BSzzRNOICsoXLfA2hexPWAaRvNYxYGpM9EXZeOibyR0NMhAeMJoDR9XsM8NVBCbqWxpt00Vr2CovbL';
+  static const String _stripeSecretKey =
+      'sk_test_51SA4Pk0xP2bV4rW12MnpPYIjYeNTOJCYIES1TramydQGjEtqw0uUnYYJBwWjAIyVAOjK2VKsLEzva0kTIWIg9svj00j2ERKneZ';
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Initialiser Stripe (optionnel)
@@ -38,9 +40,7 @@ class PaymentService {
         body: jsonEncode({
           'amount': (amount * 100).round(), // Stripe utilise les centimes
           'currency': currency,
-          'metadata': {
-            'reservation_id': reservationId,
-          },
+          'metadata': {'reservation_id': reservationId},
         }),
       );
 
@@ -64,25 +64,25 @@ class PaymentService {
     try {
       // Pour l'instant, simuler un paiement réussi
       // TODO: Implémenter le vrai paiement Stripe
-      
+
       await Future.delayed(const Duration(seconds: 2)); // Simulation
-      
+
       // Mettre à jour la réservation dans Firestore
       await _updateReservationPaymentStatus(
         reservationId: reservationId,
-        paymentIntentId: 'pi_simulated_${DateTime.now().millisecondsSinceEpoch}',
+        paymentIntentId:
+            'pi_simulated_${DateTime.now().millisecondsSinceEpoch}',
         status: 'paid',
       );
 
       return PaymentResult.success(
-        paymentIntentId: 'pi_simulated_${DateTime.now().millisecondsSinceEpoch}',
+        paymentIntentId:
+            'pi_simulated_${DateTime.now().millisecondsSinceEpoch}',
         amount: amount,
         currency: currency,
       );
     } catch (e) {
-      return PaymentResult.failed(
-        error: 'Erreur inattendue: $e',
-      );
+      return PaymentResult.failed(error: 'Erreur inattendue: $e');
     }
   }
 
@@ -95,7 +95,7 @@ class PaymentService {
     try {
       // Pour l'instant, simuler un paiement Apple Pay réussi
       await Future.delayed(const Duration(seconds: 2)); // Simulation
-      
+
       await _updateReservationPaymentStatus(
         reservationId: reservationId,
         paymentIntentId: 'pi_apple_${DateTime.now().millisecondsSinceEpoch}',
@@ -108,9 +108,7 @@ class PaymentService {
         currency: currency,
       );
     } catch (e) {
-      return PaymentResult.failed(
-        error: 'Erreur Apple Pay: $e',
-      );
+      return PaymentResult.failed(error: 'Erreur Apple Pay: $e');
     }
   }
 
@@ -123,7 +121,7 @@ class PaymentService {
     try {
       // Pour l'instant, simuler un paiement Google Pay réussi
       await Future.delayed(const Duration(seconds: 2)); // Simulation
-      
+
       await _updateReservationPaymentStatus(
         reservationId: reservationId,
         paymentIntentId: 'pi_google_${DateTime.now().millisecondsSinceEpoch}',
@@ -136,9 +134,7 @@ class PaymentService {
         currency: currency,
       );
     } catch (e) {
-      return PaymentResult.failed(
-        error: 'Erreur Google Pay: $e',
-      );
+      return PaymentResult.failed(error: 'Erreur Google Pay: $e');
     }
   }
 
@@ -153,7 +149,25 @@ class PaymentService {
       'paymentIntentId': paymentIntentId,
       'paymentCompletedAt': Timestamp.now(),
       'status': ReservationStatus.confirmed.name,
+      'isPaid': true, // Marquer comme payé
+      'lastUpdated': Timestamp.now(),
     });
+
+    // Notifier que le paiement est terminé (pour retirer de l'état de traitement)
+    _notifyPaymentCompleted(reservationId);
+  }
+
+  // Callback pour notifier la completion du paiement
+  static void Function(String)? _onPaymentCompleted;
+
+  static void setPaymentCompletedCallback(void Function(String) callback) {
+    _onPaymentCompleted = callback;
+  }
+
+  void _notifyPaymentCompleted(String reservationId) {
+    if (_onPaymentCompleted != null) {
+      _onPaymentCompleted!(reservationId);
+    }
   }
 
   // Remboursement
@@ -165,16 +179,14 @@ class PaymentService {
     try {
       // TODO: Implémenter le remboursement côté backend
       await Future.delayed(const Duration(seconds: 1)); // Simulation
-      
+
       return PaymentResult.success(
         paymentIntentId: 'refund_${DateTime.now().millisecondsSinceEpoch}',
         amount: amount,
         currency: 'EUR',
       );
     } catch (e) {
-      return PaymentResult.failed(
-        error: 'Erreur remboursement: $e',
-      );
+      return PaymentResult.failed(error: 'Erreur remboursement: $e');
     }
   }
 
@@ -183,7 +195,7 @@ class PaymentService {
     try {
       // TODO: Implémenter la vérification côté backend
       await Future.delayed(const Duration(seconds: 1)); // Simulation
-      
+
       return PaymentStatus(
         id: paymentIntentId,
         status: 'succeeded',
@@ -228,10 +240,7 @@ class PaymentResult {
     );
   }
 
-  factory PaymentResult.failed({
-    required String error,
-    String? errorCode,
-  }) {
+  factory PaymentResult.failed({required String error, String? errorCode}) {
     return PaymentResult._(
       isSuccess: false,
       error: error,

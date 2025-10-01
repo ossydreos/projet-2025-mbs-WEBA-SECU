@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
+import '../migration/migration_screen.dart';
 
 class AdminGestionScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -85,10 +86,10 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                   onTap: () => _navigateToUsers(),
                 ),
                 _buildMenuItem(
-                  icon: Icons.analytics,
-                  title: 'Statistiques',
-                  subtitle: 'Consulter les indicateurs',
-                  onTap: () => _showStatistics(),
+                  icon: Icons.update,
+                  title: 'Migration des données',
+                  subtitle: 'Mettre à jour les réservations',
+                  onTap: () => _navigateToMigration(),
                 ),
               ],
             ),
@@ -238,49 +239,10 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     Navigator.pushNamed(context, '/admin/users');
   }
 
-  void _showStatistics() {
-    _showFeatureDialog('Statistiques');
-  }
-
-  void _showFeatureDialog(String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: GlassContainer(
-          borderRadius: BorderRadius.circular(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                feature,
-                style: TextStyle(
-                  color: AppColors.textStrong,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Cette fonctionnalité sera bientôt disponible.',
-                style: TextStyle(color: AppColors.textWeak),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  GlassButton(
-                    label: 'OK',
-                    onPressed: () => Navigator.pop(context),
-                    primary: true,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+  void _navigateToMigration() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MigrationScreen()),
     );
   }
 

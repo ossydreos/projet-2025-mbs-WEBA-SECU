@@ -335,6 +335,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
             : null,
         promoCode: _appliedPromo?.code,
         discountAmount: _discountAmount == 0.0 ? null : _discountAmount,
+        isPaid: true, // La réservation est payée à la création
+        isCompleted: false, // Pas encore terminée
       );
 
       // Sauvegarder dans Firebase

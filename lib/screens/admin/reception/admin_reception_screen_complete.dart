@@ -6,6 +6,7 @@ import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_global_notification_service.dart';
+import 'package:my_mobility_services/data/services/payment_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class AdminReceptionScreen extends StatefulWidget {
@@ -29,6 +30,19 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
   final AdminGlobalNotificationService _notificationService =
       AdminGlobalNotificationService();
+
+  // État pour suivre les réservations en cours de traitement
+  final Set<String> _processingReservations = <String>{};
+
+  // Méthode pour retirer une réservation de l'état de traitement (appelée quand le client paie)
+  void removeFromProcessing(String reservationId) {
+    if (mounted) {
+      setState(() {
+        _processingReservations.remove(reservationId);
+      });
+    }
+  }
+
   int _selectedIndex = 0;
 
   @override
@@ -66,6 +80,19 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     super.initState();
     // Initialiser le service de notifications
     _notificationService.initialize(context);
+
+    // Configurer le callback pour retirer de l'état de traitement quand le paiement est effectué
+    PaymentService.setPaymentCompletedCallback((reservationId) {
+      removeFromProcessing(reservationId);
+    });
+
+    // Configurer le callback pour ajouter à l'état de traitement quand accepté via pop-up
+    AdminGlobalNotificationService.setReservationProcessingCallback((
+      reservationId,
+    ) {
+      // Faire exactement la même chose que _confirmReservation
+      _confirmReservationFromPopup(reservationId);
+    });
   }
 
   @override
@@ -492,94 +519,100 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             const SizedBox(height: 16),
 
             // Boutons d'action
-            if (reservation.status == ReservationStatus.pending) ...[
-              // Demande en attente: Accepter | Contre-offre (handshake) | Refuser
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _confirmReservation(reservation),
-                      icon: const Icon(Icons.check, size: 16),
-                      label: const Text('Accepter'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+            if (reservation.status == ReservationStatus.pending ||
+                _processingReservations.contains(reservation.id)) ...[
+              // Vérifier si la réservation est en cours de traitement
+              if (_processingReservations.contains(reservation.id)) ...[
+                // État de chargement
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                    horizontal: 20,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.glass,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.glassStroke),
+                  ),
+                  child: Row(
+                    children: [
+                      // Indicateur de chargement à gauche
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: AppColors.accent,
+                          strokeWidth: 2,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Message centré
+                      Expanded(
+                        child: Text(
+                          'En attente du paiement du client',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppColors.textStrong,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Icône de carte à droite
+                      Icon(
+                        Icons.credit_card,
+                        color: AppColors.accent,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                // Demande en attente: Accepter | Contre-offre (handshake) | Refuser
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _confirmReservation(reservation),
+                        icon: const Icon(Icons.check, size: 16),
+                        label: const Text('Accepter'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showCounterOfferDialog(reservation),
-                      icon: const Icon(Icons.handshake, size: 16),
-                      label: const Text('Contre-offre'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showCounterOfferDialog(reservation),
+                        icon: const Icon(Icons.handshake, size: 16),
+                        label: const Text('Contre-offre'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _refuseReservation(reservation),
-                      icon: const Icon(Icons.close, size: 16),
-                      label: const Text('Refuser'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _refuseReservation(reservation),
+                        icon: const Icon(Icons.close, size: 16),
+                        label: const Text('Refuser'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ] else ...[
-              // Autres statuts: Accepter | Refuser | Contre-offre (swap)
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _confirmReservation(reservation),
-                      icon: const Icon(Icons.check, size: 16),
-                      label: const Text('Accepter'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _refuseReservation(reservation),
-                      icon: const Icon(Icons.close, size: 16),
-                      label: const Text('Refuser'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showCounterOfferDialog(reservation),
-                      icon: const Icon(Icons.swap_horiz, size: 16),
-                      label: const Text('Contre-offre'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
             ],
           ],
         ),
@@ -588,40 +621,123 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   Future<void> _confirmReservation(Reservation reservation) async {
+    // Marquer la réservation comme en cours de traitement
+    setState(() {
+      _processingReservations.add(reservation.id);
+    });
+
     try {
+      // Mettre à jour le statut de la réservation
       await _reservationService.updateReservationStatus(
         reservation.id,
         ReservationStatus.confirmed,
       );
 
-      // Notifications UI désactivées
+      // Envoyer une notification au client pour le paiement
+      await _notificationService.sendPaymentRequestNotification(
+        reservation.userId,
+        reservation.id,
+        reservation.totalPrice,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Demande de paiement envoyée au client'),
+            backgroundColor: AppColors.accent,
+          ),
+        );
+      }
+
+      // NE PAS retirer de l'état de traitement - la bulle reste jusqu'au paiement
+      // La réservation restera dans _processingReservations jusqu'à ce que le client paie
     } catch (e) {
-      // Notifications UI désactivées
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+        // En cas d'erreur, retirer de l'état de traitement
+        setState(() {
+          _processingReservations.remove(reservation.id);
+        });
+      }
+    }
+  }
+
+  // Méthode pour confirmer une réservation depuis le pop-up (même logique que _confirmReservation)
+  Future<void> _confirmReservationFromPopup(String reservationId) async {
+    // Marquer la réservation comme en cours de traitement
+    setState(() {
+      _processingReservations.add(reservationId);
+    });
+
+    try {
+      // Récupérer les détails de la réservation
+      final reservation = await _reservationService.getReservationById(
+        reservationId,
+      );
+      if (reservation == null) {
+        throw Exception('Réservation non trouvée');
+      }
+
+      // Mettre à jour le statut de la réservation
+      await _reservationService.updateReservationStatus(
+        reservationId,
+        ReservationStatus.confirmed,
+      );
+
+      // Envoyer une notification au client pour le paiement
+      await _notificationService.sendPaymentRequestNotification(
+        reservation.userId,
+        reservationId,
+        reservation.totalPrice,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Demande de paiement envoyée au client'),
+            backgroundColor: AppColors.accent,
+          ),
+        );
+      }
+
+      // NE PAS retirer de l'état de traitement - la bulle reste jusqu'au paiement
+      // La réservation restera dans _processingReservations jusqu'à ce que le client paie
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+        // En cas d'erreur, retirer de l'état de traitement
+        setState(() {
+          _processingReservations.remove(reservationId);
+        });
+      }
     }
   }
 
   Future<void> _refuseReservation(Reservation reservation) async {
-    final action = await _showRefusalDialog();
+    try {
+      await _reservationService.updateReservationStatus(
+        reservation.id,
+        ReservationStatus.cancelled,
+      );
 
-    switch (action) {
-      case RefusalAction.refuse:
-        try {
-          await _reservationService.updateReservationStatus(
-            reservation.id,
-            ReservationStatus.cancelled,
-          );
-
-          // Notifications UI désactivées
-        } catch (e) {
-          // Notifications UI désactivées
-        }
-        break;
-      case RefusalAction.counterOffer:
-        _showCounterOfferDialog(reservation);
-        break;
-      case null:
-        // Annulé
-        break;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Réservation refusée'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
