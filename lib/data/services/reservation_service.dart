@@ -24,12 +24,51 @@ class ReservationService {
   // Créer une nouvelle réservation
   Future<String> createReservation(Reservation reservation) async {
     try {
+      // Validation : empêcher les réservations dans le passé
+      _validateReservationDate(reservation.selectedDate, reservation.selectedTime);
+      
       final docRef = _firestore.collection(_collection).doc();
       final reservationWithId = reservation.copyWith(id: docRef.id);
       await docRef.set(reservationWithId.toMap());
       return docRef.id;
     } catch (e) {
       throw Exception('Erreur lors de la création de la réservation: $e');
+    }
+  }
+  
+  // Valider que la date et l'heure de réservation ne sont pas dans le passé
+  void _validateReservationDate(DateTime selectedDate, String selectedTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDateOnly = DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
+    
+    // Vérifier si la date est dans le passé
+    if (selectedDateOnly.isBefore(today)) {
+      throw Exception('Impossible de réserver pour une date passée');
+    }
+    
+    // Si c'est aujourd'hui, vérifier que l'heure n'est pas dans le passé
+    if (selectedDateOnly.isAtSameMomentAs(today)) {
+      final timeParts = selectedTime.split(':');
+      if (timeParts.length == 2) {
+        final selectedHour = int.tryParse(timeParts[0]) ?? 0;
+        final selectedMinute = int.tryParse(timeParts[1]) ?? 0;
+        
+        final selectedDateTime = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+          selectedHour,
+          selectedMinute,
+        );
+        
+        // Ajouter 30 minutes de marge pour la préparation
+        final minimumDateTime = now.add(const Duration(minutes: 30));
+        
+        if (selectedDateTime.isBefore(minimumDateTime)) {
+          throw Exception('Impossible de réserver moins de 30 minutes à l\'avance');
+        }
+      }
     }
   }
 

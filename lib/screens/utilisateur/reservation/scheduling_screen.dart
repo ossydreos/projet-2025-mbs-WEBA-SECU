@@ -37,6 +37,25 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
   void initState() {
     super.initState();
     _initializeTime();
+    _validateInitialDate();
+  }
+  
+  void _validateInitialDate() {
+    DateTime zurichTime;
+    try {
+      zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
+    } catch (e) {
+      zurichTime = DateTime.now();
+    }
+    
+    final DateTime minimumDate = DateTime(zurichTime.year, zurichTime.month, zurichTime.day);
+    
+    // Si la date initiale est dans le passé, la corriger
+    if (_selectedDate.isBefore(minimumDate)) {
+      setState(() {
+        _selectedDate = minimumDate;
+      });
+    }
   }
 
   void _initializeTime() {
@@ -141,10 +160,13 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
       zurichTime = DateTime.now();
     }
     
+    // S'assurer qu'on ne peut pas sélectionner une date dans le passé
+    final DateTime minimumDate = DateTime(zurichTime.year, zurichTime.month, zurichTime.day);
+    
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: zurichTime.add(const Duration(minutes: 30)),
+      initialDate: _selectedDate.isBefore(minimumDate) ? minimumDate : _selectedDate,
+      firstDate: minimumDate,
       lastDate: zurichTime.add(const Duration(days: 90)),
       builder: (context, child) {
         return Theme(
@@ -174,9 +196,30 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
   }
 
   Future<void> _selectTime() async {
+    // Vérifier si la date sélectionnée est aujourd'hui
+    DateTime zurichTime;
+    try {
+      zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
+    } catch (e) {
+      zurichTime = DateTime.now();
+    }
+    
+    final DateTime today = DateTime(zurichTime.year, zurichTime.month, zurichTime.day);
+    final DateTime selectedDateOnly = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    final bool isToday = selectedDateOnly.isAtSameMomentAs(today);
+    
+    // Si c'est aujourd'hui, s'assurer que l'heure minimum est dans 30 minutes
+    TimeOfDay minimumTime;
+    if (isToday) {
+      final DateTime minimumDateTime = zurichTime.add(const Duration(minutes: 30));
+      minimumTime = TimeOfDay(hour: minimumDateTime.hour, minute: minimumDateTime.minute);
+    } else {
+      minimumTime = const TimeOfDay(hour: 0, minute: 0);
+    }
+    
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _selectedTime ?? TimeOfDay.now(),
+      initialTime: _selectedTime ?? minimumTime,
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -223,6 +266,31 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
     );
 
     if (picked != null && picked != _selectedTime) {
+      // Validation supplémentaire : s'assurer que l'heure sélectionnée n'est pas dans le passé
+      if (isToday) {
+        final DateTime selectedDateTime = DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          picked.hour,
+          picked.minute,
+        );
+        final DateTime minimumDateTime = zurichTime.add(const Duration(minutes: 30));
+        
+        if (selectedDateTime.isBefore(minimumDateTime)) {
+          // Afficher un message d'erreur
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Veuillez sélectionner une heure au moins 30 minutes dans le futur'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+      }
+      
       setState(() {
         _selectedTime = picked;
       });

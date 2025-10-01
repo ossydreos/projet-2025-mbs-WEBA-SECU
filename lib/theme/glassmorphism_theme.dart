@@ -329,12 +329,16 @@ class GlassButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final IconData? icon;
   final bool primary; // filled when true
+  final Color? backgroundColor;
+  final Color? textColor;
   const GlassButton({
     super.key,
     required this.label,
     this.onPressed,
     this.icon,
     this.primary = true,
+    this.backgroundColor,
+    this.textColor,
   });
 
   @override
@@ -349,9 +353,13 @@ class GlassButton extends StatelessWidget {
     }
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: backgroundColor ?? Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.glassStroke),
+        border: Border.all(
+          color: backgroundColor != null 
+              ? backgroundColor!.withOpacity(0.3)
+              : AppColors.glassStroke,
+        ),
       ),
       child: InkWell(
         onTap: onPressed,
@@ -362,13 +370,17 @@ class GlassButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 18, color: AppColors.textStrong),
+                Icon(
+                  icon, 
+                  size: 18, 
+                  color: textColor ?? AppColors.textStrong,
+                ),
                 const SizedBox(width: 8),
               ],
               Text(
                 label,
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: AppColors.textStrong,
+                  color: textColor ?? AppColors.textStrong,
                 ),
               ),
             ],

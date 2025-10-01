@@ -6,6 +6,9 @@ import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_global_notification_service.dart';
+import 'package:my_mobility_services/data/services/support_chat_service.dart';
+import 'package:my_mobility_services/data/models/support_thread.dart';
+import 'package:my_mobility_services/screens/support/support_chat_screen.dart';
 import 'package:my_mobility_services/data/services/payment_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -53,6 +56,19 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         appBar: GlassAppBar(
           title: 'Boîte de réception',
           actions: [
+            // Bulle de support
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const _AdminTicketsScreen(),
+                  ),
+                );
+              },
+              child: _AdminSupportUnreadBubble(),
+            ),
+            const SizedBox(width: 8),
             // Bouton pour annuler toutes les réservations en attente de paiement
             IconButton(
               onPressed: _cancelAllWaitingReservations,
@@ -1207,5 +1223,203 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         Navigator.pushReplacementNamed(context, '/admin/profile');
         break;
     }
+  }
+}
+
+class _AdminSupportUnreadBubble extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection(SupportChatService.threadsCollection)
+          .where('unreadForAdmin', isGreaterThan: 0)
+          .snapshots(),
+      builder: (context, snap) {
+        final unread = snap.data?.docs.length ?? 0;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.glass,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.glassStroke),
+              ),
+              child: const Icon(Icons.support_agent, color: Colors.white),
+            ),
+            if (unread > 0)
+              Positioned(
+                right: -4,
+                top: -4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    unread > 99 ? '99+' : '$unread',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AdminTicketsScreen extends StatelessWidget {
+  const _AdminTicketsScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassBackground(
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: const GlassAppBar(
+            title: 'Tickets support',
+            bottom: TabBar(
+              tabs: [
+                Tab(text: 'En cours'),
+                Tab(text: 'Terminés'),
+              ],
+            ),
+          ),
+          body: const TabBarView(
+            children: [
+              _AdminTicketsList(closed: false),
+              _AdminTicketsList(closed: true),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminTicketsList extends StatelessWidget {
+  final bool closed;
+  const _AdminTicketsList({required this.closed});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection(SupportChatService.threadsCollection)
+          .where('isClosed', isEqualTo: closed)
+          .snapshots(),
+      builder: (context, s) {
+        if (!s.hasData) return const Center(child: CircularProgressIndicator());
+        final docs = s.data!.docs;
+        if (docs.isEmpty) {
+          return Center(
+            child: Text(
+              closed ? 'Aucun ticket terminé' : 'Aucun ticket en cours',
+              style: const TextStyle(color: Colors.white70),
+            ),
+          );
+        }
+        return ListView.builder(
+          itemCount: docs.length,
+          padding: const EdgeInsets.all(16),
+          itemBuilder: (context, i) {
+            final d = docs[i];
+            final t = SupportThread.fromMap(d.data() as Map<String, dynamic>, d.id);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: GlassContainer(
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  leading: const CircleAvatar(
+                    backgroundColor: AppColors.accent,
+                    radius: 22,
+                    child: Icon(Icons.support_agent, color: Colors.white),
+                  ),
+                  title: FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance.collection('users').doc(t.userId).get(),
+                    builder: (context, snap) {
+                      if (snap.connectionState == ConnectionState.waiting) {
+                        return const Text(
+                          'Chargement...',
+                          style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.w600),
+                        );
+                      }
+
+                      String name = _extractUserName(t);
+                      if (snap.hasData && snap.data!.exists) {
+                        final data = snap.data!.data() as Map<String, dynamic>;
+                        final display = (data['displayName'] ?? '').toString();
+                        final first = (data['firstName'] ?? '').toString();
+                        final last = (data['lastName'] ?? '').toString();
+                        final nameField = (data['name'] ?? '').toString();
+                        final merged = (
+                          nameField.isNotEmpty
+                              ? nameField
+                              : (display.isNotEmpty ? display : '$first $last')
+                        ).trim();
+                        if (merged.isNotEmpty) name = merged;
+                      }
+                      return Text(
+                        name,
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                      );
+                    },
+                  ),
+                  subtitle: Text(
+                    'Mis à jour • ${_formatAdmin(t.lastMessageAt ?? t.updatedAt)}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  trailing: t.unreadForAdmin > 0
+                      ? Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        )
+                      : null,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SupportChatScreen(isAdmin: true, threadId: t.id),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _formatAdmin(DateTime dt) {
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inDays > 0) return '${diff.inDays}j';
+    if (diff.inHours > 0) return '${diff.inHours}h';
+    if (diff.inMinutes > 0) return '${diff.inMinutes}min';
+    return 'Maintenant';
+  }
+
+  String _extractUserName(SupportThread t) {
+    final uid = t.userId;
+    if (uid.isEmpty) return 'Utilisateur';
+    return uid.length > 6 ? 'User ${uid.substring(0, 6)}' : 'User $uid';
   }
 }

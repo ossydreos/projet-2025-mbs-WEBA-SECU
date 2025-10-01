@@ -7,6 +7,7 @@ import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/widgets/authgate.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import 'favorite_trips_screen.dart';
 
 /// Modèle utilisateur avec données Firestore
 class Utilisateur {
@@ -145,6 +146,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _handleNavigation(int index) {
     if (index == 2) return; // Déjà sur la page profil
     widget.onNavigate?.call(index);
+  }
+
+  /// Navigation vers les trajets favoris
+  void _navigateToFavoriteTrips() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const FavoriteTripsScreen(),
+      ),
+    );
   }
 
   /// Contenu principal avec padding pour éviter le chevauchement
@@ -392,7 +403,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   thickness: 1,
                   height: 1,
                 ),
-                _buildMenuItem(Icons.map, AppLocalizations.of(context).manageFavorites),
+                _buildMenuItem(Icons.favorite, AppLocalizations.of(context).favoriteTrips, () => _navigateToFavoriteTrips()),
               ],
             ),
           ),
@@ -523,11 +534,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// Item de menu réutilisable - EXACTEMENT COMME GESTION ADMIN
-  Widget _buildMenuItem(IconData icon, String title) {
+  Widget _buildMenuItem(IconData icon, String title, [VoidCallback? onTap]) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
+        onTap: onTap ?? () {
           _showFeatureDialog(title);
         },
         borderRadius: BorderRadius.circular(20),
@@ -566,7 +577,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      AppLocalizations.of(context).featureComingSoon,
+                      onTap != null 
+                          ? AppLocalizations.of(context).tapToOpen
+                          : AppLocalizations.of(context).featureComingSoon,
                       style: TextStyle(fontSize: 13, color: AppColors.textWeak),
                     ),
                   ],

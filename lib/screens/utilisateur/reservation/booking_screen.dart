@@ -48,6 +48,7 @@ class _BookingScreenState extends State<BookingScreen>
   double _estimatedDistance = 0.0; // Distance estimée en km
   String _estimatedArrival = 'Estimated arrival 10:13'; // Will be translated dynamically
   List<gmaps.LatLng> _routePoints = []; // Points de la route réelle
+  bool _isCalculating = true; // État de calcul en cours
 
   @override
   void initState() {
@@ -101,6 +102,10 @@ class _BookingScreenState extends State<BookingScreen>
   Future<void> _calculateEstimatedDistanceAndArrival() async {
     if (widget.departureCoordinates != null &&
         widget.destinationCoordinates != null) {
+      setState(() {
+        _isCalculating = true;
+      });
+      
       try {
         // Utiliser l'API Google Maps pour une estimation précise
         final distance = await DirectionsService.getRealDistance(
@@ -118,6 +123,7 @@ class _BookingScreenState extends State<BookingScreen>
               ? 1.0
               : distance; // Distance minimum de 1km
           _estimatedArrival = arrivalTime;
+          _isCalculating = false; // Calcul terminé
         });
 
         // Mettre à jour le tracé de la route
@@ -127,12 +133,16 @@ class _BookingScreenState extends State<BookingScreen>
         setState(() {
           _estimatedDistance = 0.0;
           _estimatedArrival = 'Erreur de calcul';
+          _isCalculating = false; // Calcul terminé (avec erreur)
         });
       }
     } else {
       // Distance par défaut si pas de coordonnées
-      _estimatedDistance = 5.0;
-      _estimatedArrival = AppLocalizations.of(context).estimatedTime;
+      setState(() {
+        _estimatedDistance = 5.0;
+        _estimatedArrival = AppLocalizations.of(context).estimatedTime;
+        _isCalculating = false; // Pas de calcul nécessaire
+      });
     }
   }
 
@@ -602,16 +612,32 @@ class _BookingScreenState extends State<BookingScreen>
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: AppColors.accent,
+                                    color: _isCalculating ? Colors.orange : AppColors.accent,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: Text(
-                                    _estimatedArrival,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.bg,
-                                    ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (_isCalculating) ...[
+                                        SizedBox(
+                                          width: 12,
+                                          height: 12,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.bg,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                      ],
+                                      Text(
+                                        _isCalculating ? 'Calcul...' : _estimatedArrival,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.bg,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -974,7 +1000,7 @@ class _BookingScreenState extends State<BookingScreen>
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed: _selectedVehicle != null
+                                  onPressed: (_selectedVehicle != null && !_isCalculating && _estimatedDistance > 0)
                                       ? () {
                                           if (_selectedVehicle != null) {
                                             if (widget.fromSummary) {
@@ -1021,7 +1047,9 @@ class _BookingScreenState extends State<BookingScreen>
                                         }
                                       : null,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.accent,
+                                    backgroundColor: (_selectedVehicle != null && !_isCalculating && _estimatedDistance > 0)
+                                        ? AppColors.accent
+                                        : Colors.grey,
                                     foregroundColor: AppColors.bg,
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 14,
@@ -1031,16 +1059,34 @@ class _BookingScreenState extends State<BookingScreen>
                                     ),
                                     elevation: 0,
                                   ),
-                                  child: Text(
-                                    _selectedVehicle != null
-                                        ? (widget.fromSummary 
-                                            ? AppLocalizations.of(context).backToSummary
-                                            : AppLocalizations.of(context).planVehicle(_selectedVehicle!.name))
-                                        : AppLocalizations.of(context).selectVehicle,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      if (_isCalculating) ...[
+                                        SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.bg,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ],
+                                      Text(
+                                        _isCalculating
+                                            ? 'Calcul en cours...'
+                                            : (_selectedVehicle != null
+                                                ? (widget.fromSummary 
+                                                    ? AppLocalizations.of(context).backToSummary
+                                                    : AppLocalizations.of(context).planVehicle(_selectedVehicle!.name))
+                                                : AppLocalizations.of(context).selectVehicle),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

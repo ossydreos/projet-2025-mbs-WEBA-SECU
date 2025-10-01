@@ -1577,4 +1577,107 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get total => 'Total';
+
+  @override
+  String get favoriteTrips => 'Favorite Trips';
+
+  @override
+  String get addFavoriteTrip => 'Add Favorite Trip';
+
+  @override
+  String get editFavoriteTrip => 'Edit Favorite Trip';
+
+  @override
+  String get tripName => 'Trip Name';
+
+  @override
+  String get enterTripName => 'Enter trip name';
+
+  @override
+  String get departureAddress => 'Departure Address';
+
+  @override
+  String get enterDepartureAddress => 'Enter departure address';
+
+  @override
+  String get arrivalAddress => 'Arrival Address';
+
+  @override
+  String get enterArrivalAddress => 'Enter arrival address';
+
+  @override
+  String get selectIcon => 'Select Icon';
+
+  @override
+  String get addTrip => 'Add Trip';
+
+  @override
+  String get updateTrip => 'Update Trip';
+
+  @override
+  String get deleteTrip => 'Delete Trip';
+
+  @override
+  String get tripAdded => 'Trip added successfully';
+
+  @override
+  String get tripUpdated => 'Trip updated successfully';
+
+  @override
+  String get tripDeleted => 'Trip deleted successfully';
+
+  @override
+  String get tripDuplicated => 'Trip duplicated successfully';
+
+  @override
+  String get deleteTripConfirmation =>
+      'Are you sure you want to delete this favorite trip?';
+
+  @override
+  String get tripAlreadyExists => 'This trip already exists in your favorites';
+
+  @override
+  String get searchFavoriteTrips => 'Search favorite trips';
+
+  @override
+  String get noFavoriteTrips => 'No favorite trips';
+
+  @override
+  String get noFavoriteTripsDescription =>
+      'Add your frequent trips to find them quickly';
+
+  @override
+  String get addFirstFavoriteTrip => 'Add your first trip';
+
+  @override
+  String get tripNameRequired => 'Trip name is required';
+
+  @override
+  String get tripNameTooShort => 'Trip name must be at least 2 characters';
+
+  @override
+  String get departureAddressRequired => 'Departure address is required';
+
+  @override
+  String get departureAddressTooShort =>
+      'Departure address must be at least 5 characters';
+
+  @override
+  String get arrivalAddressRequired => 'Arrival address is required';
+
+  @override
+  String get arrivalAddressTooShort =>
+      'Arrival address must be at least 5 characters';
+
+  @override
+  String get duplicate => 'Duplicate';
+
+  @override
+  String get use => 'Use';
+
+  @override
+  String get tapToOpen => 'Tap to open';
+
+  @override
+  String get error => 'Error';
 }

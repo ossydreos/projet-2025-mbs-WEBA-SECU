@@ -1,0 +1,17 @@
+[33mca9e992[m Résolution conflit: suppression admin_reception_screen.dart (remplacé par admin_reception_screen_complete.dart)
+[33mb4ae8ac[m feat(admin/users): afficher champ Firestore ame comme nom client (liste+fiche) et ajustements réception
+[33m5720369[m feat(admin): gestion utilisateurs (liste + fiche + navigation) + bouton Contre-offre + nettoyage fichiers reception
+[33m83e6de3[m changement structure donnee support
+[33m6793239[m Merge admin notifications and user features
+[33mcb5cdb0[m fix: Correction du système de notification pour les réservations clients
+[33md829ce0[m fix: Correction des méthodes dupliquées et améliorations admin
+[33mdf8bc28[m feat: Système de timeout automatique des réservations
+[33m6f139f0[m feat: Système de notifications client complet
+[33m635f0a8[m feat: Améliorations interface admin et système de tri/suppression
+[33mcc6ae87[m feat: Implémentation notification Uber avec gestion des priorités et timeout
+[33m669e360[m contre offre pour admin mis en place
+[33m5696c50[m merge fait et push des modification interface admin
+[33mab12c74[m contacter l'admin
+[33mc844af9[m ajout pastille demandes renommage fichier adminHomeScreen par adminReceptionScreen
+[33med8428a[m modification deconexion/widget gestion fichier admin_profil
+[33mb81f3c4[m ajout interface admin base

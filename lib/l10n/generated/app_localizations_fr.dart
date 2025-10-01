@@ -1081,7 +1081,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get actions => 'Actions';
 
   @override
-  String get edit => 'Edit';
+  String get edit => 'Modifier';
 
   @override
   String get delete => 'Supprimer';
@@ -1590,4 +1590,108 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get total => 'Total';
+
+  @override
+  String get favoriteTrips => 'Trajets favoris';
+
+  @override
+  String get addFavoriteTrip => 'Ajouter un trajet favori';
+
+  @override
+  String get editFavoriteTrip => 'Modifier le trajet favori';
+
+  @override
+  String get tripName => 'Nom du trajet';
+
+  @override
+  String get enterTripName => 'Entrez le nom du trajet';
+
+  @override
+  String get departureAddress => 'Adresse de départ';
+
+  @override
+  String get enterDepartureAddress => 'Entrez l\'adresse de départ';
+
+  @override
+  String get arrivalAddress => 'Adresse d\'arrivée';
+
+  @override
+  String get enterArrivalAddress => 'Entrez l\'adresse d\'arrivée';
+
+  @override
+  String get selectIcon => 'Sélectionner une icône';
+
+  @override
+  String get addTrip => 'Ajouter le trajet';
+
+  @override
+  String get updateTrip => 'Mettre à jour le trajet';
+
+  @override
+  String get deleteTrip => 'Supprimer le trajet';
+
+  @override
+  String get tripAdded => 'Trajet ajouté avec succès';
+
+  @override
+  String get tripUpdated => 'Trajet mis à jour avec succès';
+
+  @override
+  String get tripDeleted => 'Trajet supprimé avec succès';
+
+  @override
+  String get tripDuplicated => 'Trajet dupliqué avec succès';
+
+  @override
+  String get deleteTripConfirmation =>
+      'Êtes-vous sûr de vouloir supprimer ce trajet favori ?';
+
+  @override
+  String get tripAlreadyExists => 'Ce trajet existe déjà dans vos favoris';
+
+  @override
+  String get searchFavoriteTrips => 'Rechercher des trajets favoris';
+
+  @override
+  String get noFavoriteTrips => 'Aucun trajet favori';
+
+  @override
+  String get noFavoriteTripsDescription =>
+      'Ajoutez vos trajets fréquents pour les retrouver rapidement';
+
+  @override
+  String get addFirstFavoriteTrip => 'Ajouter votre premier trajet';
+
+  @override
+  String get tripNameRequired => 'Le nom du trajet est requis';
+
+  @override
+  String get tripNameTooShort =>
+      'Le nom du trajet doit contenir au moins 2 caractères';
+
+  @override
+  String get departureAddressRequired => 'L\'adresse de départ est requise';
+
+  @override
+  String get departureAddressTooShort =>
+      'L\'adresse de départ doit contenir au moins 5 caractères';
+
+  @override
+  String get arrivalAddressRequired => 'L\'adresse d\'arrivée est requise';
+
+  @override
+  String get arrivalAddressTooShort =>
+      'L\'adresse d\'arrivée doit contenir au moins 5 caractères';
+
+  @override
+  String get duplicate => 'Dupliquer';
+
+  @override
+  String get use => 'Utiliser';
+
+  @override
+  String get tapToOpen => 'Appuyez pour ouvrir';
+
+  @override
+  String get error => 'Erreur';
 }
