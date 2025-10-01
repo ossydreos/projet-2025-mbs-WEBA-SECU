@@ -2,6 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/reservation_filter.dart';
 
+/// Helper public pour ouvrir directement la feuille de filtres depuis n'importe où
+Future<void> showReservationFilterBottomSheet({
+  required BuildContext context,
+  required ReservationFilter currentFilter,
+  required bool isUpcoming,
+  required Function(ReservationFilter) onFilterChanged,
+}) async {
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => _FilterBottomSheet(
+      currentFilter: currentFilter,
+      isUpcoming: isUpcoming,
+      onFilterChanged: onFilterChanged,
+    ),
+  );
+}
+
 class ReservationFilterWidget extends StatefulWidget {
   final ReservationFilter currentFilter;
   final Function(ReservationFilter) onFilterChanged;

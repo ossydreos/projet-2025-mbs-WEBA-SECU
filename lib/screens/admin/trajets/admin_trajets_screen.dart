@@ -346,6 +346,55 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                           : null,
                     ),
                     const SizedBox(width: 12),
+                    // Icône 3 points à droite de l'icône de sélection
+                    PopupMenuButton<String>(
+                      onSelected: (value) =>
+                          _handleReservationMenuAction(value, reservation),
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
+                          value: 'details',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: AppColors.accent,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text('Détails'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, color: Colors.red, size: 20),
+                              SizedBox(width: 8),
+                              Text('Supprimer'),
+                            ],
+                          ),
+                        ),
+                      ],
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: AppColors.textWeak.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.textWeak.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.more_vert,
+                          color: AppColors.textWeak,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                   ],
 
                   Expanded(
@@ -1200,7 +1249,18 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   List<Widget> _buildNormalActions() {
     List<Widget> actions = [];
 
-    // Menu avec 3 points pour filtrer et trier
+    // Le bouton de sélection n'est disponible que pour les courses terminées
+    if (_tabController.index == 1) {
+      actions.add(
+        IconButton(
+          onPressed: _toggleSelectionMode,
+          icon: const Icon(Icons.checklist, color: AppColors.accent),
+          tooltip: 'Sélectionner pour export',
+        ),
+      );
+    }
+
+    // Menu avec 3 points pour filtrer et trier (placé après pour être à droite)
     actions.add(
       PopupMenuButton<String>(
         icon: const Icon(Icons.more_vert, color: AppColors.accent),
@@ -1231,17 +1291,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
       ),
     );
 
-    // Le bouton de sélection n'est disponible que pour les courses terminées
-    if (_tabController.index == 1) {
-      actions.add(
-        IconButton(
-          onPressed: _toggleSelectionMode,
-          icon: const Icon(Icons.checklist, color: AppColors.accent),
-          tooltip: 'Sélectionner pour export',
-        ),
-      );
-    }
-
     return actions;
   }
 
@@ -1266,7 +1315,23 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   void _handleMenuAction(String action) {
     switch (action) {
       case 'filter':
-        _showFilterDialog();
+        // Ouvrir directement la feuille de filtres via le helper public
+        showReservationFilterBottomSheet(
+          context: context,
+          currentFilter: _tabController.index == 0
+              ? _upcomingFilter
+              : _completedFilter,
+          isUpcoming: _tabController.index == 0,
+          onFilterChanged: (filter) {
+            setState(() {
+              if (_tabController.index == 0) {
+                _upcomingFilter = filter;
+              } else {
+                _completedFilter = filter;
+              }
+            });
+          },
+        );
         break;
       case 'sort':
         _showSortDialog();
@@ -1274,28 +1339,18 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     }
   }
 
-  void _showFilterDialog() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => ReservationFilterWidget(
-        currentFilter: _tabController.index == 0
-            ? _upcomingFilter
-            : _completedFilter,
-        isUpcoming: _tabController.index == 0,
-        onFilterChanged: (filter) {
-          setState(() {
-            if (_tabController.index == 0) {
-              _upcomingFilter = filter;
-            } else {
-              _completedFilter = filter;
-            }
-          });
-        },
-      ),
-    );
+  void _handleReservationMenuAction(String action, Reservation reservation) {
+    switch (action) {
+      case 'details':
+        _showDetailsDialog(reservation);
+        break;
+      case 'delete':
+        _showDeleteConfirmation(reservation);
+        break;
+    }
   }
+
+  // _showFilterDialog supprimé: on utilise le helper showReservationFilterBottomSheet
 
   void _showSortDialog() {
     showModalBottomSheet(
