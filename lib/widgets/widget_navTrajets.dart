@@ -5,6 +5,7 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 class TrajetNav extends StatelessWidget implements PreferredSizeWidget {
   final TabController controller;
   final EdgeInsets margin;
+  final Function(int)? onTabChanged;
 
   // Hauteur visible du composant (le Container qui contient le TabBar)
   static const double _barHeight = 56;
@@ -13,7 +14,8 @@ class TrajetNav extends StatelessWidget implements PreferredSizeWidget {
     this.controller, {
     this.margin = const EdgeInsets.symmetric(
       horizontal: 16,
-    ), // même marge qu’avant
+    ), // même marge qu'avant
+    this.onTabChanged,
     super.key,
   });
 
@@ -32,6 +34,7 @@ class TrajetNav extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: TabBar(
         controller: controller,
+        onTap: onTabChanged,
         indicator: BoxDecoration(
           color: AppColors.accent.withOpacity(0.3),
           borderRadius: BorderRadius.circular(12),

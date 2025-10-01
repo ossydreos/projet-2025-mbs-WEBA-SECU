@@ -23,10 +23,16 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   int _selectedIndex = 1;
   late TabController _tabController;
 
-  // Variables pour le filtrage avancé
-  ReservationFilter _upcomingFilter = const ReservationFilter(isUpcoming: true);
+  // Variables pour le filtrage avancé - séparés pour chaque onglet
+  ReservationFilter _upcomingFilter = const ReservationFilter(
+    isUpcoming: true,
+    filterType: ReservationFilterType.all,
+    sortType: ReservationSortType.dateDescending,
+  );
   ReservationFilter _completedFilter = const ReservationFilter(
     isUpcoming: false,
+    filterType: ReservationFilterType.all,
+    sortType: ReservationSortType.dateDescending,
   );
 
   // Variables pour l'export
@@ -56,9 +62,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: GlassAppBar(
-            title: _isSelectionMode
-                ? 'Sélectionner les courses (${_selectedReservations.length})'
-                : AppLocalizations.of(context).courses,
+            title: AppLocalizations.of(context).courses,
             actions: _isSelectionMode
                 ? _buildSelectionActions()
                 : _buildNormalActions(),
@@ -68,23 +72,10 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               // Barre de navigation des onglets séparée
               Padding(
                 padding: const EdgeInsets.only(top: 16),
-                child: TrajetNav(_tabController),
-              ),
-              // Widget de filtrage
-              ReservationFilterWidget(
-                currentFilter: _tabController.index == 0
-                    ? _upcomingFilter
-                    : _completedFilter,
-                isUpcoming: _tabController.index == 0,
-                onFilterChanged: (filter) {
-                  setState(() {
-                    if (_tabController.index == 0) {
-                      _upcomingFilter = filter;
-                    } else {
-                      _completedFilter = filter;
-                    }
-                  });
-                },
+                child: TrajetNav(
+                  _tabController,
+                  onTabChanged: _handleTabChange,
+                ),
               ),
               // Contenu des onglets
               Expanded(
@@ -190,50 +181,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           );
         }
 
-        return Column(
-          children: [
-            // Indicateur du nombre de résultats
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.filter_list, color: AppColors.accent, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${reservations.length} résultat${reservations.length > 1 ? 's' : ''}',
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Liste des réservations
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: reservations.length,
-                itemBuilder: (context, index) {
-                  return _buildReservationCard(
-                    reservations[index],
-                    isUpcoming: true,
-                  );
-                },
-              ),
-            ),
-          ],
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: reservations.length,
+          itemBuilder: (context, index) {
+            return _buildReservationCard(reservations[index], isUpcoming: true);
+          },
         );
       },
     );
@@ -323,51 +276,16 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           );
         }
 
-        return Column(
-          children: [
-            // Indicateur du nombre de résultats
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.filter_list, color: AppColors.accent, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${reservations.length} résultat${reservations.length > 1 ? 's' : ''}',
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Liste des réservations
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: reservations.length,
-                itemBuilder: (context, index) {
-                  return _buildReservationCard(
-                    reservations[index],
-                    isUpcoming: false,
-                    showDeleteButton: true,
-                  );
-                },
-              ),
-            ),
-          ],
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: reservations.length,
+          itemBuilder: (context, index) {
+            return _buildReservationCard(
+              reservations[index],
+              isUpcoming: false,
+              showDeleteButton: false,
+            );
+          },
         );
       },
     );
@@ -456,30 +374,56 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(
-                        reservation.status,
-                      ).withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: _getStatusColor(reservation.status),
-                        width: 1,
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(
+                            reservation.status,
+                          ).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: _getStatusColor(reservation.status),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          _getStatusText(reservation.status),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: _getStatusColor(reservation.status),
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      _getStatusText(reservation.status),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _getStatusColor(reservation.status),
-                        fontFamily: 'Poppins',
+                      const SizedBox(width: 8),
+                      // Icône détails à droite du statut
+                      GestureDetector(
+                        onTap: () => _showDetailsDialog(reservation),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppColors.accent.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.accent.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.info_outline,
+                            color: AppColors.accent,
+                            size: 16,
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -522,9 +466,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               // Boutons d'action
               Row(
                 children: [
-                  // Bouton détails rond
-                  _buildRoundDetailsButton(reservation),
-                  const SizedBox(width: 12),
                   // Boutons d'action pour les courses à venir
                   if (isUpcoming) ...[
                     Expanded(
@@ -588,26 +529,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           ),
         ),
       ],
-    );
-  }
-
-  // Bouton détails rond
-  Widget _buildRoundDetailsButton(Reservation reservation) {
-    return GestureDetector(
-      onTap: () => _showDetailsDialog(reservation),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.accent.withOpacity(0.1),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColors.accent.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        child: Icon(Icons.info_outline, size: 18, color: AppColors.accent),
-      ),
     );
   }
 
@@ -1277,29 +1198,125 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   }
 
   List<Widget> _buildNormalActions() {
-    return [
-      IconButton(
-        onPressed: _toggleSelectionMode,
-        icon: const Icon(Icons.checklist, color: AppColors.accent),
-        tooltip: 'Sélectionner pour export',
+    List<Widget> actions = [];
+
+    // Menu avec 3 points pour filtrer et trier
+    actions.add(
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert, color: AppColors.accent),
+        tooltip: 'Options de filtre et tri',
+        onSelected: _handleMenuAction,
+        itemBuilder: (context) => [
+          const PopupMenuItem(
+            value: 'filter',
+            child: Row(
+              children: [
+                Icon(Icons.filter_list, color: AppColors.accent),
+                SizedBox(width: 8),
+                Text('Filtrer'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'sort',
+            child: Row(
+              children: [
+                Icon(Icons.sort, color: AppColors.accent),
+                SizedBox(width: 8),
+                Text('Trier'),
+              ],
+            ),
+          ),
+        ],
       ),
-    ];
+    );
+
+    // Le bouton de sélection n'est disponible que pour les courses terminées
+    if (_tabController.index == 1) {
+      actions.add(
+        IconButton(
+          onPressed: _toggleSelectionMode,
+          icon: const Icon(Icons.checklist, color: AppColors.accent),
+          tooltip: 'Sélectionner pour export',
+        ),
+      );
+    }
+
+    return actions;
   }
 
   List<Widget> _buildSelectionActions() {
     return [
-      if (_selectedReservations.isNotEmpty)
-        IconButton(
-          onPressed: _exportSelectedReservations,
-          icon: const Icon(Icons.picture_as_pdf, color: AppColors.accent),
-          tooltip: 'Exporter sélection',
-        ),
       IconButton(
         onPressed: _cancelSelection,
         icon: const Icon(Icons.close, color: AppColors.hot),
         tooltip: 'Annuler sélection',
       ),
     ];
+  }
+
+  void _handleTabChange(int index) {
+    setState(() {
+      // Désactiver le mode sélection quand on change d'onglet
+      _isSelectionMode = false;
+      _selectedReservations.clear();
+    });
+  }
+
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'filter':
+        _showFilterDialog();
+        break;
+      case 'sort':
+        _showSortDialog();
+        break;
+    }
+  }
+
+  void _showFilterDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ReservationFilterWidget(
+        currentFilter: _tabController.index == 0
+            ? _upcomingFilter
+            : _completedFilter,
+        isUpcoming: _tabController.index == 0,
+        onFilterChanged: (filter) {
+          setState(() {
+            if (_tabController.index == 0) {
+              _upcomingFilter = filter;
+            } else {
+              _completedFilter = filter;
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  void _showSortDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _SortBottomSheet(
+        currentSort: _tabController.index == 0
+            ? _upcomingFilter.sortType
+            : _completedFilter.sortType,
+        isUpcoming: _tabController.index == 0,
+        onSortChanged: (sortType) {
+          setState(() {
+            if (_tabController.index == 0) {
+              _upcomingFilter = _upcomingFilter.copyWith(sortType: sortType);
+            } else {
+              _completedFilter = _completedFilter.copyWith(sortType: sortType);
+            }
+          });
+        },
+      ),
+    );
   }
 
   void _toggleSelectionMode() {
@@ -1370,43 +1387,438 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     }
   }
 
+  void _showBulkDeleteConfirmation() {
+    final selectedReservations = _currentReservations
+        .where((r) => _selectedReservations.contains(r.id))
+        .toList();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black87,
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber, color: AppColors.hot, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'Supprimer les courses',
+                style: TextStyle(
+                  color: AppColors.textStrong,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Êtes-vous sûr de vouloir supprimer ${selectedReservations.length} course${selectedReservations.length > 1 ? 's' : ''} ?',
+                style: TextStyle(
+                  color: AppColors.textStrong,
+                  fontSize: 16,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.accent.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Courses sélectionnées:',
+                      style: TextStyle(
+                        color: AppColors.accent,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...selectedReservations
+                        .take(3)
+                        .map(
+                          (reservation) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '• ${reservation.userName} • ${reservation.departure} → ${reservation.destination}',
+                              style: TextStyle(
+                                color: AppColors.textWeak,
+                                fontSize: 12,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                          ),
+                        ),
+                    if (selectedReservations.length > 3)
+                      Text(
+                        '... et ${selectedReservations.length - 3} autre${selectedReservations.length - 3 > 1 ? 's' : ''}',
+                        style: TextStyle(
+                          color: AppColors.textWeak,
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          fontFamily: 'Poppins',
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Cette action est irréversible.',
+                style: TextStyle(
+                  color: AppColors.hot,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Poppins',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+              child: Text(
+                'Annuler',
+                style: TextStyle(
+                  color: AppColors.textWeak,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _deleteSelectedReservations();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.hot,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+              ),
+              child: Text(
+                'Supprimer',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteSelectedReservations() async {
+    final selectedReservations = _currentReservations
+        .where((r) => _selectedReservations.contains(r.id))
+        .toList();
+
+    print('🗑️ Suppression en lot de ${selectedReservations.length} courses');
+
+    try {
+      // Supprimer toutes les courses sélectionnées
+      for (final reservation in selectedReservations) {
+        await _reservationService.deleteReservation(reservation.id);
+        print('✅ Course ${reservation.id} supprimée');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '✅ ${selectedReservations.length} course${selectedReservations.length > 1 ? 's' : ''} supprimée${selectedReservations.length > 1 ? 's' : ''}',
+            ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+
+        // Sortir du mode sélection après suppression
+        _cancelSelection();
+      }
+    } catch (e) {
+      print('❌ Erreur lors de la suppression en lot: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Erreur lors de la suppression: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   Widget _buildSelectionBottomBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 56,
       decoration: BoxDecoration(
-        color: AppColors.glass,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        border: Border.all(color: AppColors.glassStroke),
+        color: AppColors.accent.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent),
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            // Compteur de sélection
-            Expanded(
+      child: Row(
+        children: [
+          // Icône de partage (export PDF) à gauche
+          Expanded(
+            child: GestureDetector(
+              onTap: _exportSelectedReservations,
+              child: Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.share,
+                  color: AppColors.textStrong,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+
+          // Texte centré avec le nombre de sélections
+          Expanded(
+            flex: 2,
+            child: Center(
               child: Text(
-                '${_selectedReservations.length} course${_selectedReservations.length > 1 ? 's' : ''} sélectionnée${_selectedReservations.length > 1 ? 's' : ''}',
+                '${_selectedReservations.length} sélectionnée${_selectedReservations.length > 1 ? 's' : ''}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textStrong,
+                  fontFamily: 'Poppins',
                 ),
               ),
             ),
+          ),
 
-            // Bouton d'export
-            if (_selectedReservations.isNotEmpty) ...[
-              const SizedBox(width: 16),
-              GlassButton(
-                label: 'Exporter PDF',
-                onPressed: _exportSelectedReservations,
-                icon: Icons.picture_as_pdf,
+          // Icône de corbeille (suppression) à droite
+          Expanded(
+            child: GestureDetector(
+              onTap: _showBulkDeleteConfirmation,
+              child: Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.delete_outline,
+                  color: AppColors.textStrong,
+                  size: 24,
+                ),
               ),
-            ],
-          ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SortBottomSheet extends StatelessWidget {
+  final ReservationSortType currentSort;
+  final bool isUpcoming;
+  final Function(ReservationSortType) onSortChanged;
+
+  const _SortBottomSheet({
+    required this.currentSort,
+    required this.isUpcoming,
+    required this.onSortChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sortOptions = isUpcoming
+        ? [
+            // Options de tri pour les courses à venir
+            (
+              ReservationSortType.dateAscending,
+              'Départ le plus proche',
+              Icons.schedule,
+            ),
+            (
+              ReservationSortType.dateDescending,
+              'Départ le plus lointain',
+              Icons.schedule,
+            ),
+            (
+              ReservationSortType.priceDescending,
+              'Prix le plus élevé',
+              Icons.trending_up,
+            ),
+            (
+              ReservationSortType.priceAscending,
+              'Prix le plus bas',
+              Icons.trending_down,
+            ),
+          ]
+        : [
+            // Options de tri pour les courses terminées
+            (
+              ReservationSortType.dateDescending,
+              'Fin la plus récente',
+              Icons.history,
+            ),
+            (
+              ReservationSortType.dateAscending,
+              'Fin la plus ancienne',
+              Icons.history,
+            ),
+            (
+              ReservationSortType.priceDescending,
+              'Prix le plus élevé',
+              Icons.trending_up,
+            ),
+            (
+              ReservationSortType.priceAscending,
+              'Prix le plus bas',
+              Icons.trending_down,
+            ),
+          ];
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.textWeak,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Icon(
+                  isUpcoming ? Icons.schedule : Icons.history,
+                  color: AppColors.accent,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  isUpcoming
+                      ? 'Options de tri - Départ'
+                      : 'Options de tri - Historique',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Options
+          ...sortOptions.map((option) {
+            final (sortType, title, icon) = option;
+            final isSelected = currentSort == sortType;
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: GestureDetector(
+                onTap: () {
+                  onSortChanged(sortType);
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.accent.withOpacity(0.2)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.accent
+                          : AppColors.glassStroke,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        icon,
+                        color: isSelected
+                            ? AppColors.accent
+                            : AppColors.textWeak,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            color: isSelected ? AppColors.accent : Colors.white,
+                            fontSize: 14,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      if (isSelected)
+                        Icon(Icons.check, color: AppColors.accent, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }

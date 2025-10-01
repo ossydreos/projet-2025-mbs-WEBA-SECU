@@ -103,15 +103,30 @@ class ReservationFilter {
 
   /// Obtenir le texte du tri
   String getSortDescription() {
-    switch (sortType) {
-      case ReservationSortType.dateAscending:
-        return 'Date (ancienne → récente)';
-      case ReservationSortType.dateDescending:
-        return 'Date (récente → ancienne)';
-      case ReservationSortType.priceAscending:
-        return 'Prix (croissant)';
-      case ReservationSortType.priceDescending:
-        return 'Prix (décroissant)';
+    if (isUpcoming) {
+      // Descriptions pour les courses à venir
+      switch (sortType) {
+        case ReservationSortType.dateAscending:
+          return 'Départ (proche → lointain)';
+        case ReservationSortType.dateDescending:
+          return 'Départ (lointain → proche)';
+        case ReservationSortType.priceAscending:
+          return 'Prix (bas → élevé)';
+        case ReservationSortType.priceDescending:
+          return 'Prix (élevé → bas)';
+      }
+    } else {
+      // Descriptions pour les courses terminées
+      switch (sortType) {
+        case ReservationSortType.dateAscending:
+          return 'Fin (ancienne → récente)';
+        case ReservationSortType.dateDescending:
+          return 'Fin (récente → ancienne)';
+        case ReservationSortType.priceAscending:
+          return 'Prix (bas → élevé)';
+        case ReservationSortType.priceDescending:
+          return 'Prix (élevé → bas)';
+      }
     }
   }
 
@@ -148,13 +163,10 @@ class ReservationFilter {
         '🔍 Statuts des courses filtrées: ${filtered.map((r) => r.status.name).toList()}',
       );
     } else {
-      // Pour les courses terminées : courses terminées ET annulées
+      // Pour les courses terminées : SEULEMENT les courses terminées (pas les annulées)
       filtered = filtered
           .where(
-            (r) =>
-                r.isCompleted ||
-                r.status == ReservationStatus.completed ||
-                r.status == ReservationStatus.cancelled,
+            (r) => r.isCompleted || r.status == ReservationStatus.completed,
           )
           .toList();
     }

@@ -32,8 +32,11 @@ class _ReservationFilterWidgetState extends State<ReservationFilterWidget> {
   @override
   void didUpdateWidget(ReservationFilterWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.currentFilter != widget.currentFilter) {
-      _currentFilter = widget.currentFilter;
+    if (oldWidget.currentFilter != widget.currentFilter ||
+        oldWidget.isUpcoming != widget.isUpcoming) {
+      setState(() {
+        _currentFilter = widget.currentFilter;
+      });
     }
   }
 
@@ -63,6 +66,7 @@ class _ReservationFilterWidgetState extends State<ReservationFilterWidget> {
       backgroundColor: Colors.transparent,
       builder: (context) => _SortBottomSheet(
         currentSort: _currentFilter.sortType,
+        isUpcoming: widget.isUpcoming,
         onSortChanged: (sortType) {
           _updateFilter(_currentFilter.copyWith(sortType: sortType));
         },
@@ -77,25 +81,36 @@ class _ReservationFilterWidgetState extends State<ReservationFilterWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: ValueKey(
+        'filter_widget_${widget.isUpcoming}_${_currentFilter.hashCode}',
+      ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: [
-          // Bouton de filtrage
+          // Bouton de filtrage - différent selon l'onglet
           Expanded(
             child: _FilterButton(
-              label: 'Filtres',
-              icon: Icons.filter_list,
+              key: ValueKey(
+                'filter_btn_${widget.isUpcoming}_${_currentFilter.hasActiveFilter}',
+              ),
+              label: widget.isUpcoming
+                  ? 'Filtres à venir'
+                  : 'Filtres terminées',
+              icon: widget.isUpcoming ? Icons.schedule : Icons.history,
               isActive: _currentFilter.hasActiveFilter,
               onTap: _showFilterDialog,
             ),
           ),
           const SizedBox(width: 12),
 
-          // Bouton de tri
+          // Bouton de tri - complètement différent selon l'onglet
           Expanded(
             child: _FilterButton(
-              label: _currentFilter.getSortDescription(),
-              icon: Icons.sort,
+              key: ValueKey(
+                'sort_btn_${widget.isUpcoming}_${_currentFilter.sortType.name}',
+              ),
+              label: widget.isUpcoming ? 'Trier par départ' : 'Trier par fin',
+              icon: widget.isUpcoming ? Icons.schedule : Icons.history,
               isActive: false,
               onTap: _showSortDialog,
             ),
@@ -133,6 +148,7 @@ class _FilterButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const _FilterButton({
+    super.key,
     required this.label,
     required this.icon,
     required this.isActive,
@@ -273,15 +289,26 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Type de réservation
-                  _buildSectionTitle('Type de réservation'),
+                  // Type de réservation - titre différent selon l'onglet
+                  _buildSectionTitle(
+                    widget.isUpcoming ? 'Type de demande' : 'Type de course',
+                  ),
                   const SizedBox(height: 12),
                   _buildTypeOptions(),
 
                   const SizedBox(height: 24),
 
-                  // Plage de dates
-                  _buildSectionTitle('Plage de dates'),
+                  // Filtres complètement différents selon l'onglet
+                  if (widget.isUpcoming) ...[
+                    // Pas de filtres supplémentaires pour les courses à venir
+                  ] else ...[
+                    // Pas de filtres supplémentaires pour les courses terminées
+                  ],
+
+                  // Plage de dates - titre différent selon l'onglet
+                  _buildSectionTitle(
+                    widget.isUpcoming ? 'Dates de départ' : 'Dates de fin',
+                  ),
                   const SizedBox(height: 12),
                   _buildDateRangeOptions(),
                 ],
@@ -336,60 +363,10 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     );
   }
 
-  Widget _buildFilterOption(
-    String title,
-    ReservationFilterType type,
-    IconData icon,
-  ) {
-    final isSelected = _tempFilter.filterType == type;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _tempFilter = _tempFilter.copyWith(filterType: type);
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.accent.withOpacity(0.2)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.accent : AppColors.glassStroke,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.accent : AppColors.textWeak,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: isSelected ? AppColors.accent : Colors.white,
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ),
-            if (isSelected)
-              Icon(Icons.check, color: AppColors.accent, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTypeOptions() {
+    // Types de courses identiques pour les deux onglets
     final typeOptions = [
-      (ReservationTypeFilter.all, 'Tous les types', Icons.all_inclusive),
+      (ReservationTypeFilter.all, 'Toutes les courses', Icons.all_inclusive),
       (ReservationTypeFilter.simple, 'Demande simple', Icons.receipt),
       (ReservationTypeFilter.customOffer, 'Offre personnalisée', Icons.star),
       (ReservationTypeFilter.counterOffer, 'Contre offre', Icons.handshake),
@@ -454,20 +431,28 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
   Widget _buildDateRangeOptions() {
     return Column(
       children: [
-        // Date de début
-        _buildDatePicker('Date de début', _tempFilter.startDate, (date) {
-          setState(() {
-            _tempFilter = _tempFilter.copyWith(startDate: date);
-          });
-        }),
+        // Date de début - label différent selon l'onglet
+        _buildDatePicker(
+          widget.isUpcoming ? 'Départ à partir du' : 'Fin à partir du',
+          _tempFilter.startDate,
+          (date) {
+            setState(() {
+              _tempFilter = _tempFilter.copyWith(startDate: date);
+            });
+          },
+        ),
         const SizedBox(height: 16),
 
-        // Date de fin
-        _buildDatePicker('Date de fin', _tempFilter.endDate, (date) {
-          setState(() {
-            _tempFilter = _tempFilter.copyWith(endDate: date);
-          });
-        }),
+        // Date de fin - label différent selon l'onglet
+        _buildDatePicker(
+          widget.isUpcoming ? 'Départ jusqu\'au' : 'Fin jusqu\'au',
+          _tempFilter.endDate,
+          (date) {
+            setState(() {
+              _tempFilter = _tempFilter.copyWith(endDate: date);
+            });
+          },
+        ),
       ],
     );
   }
@@ -554,37 +539,64 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
 
 class _SortBottomSheet extends StatelessWidget {
   final ReservationSortType currentSort;
+  final bool isUpcoming;
   final Function(ReservationSortType) onSortChanged;
 
   const _SortBottomSheet({
     required this.currentSort,
+    required this.isUpcoming,
     required this.onSortChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final sortOptions = [
-      (
-        ReservationSortType.dateDescending,
-        'Date (récente → ancienne)',
-        Icons.arrow_downward,
-      ),
-      (
-        ReservationSortType.dateAscending,
-        'Date (ancienne → récente)',
-        Icons.arrow_upward,
-      ),
-      (
-        ReservationSortType.priceDescending,
-        'Prix (décroissant)',
-        Icons.arrow_downward,
-      ),
-      (
-        ReservationSortType.priceAscending,
-        'Prix (croissant)',
-        Icons.arrow_upward,
-      ),
-    ];
+    final sortOptions = isUpcoming
+        ? [
+            // Options de tri pour les courses à venir - complètement différentes
+            (
+              ReservationSortType.dateAscending,
+              'Départ le plus proche',
+              Icons.schedule,
+            ),
+            (
+              ReservationSortType.dateDescending,
+              'Départ le plus lointain',
+              Icons.schedule,
+            ),
+            (
+              ReservationSortType.priceDescending,
+              'Prix le plus élevé',
+              Icons.trending_up,
+            ),
+            (
+              ReservationSortType.priceAscending,
+              'Prix le plus bas',
+              Icons.trending_down,
+            ),
+          ]
+        : [
+            // Options de tri pour les courses terminées - complètement différentes
+            (
+              ReservationSortType.dateDescending,
+              'Fin la plus récente',
+              Icons.history,
+            ),
+            (
+              ReservationSortType.dateAscending,
+              'Fin la plus ancienne',
+              Icons.history,
+            ),
+            (
+              ReservationSortType.priceDescending,
+              'Prix le plus élevé',
+              Icons.trending_up,
+            ),
+            (
+              ReservationSortType.priceAscending,
+              'Prix le plus bas',
+              Icons.trending_down,
+            ),
+          ];
 
     return Container(
       decoration: const BoxDecoration(
@@ -613,11 +625,17 @@ class _SortBottomSheet extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                Icon(Icons.sort, color: AppColors.accent, size: 24),
+                Icon(
+                  isUpcoming ? Icons.schedule : Icons.history,
+                  color: AppColors.accent,
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
-                const Text(
-                  'Trier par',
-                  style: TextStyle(
+                Text(
+                  isUpcoming
+                      ? 'Options de tri - Départ'
+                      : 'Options de tri - Historique',
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
