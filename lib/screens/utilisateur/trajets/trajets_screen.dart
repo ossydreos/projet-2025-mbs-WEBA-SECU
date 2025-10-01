@@ -52,6 +52,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
@@ -92,22 +95,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
               padding: const EdgeInsets.only(top: 16),
               child: TrajetNav(_tabController),
             ),
-            // Widget de filtrage
-            ReservationFilterWidget(
-              currentFilter: _tabController.index == 0
-                  ? _upcomingFilter
-                  : _completedFilter,
-              isUpcoming: _tabController.index == 0,
-              onFilterChanged: (filter) {
-                setState(() {
-                  if (_tabController.index == 0) {
-                    _upcomingFilter = filter;
-                  } else {
-                    _completedFilter = filter;
-                  }
-                });
-              },
-            ),
+            // Filtrage/tri déclenchés depuis le menu (comme admin)
             // Contenu des onglets
             Expanded(
               child: TabBarView(
@@ -961,10 +949,39 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
   List<Widget> _buildNormalActions() {
     return [
+      // Icône de sélection (à gauche)
       IconButton(
         onPressed: _toggleSelectionMode,
         icon: const Icon(Icons.checklist, color: AppColors.accent),
         tooltip: 'Sélectionner pour export',
+      ),
+      // Menu 3 points (à droite) identique à l'admin
+      PopupMenuButton<String>(
+        icon: const Icon(Icons.more_vert, color: AppColors.accent),
+        tooltip: 'Options de filtre et tri',
+        onSelected: _handleMenuAction,
+        itemBuilder: (context) => const [
+          PopupMenuItem(
+            value: 'filter',
+            child: Row(
+              children: [
+                Icon(Icons.filter_list, color: AppColors.accent),
+                SizedBox(width: 8),
+                Text('Filtrer'),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'sort',
+            child: Row(
+              children: [
+                Icon(Icons.sort, color: AppColors.accent),
+                SizedBox(width: 8),
+                Text('Trier'),
+              ],
+            ),
+          ),
+        ],
       ),
     ];
   }
@@ -1008,6 +1025,58 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       }
     });
   }
+
+  // Actions du menu (identiques à admin)
+  void _handleMenuAction(String action) {
+    switch (action) {
+      case 'filter':
+        showReservationFilterBottomSheet(
+          context: context,
+          currentFilter: _tabController.index == 0
+              ? _upcomingFilter
+              : _completedFilter,
+          isUpcoming: _tabController.index == 0,
+          onFilterChanged: (filter) {
+            setState(() {
+              if (_tabController.index == 0) {
+                _upcomingFilter = filter;
+              } else {
+                _completedFilter = filter;
+              }
+            });
+          },
+        );
+        break;
+      case 'sort':
+        _showSortDialog();
+        break;
+    }
+  }
+
+  void _showSortDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _UserSortBottomSheet(
+        currentSort: _tabController.index == 0
+            ? _upcomingFilter.sortType
+            : _completedFilter.sortType,
+        isUpcoming: _tabController.index == 0,
+        onSortChanged: (sortType) {
+          setState(() {
+            if (_tabController.index == 0) {
+              _upcomingFilter = _upcomingFilter.copyWith(sortType: sortType);
+            } else {
+              _completedFilter = _completedFilter.copyWith(sortType: sortType);
+            }
+          });
+        },
+      ),
+    );
+  }
+
+  // Bottom sheet de tri (copie de l'admin)
+  // Note: déclarée plus bas en dehors du State.
 
   Future<void> _exportSelectedReservations() async {
     if (_selectedReservations.isEmpty) {
@@ -1093,7 +1162,170 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       ),
     );
   }
+}
+
+// Bottom sheet de tri (copie de l'admin) - déclarée en dehors du State
+class _UserSortBottomSheet extends StatelessWidget {
+  final ReservationSortType currentSort;
+  final bool isUpcoming;
+  final Function(ReservationSortType) onSortChanged;
+
+  const _UserSortBottomSheet({
+    required this.currentSort,
+    required this.isUpcoming,
+    required this.onSortChanged,
+  });
 
   @override
-  bool get wantKeepAlive => true;
+  Widget build(BuildContext context) {
+    final sortOptions = isUpcoming
+        ? [
+            (
+              ReservationSortType.dateAscending,
+              'Départ le plus proche',
+              Icons.schedule,
+            ),
+            (
+              ReservationSortType.dateDescending,
+              'Départ le plus lointain',
+              Icons.schedule,
+            ),
+            (
+              ReservationSortType.priceDescending,
+              'Prix le plus élevé',
+              Icons.trending_up,
+            ),
+            (
+              ReservationSortType.priceAscending,
+              'Prix le plus bas',
+              Icons.trending_down,
+            ),
+          ]
+        : [
+            (
+              ReservationSortType.dateDescending,
+              'Fin la plus récente',
+              Icons.history,
+            ),
+            (
+              ReservationSortType.dateAscending,
+              'Fin la plus ancienne',
+              Icons.history,
+            ),
+            (
+              ReservationSortType.priceDescending,
+              'Prix le plus élevé',
+              Icons.trending_up,
+            ),
+            (
+              ReservationSortType.priceAscending,
+              'Prix le plus bas',
+              Icons.trending_down,
+            ),
+          ];
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.textWeak,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Icon(
+                  isUpcoming ? Icons.schedule : Icons.history,
+                  color: AppColors.accent,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  isUpcoming
+                      ? 'Options de tri - Départ'
+                      : 'Options de tri - Historique',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ...sortOptions.map((option) {
+            final (sortType, title, icon) = option;
+            final isSelected = currentSort == sortType;
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: GestureDetector(
+                onTap: () {
+                  onSortChanged(sortType);
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? AppColors.accent.withOpacity(0.2)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.accent
+                          : AppColors.glassStroke,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        icon,
+                        color: isSelected
+                            ? AppColors.accent
+                            : AppColors.textWeak,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            color: isSelected ? AppColors.accent : Colors.white,
+                            fontSize: 14,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                      if (isSelected)
+                        Icon(Icons.check, color: AppColors.accent, size: 20),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  // plus d'implémentation ici, logique déplacée en helpers
 }
