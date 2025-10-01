@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/data/models/reservation_filter.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/services/pdf_export_service.dart';
+import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
 
@@ -20,9 +23,18 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   int _selectedIndex = 1;
   late TabController _tabController;
 
-  // Variables pour le tri
-  bool _sortAscending =
-      true; // true = plus ancienne à plus récente, false = plus récente à plus ancienne
+  // Variables pour le filtrage avancé
+  ReservationFilter _upcomingFilter = const ReservationFilter(isUpcoming: true);
+  ReservationFilter _completedFilter = const ReservationFilter(
+    isUpcoming: false,
+  );
+
+  // Variables pour l'export
+  List<Reservation> _currentReservations = [];
+
+  // Variables pour la sélection directe
+  bool _isSelectionMode = false;
+  Set<String> _selectedReservations = <String>{};
 
   @override
   void initState() {
@@ -44,82 +56,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: GlassAppBar(
-            title: AppLocalizations.of(context).courses,
-            actions: [
-              // Menu de tri et filtrage
-              PopupMenuButton<String>(
-                icon: Icon(Icons.tune, color: AppColors.accent),
-                tooltip: 'Options de tri et filtrage',
-                onSelected: (String value) {
-                  switch (value) {
-                    case 'sort_asc':
-                      setState(() {
-                        _sortAscending = true;
-                      });
-                      break;
-                    case 'sort_desc':
-                      setState(() {
-                        _sortAscending = false;
-                      });
-                      break;
-                  }
-                },
-                itemBuilder: (BuildContext context) => [
-                  PopupMenuItem<String>(
-                    value: 'sort_asc',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.arrow_upward,
-                          color: _sortAscending
-                              ? AppColors.accent
-                              : AppColors.textWeak,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Plus ancienne à plus récente',
-                          style: TextStyle(
-                            color: _sortAscending
-                                ? AppColors.accent
-                                : AppColors.textStrong,
-                            fontWeight: _sortAscending
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem<String>(
-                    value: 'sort_desc',
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.arrow_downward,
-                          color: !_sortAscending
-                              ? AppColors.accent
-                              : AppColors.textWeak,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Plus récente à plus ancienne',
-                          style: TextStyle(
-                            color: !_sortAscending
-                                ? AppColors.accent
-                                : AppColors.textStrong,
-                            fontWeight: !_sortAscending
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            title: _isSelectionMode
+                ? 'Sélectionner les courses (${_selectedReservations.length})'
+                : AppLocalizations.of(context).courses,
+            actions: _isSelectionMode
+                ? _buildSelectionActions()
+                : _buildNormalActions(),
           ),
           body: Column(
             children: [
@@ -128,6 +70,22 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 padding: const EdgeInsets.only(top: 16),
                 child: TrajetNav(_tabController),
               ),
+              // Widget de filtrage
+              ReservationFilterWidget(
+                currentFilter: _tabController.index == 0
+                    ? _upcomingFilter
+                    : _completedFilter,
+                isUpcoming: _tabController.index == 0,
+                onFilterChanged: (filter) {
+                  setState(() {
+                    if (_tabController.index == 0) {
+                      _upcomingFilter = filter;
+                    } else {
+                      _completedFilter = filter;
+                    }
+                  });
+                },
+              ),
               // Contenu des onglets
               Expanded(
                 child: TabBarView(
@@ -135,10 +93,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   children: [_buildUpcomingTab(), _buildCompletedTab()],
                 ),
               ),
-              AdminBottomNavigationBar(
-                currentIndex: _selectedIndex,
-                onTap: _handleNavigation,
-              ),
+              _isSelectionMode
+                  ? _buildSelectionBottomBar()
+                  : AdminBottomNavigationBar(
+                      currentIndex: _selectedIndex,
+                      onTap: _handleNavigation,
+                    ),
             ],
           ),
         ),
@@ -148,7 +108,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
   Widget _buildUpcomingTab() {
     return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getInProgressReservationsStream(),
+      stream: _reservationService.getUpcomingReservationsStreamWithFilter(
+        _upcomingFilter,
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -189,6 +151,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
         final reservations = snapshot.data ?? [];
 
+        // Mettre à jour les réservations actuelles pour l'export
+        _currentReservations = reservations;
+
         if (reservations.isEmpty) {
           return Center(
             child: GlassContainer(
@@ -202,7 +167,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    AppLocalizations.of(context).noUpcomingRides,
+                    _upcomingFilter.hasActiveFilter
+                        ? 'Aucun résultat pour les filtres sélectionnés'
+                        : AppLocalizations.of(context).noUpcomingRides,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -212,7 +179,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    AppLocalizations.of(context).upcomingRidesWillAppear,
+                    _upcomingFilter.hasActiveFilter
+                        ? 'Essayez de modifier vos critères de filtrage'
+                        : AppLocalizations.of(context).upcomingRidesWillAppear,
                     style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
                 ],
@@ -221,12 +190,50 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: reservations.length,
-          itemBuilder: (context, index) {
-            return _buildReservationCard(reservations[index], isUpcoming: true);
-          },
+        return Column(
+          children: [
+            // Indicateur du nombre de résultats
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.filter_list, color: AppColors.accent, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${reservations.length} résultat${reservations.length > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Liste des réservations
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: reservations.length,
+                itemBuilder: (context, index) {
+                  return _buildReservationCard(
+                    reservations[index],
+                    isUpcoming: true,
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );
@@ -234,7 +241,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
   Widget _buildCompletedTab() {
     return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getCompletedReservationsStream(),
+      stream: _reservationService.getCompletedReservationsStreamWithFilter(
+        _completedFilter,
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -275,14 +284,8 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
         List<Reservation> reservations = snapshot.data ?? [];
 
-        // Trier les réservations par date
-        reservations.sort((a, b) {
-          if (_sortAscending) {
-            return a.createdAt.compareTo(b.createdAt);
-          } else {
-            return b.createdAt.compareTo(a.createdAt);
-          }
-        });
+        // Mettre à jour les réservations actuelles pour l'export
+        _currentReservations = reservations;
 
         if (reservations.isEmpty) {
           return Center(
@@ -297,7 +300,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    AppLocalizations.of(context).noCompletedRides,
+                    _completedFilter.hasActiveFilter
+                        ? 'Aucun résultat pour les filtres sélectionnés'
+                        : AppLocalizations.of(context).noCompletedRides,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -307,7 +312,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    AppLocalizations.of(context).rideHistoryWillAppear,
+                    _completedFilter.hasActiveFilter
+                        ? 'Essayez de modifier vos critères de filtrage'
+                        : AppLocalizations.of(context).rideHistoryWillAppear,
                     style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
                 ],
@@ -316,16 +323,51 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: reservations.length,
-          itemBuilder: (context, index) {
-            return _buildReservationCard(
-              reservations[index],
-              isUpcoming: false,
-              showDeleteButton: true,
-            );
-          },
+        return Column(
+          children: [
+            // Indicateur du nombre de résultats
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.accent.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.filter_list, color: AppColors.accent, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${reservations.length} résultat${reservations.length > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Liste des réservations
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: reservations.length,
+                itemBuilder: (context, index) {
+                  return _buildReservationCard(
+                    reservations[index],
+                    isUpcoming: false,
+                    showDeleteButton: true,
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );
@@ -336,142 +378,188 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     required bool isUpcoming,
     bool showDeleteButton = false,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: GlassContainer(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // En-tête compact avec statut et ID de course
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Course #${reservation.id.substring(0, 8)}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textWeak,
-                          fontFamily: 'Poppins',
+    final isSelected = _selectedReservations.contains(reservation.id);
+
+    return GestureDetector(
+      onTap: _isSelectionMode
+          ? () => _toggleReservationSelection(reservation.id)
+          : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: _isSelectionMode && isSelected
+              ? AppColors.accent.withOpacity(0.1)
+              : null,
+          border: _isSelectionMode && isSelected
+              ? Border.all(color: AppColors.accent, width: 2)
+              : null,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: GlassContainer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // En-tête compact avec statut et ID de course
+              Row(
+                children: [
+                  // Checkbox en mode sélection
+                  if (_isSelectionMode) ...[
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.accent
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.accent
+                              : AppColors.glassStroke,
+                          width: 2,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        reservation.userName ?? 'Client',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textStrong,
-                          fontFamily: 'Poppins',
+                      child: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 16,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Course #${reservation.id.substring(0, 8)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textWeak,
+                            fontFamily: 'Poppins',
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(reservation.status).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _getStatusColor(reservation.status),
-                      width: 1,
+                        const SizedBox(height: 2),
+                        Text(
+                          reservation.userName ?? 'Client',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textStrong,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Text(
-                    _getStatusText(reservation.status),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(
+                        reservation.status,
+                      ).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _getStatusColor(reservation.status),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      _getStatusText(reservation.status),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _getStatusColor(reservation.status),
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Informations compactes du trajet
+              _buildCompactLocationRow(
+                icon: Icons.location_on,
+                iconColor: Colors.green,
+                address: reservation.departure,
+              ),
+              const SizedBox(height: 6),
+              _buildCompactLocationRow(
+                icon: Icons.flag,
+                iconColor: AppColors.hot,
+                address: reservation.destination,
+              ),
+              const SizedBox(height: 8),
+
+              // Date et heure compactes
+              Row(
+                children: [
+                  Icon(Icons.schedule, size: 14, color: AppColors.textWeak),
+                  const SizedBox(width: 6),
+                  Text(
+                    _formatCompactDateTime(
+                      reservation.selectedDate,
+                      reservation.selectedTime,
+                    ),
                     style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: _getStatusColor(reservation.status),
+                      fontSize: 12,
+                      color: AppColors.textWeak,
                       fontFamily: 'Poppins',
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Informations compactes du trajet
-            _buildCompactLocationRow(
-              icon: Icons.location_on,
-              iconColor: Colors.green,
-              address: reservation.departure,
-            ),
-            const SizedBox(height: 6),
-            _buildCompactLocationRow(
-              icon: Icons.flag,
-              iconColor: AppColors.hot,
-              address: reservation.destination,
-            ),
-            const SizedBox(height: 8),
-
-            // Date et heure compactes
-            Row(
-              children: [
-                Icon(Icons.schedule, size: 14, color: AppColors.textWeak),
-                const SizedBox(width: 6),
-                Text(
-                  _formatCompactDateTime(
-                    reservation.selectedDate,
-                    reservation.selectedTime,
-                  ),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textWeak,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Boutons d'action
-            Row(
-              children: [
-                // Bouton détails rond
-                _buildRoundDetailsButton(reservation),
-                const SizedBox(width: 12),
-                // Boutons d'action pour les courses à venir
-                if (isUpcoming) ...[
-                  Expanded(
-                    child: _buildActionButton(
-                      label: 'Terminer',
-                      icon: Icons.check_circle,
-                      color: Colors.green,
-                      onPressed: () => _completeReservation(reservation),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildActionButton(
-                      label: 'Annuler',
-                      icon: Icons.cancel,
-                      color: AppColors.hot,
-                      onPressed: () => _showCancelDialog(reservation),
-                    ),
-                  ),
                 ],
-                // Bouton de suppression pour les courses terminées
-                if (showDeleteButton) ...[
-                  Expanded(
-                    child: _buildActionButton(
-                      label: 'Supprimer',
-                      icon: Icons.delete_outline,
-                      color: AppColors.hot,
-                      onPressed: () => _showDeleteConfirmation(reservation),
+              ),
+              const SizedBox(height: 12),
+
+              // Boutons d'action
+              Row(
+                children: [
+                  // Bouton détails rond
+                  _buildRoundDetailsButton(reservation),
+                  const SizedBox(width: 12),
+                  // Boutons d'action pour les courses à venir
+                  if (isUpcoming) ...[
+                    Expanded(
+                      child: _buildActionButton(
+                        label: 'Terminer',
+                        icon: Icons.check_circle,
+                        color: Colors.green,
+                        onPressed: () => _completeReservation(reservation),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildActionButton(
+                        label: 'Annuler',
+                        icon: Icons.cancel,
+                        color: AppColors.hot,
+                        onPressed: () => _showCancelDialog(reservation),
+                      ),
+                    ),
+                  ],
+                  // Bouton de suppression pour les courses terminées
+                  if (showDeleteButton) ...[
+                    Expanded(
+                      child: _buildActionButton(
+                        label: 'Supprimer',
+                        icon: Icons.delete_outline,
+                        color: AppColors.hot,
+                        onPressed: () => _showDeleteConfirmation(reservation),
+                      ),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -938,16 +1026,22 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   }
 
   Future<void> _cancelConfirmedReservation(Reservation reservation) async {
+    print('🚫 Annulation de la course: ${reservation.id}');
+    print('🚫 Statut actuel: ${reservation.status}');
+
     try {
-      // Annuler la course confirmée avec notification
-      await _reservationService.cancelConfirmedReservation(
+      // Marquer la course comme annulée (disparaît de la liste des courses à venir)
+      await _reservationService.updateReservationStatus(
         reservation.id,
-        reason: 'Course annulée par l\'administrateur',
+        ReservationStatus.cancelled,
       );
+      print('✅ Course marquée comme annulée avec succès');
+
       if (mounted) {
-        _showSuccessMessage('Course annulée !');
+        _showSuccessMessage('Course annulée et retirée de la liste !');
       }
     } catch (e) {
+      print('❌ Erreur lors de l\'annulation: $e');
       if (mounted) {
         _showErrorMessage('Erreur: $e');
       }
@@ -1149,9 +1243,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     );
   }
 
-  void _deleteReservation(Reservation reservation) async {
+  Future<void> _deleteReservation(Reservation reservation) async {
+    print('🗑️ Tentative de suppression de la réservation: ${reservation.id}');
+
     try {
       await _reservationService.deleteReservation(reservation.id);
+      print('✅ Réservation supprimée avec succès');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1166,6 +1263,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         );
       }
     } catch (e) {
+      print('❌ Erreur lors de la suppression: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1176,5 +1274,140 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         );
       }
     }
+  }
+
+  List<Widget> _buildNormalActions() {
+    return [
+      IconButton(
+        onPressed: _toggleSelectionMode,
+        icon: const Icon(Icons.checklist, color: AppColors.accent),
+        tooltip: 'Sélectionner pour export',
+      ),
+    ];
+  }
+
+  List<Widget> _buildSelectionActions() {
+    return [
+      if (_selectedReservations.isNotEmpty)
+        IconButton(
+          onPressed: _exportSelectedReservations,
+          icon: const Icon(Icons.picture_as_pdf, color: AppColors.accent),
+          tooltip: 'Exporter sélection',
+        ),
+      IconButton(
+        onPressed: _cancelSelection,
+        icon: const Icon(Icons.close, color: AppColors.hot),
+        tooltip: 'Annuler sélection',
+      ),
+    ];
+  }
+
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedReservations.clear();
+    });
+  }
+
+  void _cancelSelection() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedReservations.clear();
+    });
+  }
+
+  void _toggleReservationSelection(String reservationId) {
+    setState(() {
+      if (_selectedReservations.contains(reservationId)) {
+        _selectedReservations.remove(reservationId);
+      } else {
+        _selectedReservations.add(reservationId);
+      }
+    });
+  }
+
+  Future<void> _exportSelectedReservations() async {
+    if (_selectedReservations.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez sélectionner au moins une course'),
+          backgroundColor: AppColors.hot,
+        ),
+      );
+      return;
+    }
+
+    final selectedReservations = _currentReservations
+        .where((r) => _selectedReservations.contains(r.id))
+        .toList();
+
+    try {
+      final pdfBytes = await PdfExportService.exportReservationsToPdf(
+        reservations: selectedReservations,
+        title: 'Export des Courses',
+        subtitle: 'Export des courses sélectionnées',
+        isAdmin: true,
+      );
+
+      await PdfExportService.sharePdf(pdfBytes, 'export_courses');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('PDF exporté avec succès !'),
+          backgroundColor: AppColors.accent,
+        ),
+      );
+
+      // Sortir du mode sélection après export
+      _cancelSelection();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de l\'export: $e'),
+          backgroundColor: AppColors.hot,
+        ),
+      );
+    }
+  }
+
+  Widget _buildSelectionBottomBar() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.glass,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        border: Border.all(color: AppColors.glassStroke),
+      ),
+      child: SafeArea(
+        child: Row(
+          children: [
+            // Compteur de sélection
+            Expanded(
+              child: Text(
+                '${_selectedReservations.length} course${_selectedReservations.length > 1 ? 's' : ''} sélectionnée${_selectedReservations.length > 1 ? 's' : ''}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textStrong,
+                ),
+              ),
+            ),
+
+            // Bouton d'export
+            if (_selectedReservations.isNotEmpty) ...[
+              const SizedBox(width: 16),
+              GlassButton(
+                label: 'Exporter PDF',
+                onPressed: _exportSelectedReservations,
+                icon: Icons.picture_as_pdf,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

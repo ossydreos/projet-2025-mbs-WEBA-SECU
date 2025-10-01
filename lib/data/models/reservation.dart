@@ -71,6 +71,8 @@ class Reservation {
   final double? discountAmount; // montant de la remise en devise
   final String? customOfferId; // ID de l'offre personnalisée liée
   final bool? waitingForPayment; // en attente de paiement
+  final bool isPaid; // Course payée par le client
+  final bool isCompleted; // Course terminée (bouton terminer appuyé)
 
   Reservation({
     required this.id,
@@ -98,6 +100,8 @@ class Reservation {
     this.discountAmount,
     this.customOfferId,
     this.waitingForPayment,
+    this.isPaid = false, // Valeur par défaut : false
+    this.isCompleted = false, // Valeur par défaut : false
   });
 
   // Convertir en Map pour Firebase
@@ -130,6 +134,8 @@ class Reservation {
       'discountAmount': discountAmount,
       'customOfferId': customOfferId,
       'waitingForPayment': waitingForPayment,
+      'isPaid': isPaid,
+      'isCompleted': isCompleted,
     };
   }
 
@@ -178,6 +184,8 @@ class Reservation {
           : (map['discountAmount'] as num).toDouble(),
       customOfferId: map['customOfferId'],
       waitingForPayment: map['waitingForPayment'],
+      isPaid: map['isPaid'] ?? false,
+      isCompleted: map['isCompleted'] ?? false,
     );
   }
 
@@ -207,6 +215,9 @@ class Reservation {
     String? promoCode,
     double? discountAmount,
     String? customOfferId,
+    bool? waitingForPayment,
+    bool? isPaid,
+    bool? isCompleted,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -234,6 +245,9 @@ class Reservation {
       promoCode: promoCode ?? this.promoCode,
       discountAmount: discountAmount ?? this.discountAmount,
       customOfferId: customOfferId ?? this.customOfferId,
+      waitingForPayment: waitingForPayment ?? this.waitingForPayment,
+      isPaid: isPaid ?? this.isPaid,
+      isCompleted: isCompleted ?? this.isCompleted,
     );
   }
 
