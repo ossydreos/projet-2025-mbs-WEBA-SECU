@@ -674,53 +674,6 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
           // Boutons principaux
           Row(
             children: [
-              // Bouton Refuser
-              Expanded(
-                child: AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: GestureDetector(
-                        onTap: () {
-                          print(
-                            '🔔 UberStyleNotification: Bouton REFUSER touché',
-                          );
-                          widget.onDecline();
-                        },
-                        child: Container(
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(28),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.red.withOpacity(0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'REFUSER',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(width: 16),
-
               // Bouton Accepter
               Expanded(
                 child: AnimatedBuilder(
@@ -751,6 +704,53 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                           child: const Center(
                             child: Text(
                               'ACCEPTER',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(width: 16),
+
+              // Bouton Refuser
+              Expanded(
+                child: AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _pulseAnimation.value,
+                      child: GestureDetector(
+                        onTap: () {
+                          print(
+                            '🔔 UberStyleNotification: Bouton REFUSER touché',
+                          );
+                          widget.onDecline();
+                        },
+                        child: Container(
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withOpacity(0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'REFUSER',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,

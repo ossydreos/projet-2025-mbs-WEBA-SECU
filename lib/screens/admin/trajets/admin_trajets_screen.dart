@@ -1237,9 +1237,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     );
   }
 
-  void _deleteReservation(Reservation reservation) async {
+  Future<void> _deleteReservation(Reservation reservation) async {
+    print('🗑️ Tentative de suppression de la réservation: ${reservation.id}');
+
     try {
       await _reservationService.deleteReservation(reservation.id);
+      print('✅ Réservation supprimée avec succès');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1254,6 +1257,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         );
       }
     } catch (e) {
+      print('❌ Erreur lors de la suppression: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

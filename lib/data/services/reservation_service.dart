@@ -331,9 +331,14 @@ class ReservationService {
 
   // Supprimer une réservation
   Future<void> deleteReservation(String reservationId) async {
+    print(
+      '🗑️ ReservationService: Suppression de la réservation $reservationId',
+    );
     try {
       await _firestore.collection(_collection).doc(reservationId).delete();
+      print('✅ ReservationService: Réservation supprimée avec succès');
     } catch (e) {
+      print('❌ ReservationService: Erreur lors de la suppression: $e');
       throw Exception('Erreur lors de la suppression de la réservation: $e');
     }
   }

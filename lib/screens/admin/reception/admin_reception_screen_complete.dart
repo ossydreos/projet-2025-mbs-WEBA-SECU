@@ -420,12 +420,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     ],
                   ),
                 ),
-                // Bouton de mise en attente (petite croix)
-                IconButton(
-                  onPressed: () => _putInWaiting(reservation),
-                  icon: Icon(Icons.close, color: Colors.orange, size: 20),
-                  tooltip: 'Mettre en attente',
-                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -572,41 +566,113 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 // Demande en attente: Accepter | Contre-offre (handshake) | Refuser
                 Row(
                   children: [
+                    // Bouton Accepter
                     Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _confirmReservation(reservation),
-                        icon: const Icon(Icons.check, size: 16),
-                        label: const Text('Accepter'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () => _confirmReservation(reservation),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.check, size: 16),
+                              const SizedBox(width: 8),
+                              const Flexible(
+                                child: Text(
+                                  'Accepter',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
+                    // Bouton Contre-offre
                     Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _showCounterOfferDialog(reservation),
-                        icon: const Icon(Icons.handshake, size: 16),
-                        label: const Text('Contre-offre'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () => _showCounterOfferDialog(reservation),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.handshake, size: 16),
+                              const SizedBox(width: 8),
+                              const Flexible(
+                                child: Text(
+                                  'Contre-offre',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
+                    // Bouton Refuser
                     Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => _refuseReservation(reservation),
-                        icon: const Icon(Icons.close, size: 16),
-                        label: const Text('Refuser'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: SizedBox(
+                        height: 48,
+                        child: ElevatedButton(
+                          onPressed: () => _refuseReservation(reservation),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            elevation: 2,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.close, size: 16),
+                              const SizedBox(width: 8),
+                              const Flexible(
+                                child: Text(
+                                  'Refuser',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -974,20 +1040,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     try {
       // Ici vous pouvez implémenter l'envoi de la contre-offre
       // Par exemple, créer une nouvelle réservation avec le statut "counter_offer"
-
-      // Notifications UI désactivées
-    } catch (e) {
-      // Notifications UI désactivées
-    }
-  }
-
-  Future<void> _putInWaiting(Reservation reservation) async {
-    try {
-      // Mettre la réservation en attente (statut pending)
-      await _reservationService.updateReservationStatus(
-        reservation.id,
-        ReservationStatus.pending,
-      );
 
       // Notifications UI désactivées
     } catch (e) {

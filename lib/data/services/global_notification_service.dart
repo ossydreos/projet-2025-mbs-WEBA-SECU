@@ -57,7 +57,7 @@ class GlobalNotificationService {
       _globalContext!,
       reservation,
       onAccept: () => _acceptReservation(reservation.id),
-      onDecline: () => _showRefusalOptions(reservation),
+      onDecline: () => _declineReservation(reservation.id),
       onCounterOffer: () => _showCounterOfferDialog(reservation),
     );
   }

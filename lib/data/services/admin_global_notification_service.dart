@@ -409,18 +409,18 @@ class AdminGlobalNotificationService {
     }
   }
 
-  // Accepter une réservation (délègue à l'écran de réception)
+  // Accepter une réservation (délègue à l'écran de réception pour la même logique)
   Future<void> _acceptReservation(String reservationId) async {
     print(
       '🔔 AdminGlobalNotificationService: Acceptation de la réservation $reservationId',
     );
 
-    // Notifier que la réservation est en cours de traitement (pour afficher la bulle)
-    // L'écran de réception se chargera de faire toutes les actions nécessaires
+    // Utiliser le callback pour faire exactement la même chose que la liste des demandes en attente
+    // Cela garantit que la réservation est ajoutée à _processingReservations et gérée correctement
     _notifyReservationProcessing(reservationId);
   }
 
-  // Refuser directement la réservation
+  // Refuser directement la réservation (même logique que la liste des demandes en attente)
   void _showRefusalOptions(Reservation reservation) {
     if (_globalContext == null || !_globalContext!.mounted) {
       print(
@@ -433,36 +433,38 @@ class AdminGlobalNotificationService {
       '🔔 AdminGlobalNotificationService: Refus direct de la réservation ${reservation.id}',
     );
 
-    // Refuser directement sans menu
+    // Refuser directement sans menu (comme dans la liste des demandes en attente)
     _declineReservation(reservation.id);
   }
 
-  // Refuser une réservation
+  // Refuser une réservation (même logique que la liste des demandes en attente)
   Future<void> _declineReservation(String reservationId) async {
     print(
       '🔔 AdminGlobalNotificationService: Refus de la réservation $reservationId',
     );
 
     try {
-      await _reservationService.refuseReservation(
+      // Mettre à jour le statut de la réservation à cancelled (comme dans _refuseReservation)
+      await _reservationService.updateReservationStatus(
         reservationId,
-        reason: 'Demande refusée par l\'administrateur',
+        ReservationStatus.cancelled,
       );
 
       if (_globalContext != null && _globalContext!.mounted) {
         ScaffoldMessenger.of(_globalContext!).showSnackBar(
           SnackBar(
-            content: const Text('Réservation refusée'),
+            content: Text('Réservation refusée'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
           ),
         );
       }
+
+      print(
+        '✅ AdminGlobalNotificationService: Réservation refusée avec succès',
+      );
     } catch (e) {
-      print('Erreur lors du refus: $e');
+      print('❌ AdminGlobalNotificationService: Erreur lors du refus: $e');
       if (_globalContext != null && _globalContext!.mounted) {
         ScaffoldMessenger.of(_globalContext!).showSnackBar(
           SnackBar(
