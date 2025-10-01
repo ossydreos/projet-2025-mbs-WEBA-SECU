@@ -3163,6 +3163,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total'**
   String get total;
+
+  /// No description provided for @favoriteTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite Trips'**
+  String get favoriteTrips;
+
+  /// No description provided for @addFavoriteTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Favorite Trip'**
+  String get addFavoriteTrip;
+
+  /// No description provided for @editFavoriteTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Favorite Trip'**
+  String get editFavoriteTrip;
+
+  /// No description provided for @tripName.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip Name'**
+  String get tripName;
+
+  /// No description provided for @enterTripName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter trip name'**
+  String get enterTripName;
+
+  /// No description provided for @departureAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure Address'**
+  String get departureAddress;
+
+  /// No description provided for @enterDepartureAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter departure address'**
+  String get enterDepartureAddress;
+
+  /// No description provided for @arrivalAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival Address'**
+  String get arrivalAddress;
+
+  /// No description provided for @enterArrivalAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter arrival address'**
+  String get enterArrivalAddress;
+
+  /// No description provided for @selectIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Icon'**
+  String get selectIcon;
+
+  /// No description provided for @addTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Trip'**
+  String get addTrip;
+
+  /// No description provided for @updateTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Trip'**
+  String get updateTrip;
+
+  /// No description provided for @deleteTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Trip'**
+  String get deleteTrip;
+
+  /// No description provided for @tripAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip added successfully'**
+  String get tripAdded;
+
+  /// No description provided for @tripUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip updated successfully'**
+  String get tripUpdated;
+
+  /// No description provided for @tripDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip deleted successfully'**
+  String get tripDeleted;
+
+  /// No description provided for @tripDuplicated.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip duplicated successfully'**
+  String get tripDuplicated;
+
+  /// No description provided for @deleteTripConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this favorite trip?'**
+  String get deleteTripConfirmation;
+
+  /// No description provided for @tripAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'This trip already exists in your favorites'**
+  String get tripAlreadyExists;
+
+  /// No description provided for @searchFavoriteTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Search favorite trips'**
+  String get searchFavoriteTrips;
+
+  /// No description provided for @noFavoriteTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'No favorite trips'**
+  String get noFavoriteTrips;
+
+  /// No description provided for @noFavoriteTripsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your frequent trips to find them quickly'**
+  String get noFavoriteTripsDescription;
+
+  /// No description provided for @addFirstFavoriteTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first trip'**
+  String get addFirstFavoriteTrip;
+
+  /// No description provided for @tripNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip name is required'**
+  String get tripNameRequired;
+
+  /// No description provided for @tripNameTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip name must be at least 2 characters'**
+  String get tripNameTooShort;
+
+  /// No description provided for @departureAddressRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure address is required'**
+  String get departureAddressRequired;
+
+  /// No description provided for @departureAddressTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure address must be at least 5 characters'**
+  String get departureAddressTooShort;
+
+  /// No description provided for @arrivalAddressRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival address is required'**
+  String get arrivalAddressRequired;
+
+  /// No description provided for @arrivalAddressTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival address must be at least 5 characters'**
+  String get arrivalAddressTooShort;
+
+  /// No description provided for @duplicate.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get duplicate;
+
+  /// No description provided for @use.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get use;
+
+  /// No description provided for @tapToOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to open'**
+  String get tapToOpen;
+
+  /// No description provided for @error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get error;
 }
 
 class _AppLocalizationsDelegate

@@ -9,6 +9,8 @@ import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/constants.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
+import 'package:my_mobility_services/data/models/favorite_trip.dart' as db_models;
+import 'package:my_mobility_services/data/services/favorite_trip_service.dart';
 
 class FavoriteTrip {
   final String departure;
@@ -18,6 +20,7 @@ class FavoriteTrip {
   final LatLng? departureCoordinates;
   final LatLng? destinationCoordinates;
   final IconData icon;
+  final String name;
 
   FavoriteTrip({
     required this.departure,
@@ -27,6 +30,7 @@ class FavoriteTrip {
     this.departureCoordinates,
     this.destinationCoordinates,
     this.icon = Icons.favorite,
+    required this.name,
   });
 }
 
@@ -131,36 +135,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   LatLng? _selectedDepartureCoordinates;
   LatLng? _selectedDestinationCoordinates;
 
-  // Liste des trajets favoris codés en dur
-  final List<FavoriteTrip> _favoriteTrips = [
-    FavoriteTrip(
-      departure: "99 Chemin de Saule",
-      destination: "109 Bois de la Chappele",
-      departureAddress: "99 Chemin de Saule, Genève, Suisse",
-      destinationAddress: "109 Bois de la Chappele, Genève, Suisse",
-      departureCoordinates: const LatLng(46.2044, 6.1432),
-      destinationCoordinates: const LatLng(46.2084, 6.1472),
-      icon: Icons.home,
-    ),
-    FavoriteTrip(
-      departure: "Gare Cornavin",
-      destination: "Aéroport de Genève",
-      departureAddress: "Place de Cornavin, 1201 Genève, Suisse",
-      destinationAddress: "Route de l'Aéroport 21, 1215 Le Grand-Saconnex, Suisse",
-      departureCoordinates: const LatLng(46.2105, 6.1427),
-      destinationCoordinates: const LatLng(46.2381, 6.1090),
-      icon: Icons.train,
-    ),
-    FavoriteTrip(
-      departure: "Université de Genève",
-      destination: "CERN",
-      departureAddress: "Rue de Candolle 2, 1205 Genève, Suisse",
-      destinationAddress: "Route de Meyrin 385, 1217 Meyrin, Suisse",
-      departureCoordinates: const LatLng(46.1984, 6.1422),
-      destinationCoordinates: const LatLng(46.2332, 6.0533),
-      icon: Icons.school,
-    ),
-  ];
+  // Service pour récupérer les trajets favoris depuis la BDD
+  final FavoriteTripService _favoriteTripService = FavoriteTripService();
+  List<FavoriteTrip> _favoriteTrips = [];
 
   @override
   void initState() {
@@ -219,6 +196,9 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
     // Initialiser la position actuelle comme valeur par défaut du départ
     _initCurrentLocation();
+    
+    // Charger les trajets favoris depuis la BDD
+    _loadFavoriteTrips();
   }
 
   @override
@@ -710,6 +690,31 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     return null;
   }
 
+  // Charger les trajets favoris depuis la BDD
+  Future<void> _loadFavoriteTrips() async {
+    try {
+      final dbTrips = await _favoriteTripService.getFavoriteTrips().first;
+      setState(() {
+        _favoriteTrips = dbTrips.map((dbTrip) => FavoriteTrip(
+          departure: dbTrip.departureAddress,
+          destination: dbTrip.arrivalAddress,
+          departureAddress: dbTrip.departureAddress,
+          destinationAddress: dbTrip.arrivalAddress,
+          departureCoordinates: dbTrip.departureCoordinates,
+          destinationCoordinates: dbTrip.arrivalCoordinates,
+          icon: dbTrip.icon,
+          name: dbTrip.name,
+        )).toList();
+      });
+    } catch (e) {
+      debugPrint('Erreur lors du chargement des trajets favoris: $e');
+      // En cas d'erreur, garder la liste vide
+      setState(() {
+        _favoriteTrips = [];
+      });
+    }
+  }
+
   // Méthode pour gérer le clic sur un trajet favori
   void _onFavoriteTripTap(FavoriteTrip favoriteTrip) {
     setState(() {
@@ -766,6 +771,17 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Nom du trajet
+                      Text(
+                        favoriteTrip.name,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      
                       // Départ
                       Row(
                         children: [

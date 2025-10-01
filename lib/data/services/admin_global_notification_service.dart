@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/notification_manager.dart';
+import 'package:my_mobility_services/data/services/fcm_notification_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 
 class AdminGlobalNotificationService {
@@ -14,6 +15,7 @@ class AdminGlobalNotificationService {
 
   final ReservationService _reservationService = ReservationService();
   final NotificationManager _notificationManager = NotificationManager();
+  final FCMNotificationService _fcmService = FCMNotificationService();
   StreamSubscription<QuerySnapshot>? _reservationSubscription;
   BuildContext? _globalContext;
   DateTime _lastSeenReservationAt = DateTime.now().subtract(
@@ -367,12 +369,30 @@ class AdminGlobalNotificationService {
     );
 
     try {
+      // Démarrer la notification FCM Uber style
+      _fcmService.startUberStyleNotification(
+        clientName: reservation.userName ?? 'Client',
+        reservationId: reservation.id,
+      );
+
       _notificationManager.showGlobalNotification(
         _globalContext!,
         reservation,
-        onAccept: () => _acceptReservation(reservation.id),
-        onDecline: () => _showRefusalOptions(reservation),
-        onCounterOffer: () => _showCounterOfferDialog(reservation),
+        onAccept: () {
+          // Arrêter la notification quand l'admin répond
+          _fcmService.stopNotification();
+          _acceptReservation(reservation.id);
+        },
+        onDecline: () {
+          // Arrêter la notification quand l'admin répond
+          _fcmService.stopNotification();
+          _showRefusalOptions(reservation);
+        },
+        onCounterOffer: () {
+          // Arrêter la notification quand l'admin répond
+          _fcmService.stopNotification();
+          _showCounterOfferDialog(reservation);
+        },
       );
 
       print(
@@ -824,6 +844,7 @@ class AdminGlobalNotificationService {
   // Nettoyer les ressources
   void dispose() {
     _reservationSubscription?.cancel();
+    _fcmService.dispose();
     _globalContext = null;
     _isInitialized = false;
     _processedReservations.clear();

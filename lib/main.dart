@@ -16,6 +16,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.dart';
 
@@ -37,10 +38,16 @@ import 'screens/admin/gestion/users/admin_users_screen.dart';
 import 'widgets/admin/test_notification_demo.dart';
 import 'data/services/reservation_timeout_service.dart';
 import 'data/services/admin_global_notification_service.dart';
+import 'data/services/fcm_notification_service.dart';
+import 'data/services/admin_token_service.dart';
+import 'data/services/reservation_fcm_service.dart';
+import 'firebase_messaging_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Enregistrer le handler FCM background au plus tôt
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   // Initialiser les données de fuseau horaire pour toute l'application
   tz.initializeTimeZones();
 
@@ -48,9 +55,30 @@ void main() async {
   final timeoutService = ReservationTimeoutService();
   timeoutService.startTimeoutService();
 
+  // Initialiser le service FCM
+  final fcmService = FCMNotificationService();
+  await fcmService.initialize();
+  
+  // Initialiser le service de tokens admin
+  final adminTokenService = AdminTokenService();
+  await adminTokenService.saveAdminToken('admin_1'); // Remplace par l'ID admin réel
+  adminTokenService.setupTokenRefresh('admin_1');
+  
+  // Initialiser le service FCM pour les réservations
+  final reservationFCMService = ReservationFCMService();
+  reservationFCMService.startListeningForNewReservations();
+  
   // Initialiser le service de notification global pour l'admin
   final notificationService = AdminGlobalNotificationService();
   notificationService.initializeGlobal();
+
+  // Vérifier si l'app a été lancée depuis une notification
+  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null) {
+    // Possibilité: router vers un écran selon initialMessage.data
+    // Ici on ne navigue pas encore, mais on peut logguer pour validation
+    debugPrint('🔔 App lancée depuis notification: ${initialMessage.data}');
+  }
 
   runApp(const MyApp());
 }
