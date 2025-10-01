@@ -1,0 +1,41 @@
+[33m1eae068[m[33m ([m[1;31morigin/main[m[33m)[m Optimisation du filtrage des courses - affichage seulement après paiement confirmé
+[33m40b3f19[m Optimisation finale de la bulle de paiement - texte plus grand et entièrement visible
+[33ma2b8bf5[m Amélioration de l'interface admin : optimisation des boutons, correction des erreurs de débordement et synchronisation des popups
+[33ma447837[m Ajout des fonctionnalités d'export PDF, migration et filtres de réservation
+[33mb4ae8ac[m feat(admin/users): afficher champ Firestore ame comme nom client (liste+fiche) et ajustements réception
+[33m5720369[m feat(admin): gestion utilisateurs (liste + fiche + navigation) + bouton Contre-offre + nettoyage fichiers reception
+[33m2e1c159[m ajout messagerie
+[33m6793239[m Merge admin notifications and user features
+[33m9e5c4cd[m  fix o/p
+[33mf086987[m maj des notifs
+[33m7979bfe[m offre perso notifs
+[33m2d1507c[m Résolution des conflits de merge - conservation des fonctionnalités custom offer
+[33mf24d34e[m ajout fonctionnalités offres perso
+[33mcb5cdb0[m fix: Correction du système de notification pour les réservations clients
+[33md829ce0[m fix: Correction des méthodes dupliquées et améliorations admin
+[33mdf8bc28[m feat: Système de timeout automatique des réservations
+[33m6f139f0[m feat: Système de notifications client complet
+[33m635f0a8[m feat: Améliorations interface admin et système de tri/suppression
+[33mcc6ae87[m feat: Implémentation notification Uber avec gestion des priorités et timeout
+[33m72cbb0d[m Résolution des conflits de merge - intégration des fonctionnalités de paiement Stripe
+[33m41d0723[m Sauvegarde des modifications locales avant pull
+[33m8ea6f04[m payement sécurisé + separations widgets reservations + arrondis 0.05
+[33m5b9ddd3[m app multilingue
+[33m605ebb6[m ajout manuel technique
+[33m32b6377[m fix divers
+[33mea96272[m mise a jour parc vehicules
+[33m97b84e1[m contre offre op
+[33m1921cf8[m systeme de contre offre avec pending dans reservation
+[33m5882084[m reglage bug affichage divers
+[33m669e360[m contre offre pour admin mis en place
+[33m5696c50[m merge fait et push des modification interface admin
+[33mf971e72[m fix overflow baggages
+[33mb8f96a7[m ajout tris trajet ordre + ajout note res
+[33m43be9b4[m Fix et ajouts sur page reservation
+[33m3197adc[m pull + resolve de merge + adaptation home shell ontap actif
+[33ma49f25b[m fix du home shell
+[33mc844af9[m ajout pastille demandes renommage fichier adminHomeScreen par adminReceptionScreen
+[33mbd5a08c[m modification deconnexion profil couleur des messages lors de refus
+[33med8428a[m modification deconexion/widget gestion fichier admin_profil
+[33ma0b1bce[m rename Brand à AppColors
+[33me0ad4fe[m refactorig complet arborescence

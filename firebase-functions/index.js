@@ -31,10 +31,14 @@ exports.sendNotification = functions.https.onRequest(async (req, res) => {
 
         console.log('🔔 Firebase Function: Envoi notification à', token);
 
-        // Android: data-only pour déclencher le handler background
+        // Android: notification + data (affichage système + données pour l'app)
         // iOS: APNs via apns.payload.aps.alert
         const message = {
             token: token,
+            notification: {
+                title: title,
+                body: body,
+            },
             data: {
                 title: title,
                 body: body,
@@ -103,13 +107,17 @@ exports.onNewReservation = functions.firestore
 
             const adminTokens = adminTokensSnapshot.docs.map(doc => doc.data().token);
 
-            // Message data-only pour Android (déclenche handler background); APNs pour iOS
+            // Message notification + data pour Android; APNs pour iOS
             const clientName = reservation.userName || 'Client';
             const from = reservation.departure || '';
             const to = reservation.destination || '';
             const price = reservation.totalPrice ? `${reservation.totalPrice.toFixed(2)}€` : '0.00€';
 
             const message = {
+                notification: {
+                    title: 'Nouvelle réservation',
+                    body: `Nouvelle demande de ${clientName}`,
+                },
                 data: {
                     title: 'Nouvelle réservation',
                     body: `Nouvelle demande de ${clientName}`,

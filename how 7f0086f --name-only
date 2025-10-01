@@ -1,0 +1,31 @@
+[33mb4ae8ac[m feat(admin/users): afficher champ Firestore ame comme nom client (liste+fiche) et ajustements réception
+[33m7f0086f[m messagerie fini
+[33m5720369[m feat(admin): gestion utilisateurs (liste + fiche + navigation) + bouton Contre-offre + nettoyage fichiers reception
+[33m2e1c159[m ajout messagerie
+[33m9e5c4cd[m  fix o/p
+[33mf086987[m maj des notifs
+[33m7979bfe[m offre perso notifs
+[33mf24d34e[m ajout fonctionnalités offres perso
+[33md829ce0[m fix: Correction des méthodes dupliquées et améliorations admin
+[33mdf8bc28[m feat: Système de timeout automatique des réservations
+[33m6f139f0[m feat: Système de notifications client complet
+[33m635f0a8[m feat: Améliorations interface admin et système de tri/suppression
+[33mcc6ae87[m feat: Implémentation notification Uber avec gestion des priorités et timeout
+[33m41d0723[m Sauvegarde des modifications locales avant pull
+[33m8ea6f04[m payement sécurisé + separations widgets reservations + arrondis 0.05
+[33m5b9ddd3[m app multilingue
+[33m605ebb6[m ajout manuel technique
+[33m32b6377[m fix divers
+[33m97b84e1[m contre offre op
+[33m1921cf8[m systeme de contre offre avec pending dans reservation
+[33m669e360[m contre offre pour admin mis en place
+[33mf971e72[m fix overflow baggages
+[33mb8f96a7[m ajout tris trajet ordre + ajout note res
+[33m43be9b4[m Fix et ajouts sur page reservation
+[33mc844af9[m ajout pastille demandes renommage fichier adminHomeScreen par adminReceptionScreen
+[33mbd5a08c[m modification deconnexion profil couleur des messages lors de refus
+[33ma0b1bce[m rename Brand à AppColors
+[33me0ad4fe[m refactorig complet arborescence
+[33m9cd8570[m fusion des modification
+[33mee31001[m fix sur log
+[33mb81f3c4[m ajout interface admin base
