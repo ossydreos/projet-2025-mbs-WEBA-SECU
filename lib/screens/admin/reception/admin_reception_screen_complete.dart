@@ -520,15 +520,34 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 // État de chargement
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 20,
+                    vertical: 24,
+                    horizontal: 24,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.glass,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.glassStroke),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.accent.withOpacity(0.1),
+                        AppColors.accent.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: AppColors.accent.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       // Indicateur de chargement à gauche
                       SizedBox(
@@ -539,20 +558,23 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                           strokeWidth: 2,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // Message centré
+                      const SizedBox(width: 8),
+                      // Message parfaitement centré sur une seule ligne
                       Expanded(
                         child: Text(
-                          'En attente du paiement du client',
+                          'paiement client en attente',
                           textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.visible,
                           style: TextStyle(
                             color: AppColors.textStrong,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 8),
                       // Icône de carte à droite
                       Icon(
                         Icons.credit_card,
