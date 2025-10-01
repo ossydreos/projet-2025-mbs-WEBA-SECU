@@ -4,15 +4,50 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 
-class AdminUsersScreen extends StatelessWidget {
+class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
+
+  @override
+  State<AdminUsersScreen> createState() => _AdminUsersScreenState();
+}
+
+class _AdminUsersScreenState extends State<AdminUsersScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _query = _searchController.text.trim();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: GlassAppBar(title: 'Gestion des utilisateurs'),
+        appBar: GlassAppBar(
+          title: 'Gestion des utilisateurs',
+          actions: [
+            IconButton(
+              tooltip: 'Rechercher',
+              onPressed: () async {
+                await showSearchDialog(context);
+              },
+              icon: Icon(Icons.search, color: AppColors.accent),
+            ),
+          ],
+        ),
         body: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('users')
@@ -22,7 +57,26 @@ class AdminUsersScreen extends StatelessWidget {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            final docs = snapshot.data?.docs ?? [];
+            var docs = snapshot.data?.docs ?? [];
+            if (_query.isNotEmpty) {
+              final q = _query.toLowerCase();
+              docs = docs.where((d) {
+                final data = d.data() as Map<String, dynamic>;
+                final displayName = (data['displayName'] ?? '').toString();
+                final firstName = (data['firstName'] ?? '').toString();
+                final lastName = (data['lastName'] ?? '').toString();
+                final nameField = (data['name'] ?? '').toString();
+                final email = (data['email'] ?? '').toString();
+                final fullName = ('$firstName $lastName').trim();
+                final nameToShow = nameField.isNotEmpty
+                    ? nameField
+                    : (fullName.isNotEmpty
+                          ? fullName
+                          : (displayName.isNotEmpty ? displayName : ''));
+                return nameToShow.toLowerCase().contains(q) ||
+                    email.toLowerCase().contains(q);
+              }).toList();
+            }
             if (docs.isEmpty) {
               return const Center(child: Text('Aucun utilisateur'));
             }
@@ -100,6 +154,60 @@ class AdminUsersScreen extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+
+  Future<void> showSearchDialog(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: GlassContainer(
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
+            borderRadius: BorderRadius.circular(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    autofocus: true,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher par nom ou email',
+                      hintStyle: TextStyle(color: AppColors.textWeak),
+                      prefixIcon: Icon(Icons.search, color: AppColors.accent),
+                      filled: true,
+                      fillColor: AppColors.glass,
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppColors.glassStroke),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppColors.accent),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  tooltip: 'Effacer',
+                  onPressed: () {
+                    _searchController.clear();
+                  },
+                  icon: Icon(Icons.clear, color: AppColors.hot),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
