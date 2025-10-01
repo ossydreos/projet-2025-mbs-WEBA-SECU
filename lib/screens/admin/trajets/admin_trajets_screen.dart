@@ -1026,16 +1026,22 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   }
 
   Future<void> _cancelConfirmedReservation(Reservation reservation) async {
+    print('🚫 Annulation de la course: ${reservation.id}');
+    print('🚫 Statut actuel: ${reservation.status}');
+
     try {
-      // Annuler la course confirmée avec notification
-      await _reservationService.cancelConfirmedReservation(
+      // Marquer la course comme annulée (disparaît de la liste des courses à venir)
+      await _reservationService.updateReservationStatus(
         reservation.id,
-        reason: 'Course annulée par l\'administrateur',
+        ReservationStatus.cancelled,
       );
+      print('✅ Course marquée comme annulée avec succès');
+
       if (mounted) {
-        _showSuccessMessage('Course annulée !');
+        _showSuccessMessage('Course annulée et retirée de la liste !');
       }
     } catch (e) {
+      print('❌ Erreur lors de l\'annulation: $e');
       if (mounted) {
         _showErrorMessage('Erreur: $e');
       }

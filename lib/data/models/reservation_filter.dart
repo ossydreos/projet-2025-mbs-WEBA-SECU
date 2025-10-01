@@ -134,24 +134,27 @@ class ReservationFilter {
 
     // Filtrer selon la nouvelle logique métier (isPaid/isCompleted)
     if (isUpcoming) {
-      // Pour les courses à venir : courses payées par le client MAIS PAS terminées
-      // Fallback pour les anciennes réservations : considérer comme payées si status != pending
+      // Pour les courses à venir : SEULEMENT les courses avec paiement confirmé (inProgress)
+      print(
+        '🔍 Filtrage des courses à venir - Total avant filtre: ${filtered.length}',
+      );
+      filtered = filtered
+          .where(
+            (r) => r.status == ReservationStatus.inProgress && !r.isCompleted,
+          )
+          .toList();
+      print('🔍 Courses à venir après filtre: ${filtered.length}');
+      print(
+        '🔍 Statuts des courses filtrées: ${filtered.map((r) => r.status.name).toList()}',
+      );
+    } else {
+      // Pour les courses terminées : courses terminées ET annulées
       filtered = filtered
           .where(
             (r) =>
-                (r.isPaid ||
-                    (r.status != ReservationStatus.pending &&
-                        r.status != ReservationStatus.cancelled)) &&
-                !r.isCompleted &&
-                r.status != ReservationStatus.completed,
-          )
-          .toList();
-    } else {
-      // Pour les courses terminées : courses où le bouton terminer a été appuyé
-      // Fallback pour les anciennes réservations : considérer comme terminées si status == completed
-      filtered = filtered
-          .where(
-            (r) => r.isCompleted || r.status == ReservationStatus.completed,
+                r.isCompleted ||
+                r.status == ReservationStatus.completed ||
+                r.status == ReservationStatus.cancelled,
           )
           .toList();
     }
