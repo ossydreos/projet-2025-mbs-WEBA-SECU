@@ -10,8 +10,15 @@ class SupportChatScreen extends StatefulWidget {
   final bool isAdmin;
   final String? userIdForAdmin; // legacy
   final String? threadId; // ouvre un thread spécifique
+  final String? clientName; // nom du client pour l'affichage côté admin
 
-  const SupportChatScreen({super.key, this.isAdmin = false, this.userIdForAdmin, this.threadId});
+  const SupportChatScreen({
+    super.key, 
+    this.isAdmin = false, 
+    this.userIdForAdmin, 
+    this.threadId,
+    this.clientName,
+  });
 
   @override
   State<SupportChatScreen> createState() => _SupportChatScreenState();
@@ -41,7 +48,12 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           final t = SupportThread.fromMap(d.data()!, d.id);
           setState(() => _thread = t);
           if (widget.isAdmin) {
-            await _loadUserNameForAdmin(t.userId);
+            // Utiliser le nom du client fourni ou charger depuis Firestore
+            if (widget.clientName != null) {
+              setState(() => _targetUserName = widget.clientName);
+            } else {
+              await _loadUserNameForAdmin(t.userId);
+            }
           }
           if (widget.isAdmin) {
             await _service.markAsReadForAdmin(t.id);

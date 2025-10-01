@@ -528,9 +528,28 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
             const SizedBox(height: 16),
 
-            // Boutons d'action
-            if (reservation.status == ReservationStatus.pending ||
-                _processingReservations.contains(reservation.id)) ...[
+              // Bouton de contact client
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ElevatedButton.icon(
+                  onPressed: () => _contactClient(reservation),
+                  icon: const Icon(Icons.message, size: 16),
+                  label: const Text('Contacter le client'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: AppColors.bg,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Boutons d'action
+              if (reservation.status == ReservationStatus.pending ||
+                  _processingReservations.contains(reservation.id)) ...[
               // Vérifier si la réservation est en cours de traitement
               if (_processingReservations.contains(reservation.id)) ...[
                 // État de chargement
@@ -1223,6 +1242,65 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         Navigator.pushReplacementNamed(context, '/admin/profile');
         break;
     }
+  }
+
+  // Méthode pour contacter le client
+  Future<void> _contactClient(Reservation reservation) async {
+    try {
+      // Créer ou récupérer le thread de support pour ce client
+      final thread = await _createOrGetClientThread(reservation.userId);
+      
+      // Naviguer vers le chat avec ce client
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SupportChatScreen(
+            isAdmin: true,
+            threadId: thread.id,
+            clientName: reservation.userName,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Créer ou récupérer le thread de support pour un client spécifique
+  Future<SupportThread> _createOrGetClientThread(String userId) async {
+    // Chercher un thread existant pour ce client
+    final existing = await FirebaseFirestore.instance
+        .collection(SupportChatService.threadsCollection)
+        .where('userId', isEqualTo: userId)
+        .limit(1)
+        .get();
+
+    if (existing.docs.isNotEmpty) {
+      final d = existing.docs.first;
+      return SupportThread.fromMap(d.data(), d.id);
+    }
+
+    // Créer un nouveau thread pour ce client
+    final ref = FirebaseFirestore.instance.collection(SupportChatService.threadsCollection).doc();
+    final now = DateTime.now();
+    final thread = SupportThread(
+      id: ref.id,
+      userId: userId,
+      createdAt: now,
+      updatedAt: now,
+      unreadForUser: 0,
+      unreadForAdmin: 0,
+      isClosed: false,
+    );
+    await ref.set(thread.toMap());
+    return thread;
   }
 }
 
