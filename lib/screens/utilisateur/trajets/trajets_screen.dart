@@ -28,6 +28,8 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _tabController;
   int _selectedIndex = 1; // Index 1 pour "Trajets" (actif)
+  int _currentTabIndex =
+      1; // Pour suivre l'onglet actuel (commence sur "Terminés")
   final ReservationService _reservationService = ReservationService();
   final AdminService _adminService = AdminService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -48,7 +50,14 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        setState(() {
+          _currentTabIndex = _tabController.index;
+        });
+      }
+    });
   }
 
   @override
@@ -72,6 +81,17 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     widget.onNavigate?.call(index);
   }
 
+  void _handleTabChange(int index) {
+    // Annuler la sélection si on change d'onglet
+    if (_isSelectionMode) {
+      _cancelSelection();
+    }
+    // Mettre à jour l'index de l'onglet actuel
+    setState(() {
+      _currentTabIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -80,9 +100,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         backgroundColor: Colors.transparent,
 
         appBar: GlassAppBar(
-          title: _isSelectionMode
-              ? 'Sélectionner les courses (${_selectedReservations.length})'
-              : AppLocalizations.of(context).trips,
+          title: AppLocalizations.of(context).trips,
           actions: _isSelectionMode
               ? _buildSelectionActions()
               : _buildNormalActions(),
@@ -93,7 +111,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             // Barre de navigation des onglets séparée
             Padding(
               padding: const EdgeInsets.only(top: 16),
-              child: TrajetNav(_tabController),
+              child: TrajetNav(_tabController, onTabChanged: _handleTabChange),
             ),
             // Filtrage/tri déclenchés depuis le menu (comme admin)
             // Contenu des onglets
@@ -190,48 +208,13 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           return _buildEmptyUpcomingView();
         }
 
-        return Column(
-          children: [
-            // Indicateur du nombre de résultats
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.filter_list, color: AppColors.accent, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${reservations.length} résultat${reservations.length > 1 ? 's' : ''}',
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Liste des réservations
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: reservations.length,
-                itemBuilder: (context, index) {
-                  final reservation = reservations[index];
-                  return _buildReservationCard(reservation);
-                },
-              ),
-            ),
-          ],
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: reservations.length,
+          itemBuilder: (context, index) {
+            final reservation = reservations[index];
+            return _buildReservationCard(reservation);
+          },
         );
       },
     );
@@ -697,48 +680,13 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           );
         }
 
-        return Column(
-          children: [
-            // Indicateur du nombre de résultats
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.filter_list, color: AppColors.accent, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${reservations.length} résultat${reservations.length > 1 ? 's' : ''}',
-                    style: TextStyle(
-                      color: AppColors.accent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Liste des réservations
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: reservations.length,
-                itemBuilder: (context, index) {
-                  final reservation = reservations[index];
-                  return _buildCompletedReservationCard(reservation);
-                },
-              ),
-            ),
-          ],
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: reservations.length,
+          itemBuilder: (context, index) {
+            final reservation = reservations[index];
+            return _buildCompletedReservationCard(reservation);
+          },
         );
       },
     );
@@ -948,14 +896,21 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   }
 
   List<Widget> _buildNormalActions() {
-    return [
-      // Icône de sélection (à gauche)
-      IconButton(
-        onPressed: _toggleSelectionMode,
-        icon: const Icon(Icons.checklist, color: AppColors.accent),
-        tooltip: 'Sélectionner pour export',
-      ),
-      // Menu 3 points (à droite) identique à l'admin
+    List<Widget> actions = [];
+
+    // Le bouton de sélection n'est disponible que pour les courses terminées (onglet index 1)
+    if (_currentTabIndex == 1) {
+      actions.add(
+        IconButton(
+          onPressed: _toggleSelectionMode,
+          icon: const Icon(Icons.checklist, color: AppColors.accent),
+          tooltip: 'Sélectionner pour export',
+        ),
+      );
+    }
+
+    // Menu avec 3 points pour filtrer et trier (placé après pour être à droite)
+    actions.add(
       PopupMenuButton<String>(
         icon: const Icon(Icons.more_vert, color: AppColors.accent),
         tooltip: 'Options de filtre et tri',
@@ -983,17 +938,13 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           ),
         ],
       ),
-    ];
+    );
+
+    return actions;
   }
 
   List<Widget> _buildSelectionActions() {
     return [
-      if (_selectedReservations.isNotEmpty)
-        IconButton(
-          onPressed: _exportSelectedReservations,
-          icon: const Icon(Icons.picture_as_pdf, color: AppColors.accent),
-          tooltip: 'Exporter sélection',
-        ),
       IconButton(
         onPressed: _cancelSelection,
         icon: const Icon(Icons.close, color: AppColors.hot),
@@ -1032,13 +983,13 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       case 'filter':
         showReservationFilterBottomSheet(
           context: context,
-          currentFilter: _tabController.index == 0
+          currentFilter: _currentTabIndex == 0
               ? _upcomingFilter
               : _completedFilter,
-          isUpcoming: _tabController.index == 0,
+          isUpcoming: _currentTabIndex == 0,
           onFilterChanged: (filter) {
             setState(() {
-              if (_tabController.index == 0) {
+              if (_currentTabIndex == 0) {
                 _upcomingFilter = filter;
               } else {
                 _completedFilter = filter;
@@ -1058,13 +1009,13 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _UserSortBottomSheet(
-        currentSort: _tabController.index == 0
+        currentSort: _currentTabIndex == 0
             ? _upcomingFilter.sortType
             : _completedFilter.sortType,
-        isUpcoming: _tabController.index == 0,
+        isUpcoming: _currentTabIndex == 0,
         onSortChanged: (sortType) {
           setState(() {
-            if (_tabController.index == 0) {
+            if (_currentTabIndex == 0) {
               _upcomingFilter = _upcomingFilter.copyWith(sortType: sortType);
             } else {
               _completedFilter = _completedFilter.copyWith(sortType: sortType);
@@ -1124,41 +1075,72 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
   Widget _buildSelectionBottomBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 56,
       decoration: BoxDecoration(
-        color: AppColors.glass,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        border: Border.all(color: AppColors.glassStroke),
+        color: AppColors.accent.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.accent),
       ),
-      child: SafeArea(
-        child: Row(
-          children: [
-            // Compteur de sélection
-            Expanded(
+      child: Row(
+        children: [
+          // Icône de partage (export PDF) à gauche
+          Expanded(
+            child: GestureDetector(
+              onTap: _exportSelectedReservations,
+              child: Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.share,
+                  color: AppColors.textStrong,
+                  size: 24,
+                ),
+              ),
+            ),
+          ),
+
+          // Texte centré avec le nombre de sélections
+          Expanded(
+            flex: 2,
+            child: Center(
               child: Text(
-                '${_selectedReservations.length} course${_selectedReservations.length > 1 ? 's' : ''} sélectionnée${_selectedReservations.length > 1 ? 's' : ''}',
+                '${_selectedReservations.length} sélectionnée${_selectedReservations.length > 1 ? 's' : ''}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textStrong,
+                  fontFamily: 'Poppins',
                 ),
               ),
             ),
+          ),
 
-            // Bouton d'export
-            if (_selectedReservations.isNotEmpty) ...[
-              const SizedBox(width: 16),
-              GlassButton(
-                label: 'Exporter PDF',
-                onPressed: _exportSelectedReservations,
-                icon: Icons.picture_as_pdf,
+          // Icône de corbeille (désactivée pour l'utilisateur)
+          Expanded(
+            child: Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
               ),
-            ],
-          ],
-        ),
+              child: Icon(
+                Icons.delete_outline,
+                color: AppColors.textWeak.withOpacity(0.3),
+                size: 24,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

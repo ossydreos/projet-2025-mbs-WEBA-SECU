@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'dart:io';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/trip_summary_screen.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
+import 'package:my_mobility_services/widgets/ios_time_picker.dart';
 
 class SchedulingScreen extends StatefulWidget {
   final String vehicleName;
@@ -39,7 +41,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
     _initializeTime();
     _validateInitialDate();
   }
-  
+
   void _validateInitialDate() {
     DateTime zurichTime;
     try {
@@ -47,9 +49,13 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
     } catch (e) {
       zurichTime = DateTime.now();
     }
-    
-    final DateTime minimumDate = DateTime(zurichTime.year, zurichTime.month, zurichTime.day);
-    
+
+    final DateTime minimumDate = DateTime(
+      zurichTime.year,
+      zurichTime.month,
+      zurichTime.day,
+    );
+
     // Si la date initiale est dans le passé, la corriger
     if (_selectedDate.isBefore(minimumDate)) {
       setState(() {
@@ -63,18 +69,26 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
       // Définir l'heure par défaut à 30 minutes après l'heure actuelle de Zurich
       final zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
       final defaultTime = zurichTime.add(const Duration(minutes: 30));
-      _selectedTime = TimeOfDay(hour: defaultTime.hour, minute: defaultTime.minute);
+      _selectedTime = TimeOfDay(
+        hour: defaultTime.hour,
+        minute: defaultTime.minute,
+      );
     } catch (e) {
       // Fallback vers l'heure locale si la base de données n'est pas encore initialisée
       final now = DateTime.now();
       final defaultTime = now.add(const Duration(minutes: 30));
-      _selectedTime = TimeOfDay(hour: defaultTime.hour, minute: defaultTime.minute);
+      _selectedTime = TimeOfDay(
+        hour: defaultTime.hour,
+        minute: defaultTime.minute,
+      );
     }
     _updateEstimatedArrival();
   }
 
   void _updateEstimatedArrival() async {
-    if (_selectedTime != null && widget.departureCoordinates != null && widget.destinationCoordinates != null) {
+    if (_selectedTime != null &&
+        widget.departureCoordinates != null &&
+        widget.destinationCoordinates != null) {
       try {
         // Obtenir le temps de trajet réel via l'API Google Maps
         final directions = await DirectionsService.getDirections(
@@ -84,7 +98,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
 
         if (directions != null) {
           final durationMinutes = (directions['durationValue'] / 60).round();
-          
+
           // Créer la date/heure dans le fuseau horaire de Zurich
           final zurichLocation = tz.getLocation('Europe/Zurich');
           final selectedDateTime = tz.TZDateTime(
@@ -95,9 +109,11 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
             _selectedTime!.hour,
             _selectedTime!.minute,
           );
-          
+
           // Ajouter le temps de trajet réel à l'heure de prise en charge
-          final arrivalTime = selectedDateTime.add(Duration(minutes: durationMinutes));
+          final arrivalTime = selectedDateTime.add(
+            Duration(minutes: durationMinutes),
+          );
 
           setState(() {
             _estimatedArrival = DateFormat('HH:mm').format(arrivalTime);
@@ -128,7 +144,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
         _selectedTime!.hour,
         _selectedTime!.minute,
       );
-      
+
       // Fallback avec 15 minutes par défaut
       final arrivalTime = selectedDateTime.add(const Duration(minutes: 15));
 
@@ -159,13 +175,19 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
       // Fallback vers l'heure locale si la base de données n'est pas encore initialisée
       zurichTime = DateTime.now();
     }
-    
+
     // S'assurer qu'on ne peut pas sélectionner une date dans le passé
-    final DateTime minimumDate = DateTime(zurichTime.year, zurichTime.month, zurichTime.day);
-    
+    final DateTime minimumDate = DateTime(
+      zurichTime.year,
+      zurichTime.month,
+      zurichTime.day,
+    );
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate.isBefore(minimumDate) ? minimumDate : _selectedDate,
+      initialDate: _selectedDate.isBefore(minimumDate)
+          ? minimumDate
+          : _selectedDate,
       firstDate: minimumDate,
       lastDate: zurichTime.add(const Duration(days: 90)),
       builder: (context, child) {
@@ -203,67 +225,95 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
     } catch (e) {
       zurichTime = DateTime.now();
     }
-    
-    final DateTime today = DateTime(zurichTime.year, zurichTime.month, zurichTime.day);
-    final DateTime selectedDateOnly = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+
+    final DateTime today = DateTime(
+      zurichTime.year,
+      zurichTime.month,
+      zurichTime.day,
+    );
+    final DateTime selectedDateOnly = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+    );
     final bool isToday = selectedDateOnly.isAtSameMomentAs(today);
-    
+
     // Si c'est aujourd'hui, s'assurer que l'heure minimum est dans 30 minutes
     TimeOfDay minimumTime;
     if (isToday) {
-      final DateTime minimumDateTime = zurichTime.add(const Duration(minutes: 30));
-      minimumTime = TimeOfDay(hour: minimumDateTime.hour, minute: minimumDateTime.minute);
+      final DateTime minimumDateTime = zurichTime.add(
+        const Duration(minutes: 30),
+      );
+      minimumTime = TimeOfDay(
+        hour: minimumDateTime.hour,
+        minute: minimumDateTime.minute,
+      );
     } else {
       minimumTime = const TimeOfDay(hour: 0, minute: 0);
     }
-    
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime ?? minimumTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.accent,
-              onPrimary: Colors.white,
-              surface: AppColors.bgElev,
-              onSurface: Colors.white,
-              secondary: AppColors.accent,
-              onSecondary: Colors.white,
-            ),
-            dialogBackgroundColor: AppColors.bgElev,
-            cardColor: AppColors.bgElev,
-            timePickerTheme: const TimePickerThemeData(
-              hourMinuteTextStyle: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+
+    TimeOfDay? picked;
+
+    // Utiliser la roulette iOS sur iOS, picker Android standard sur Android
+    if (Platform.isIOS) {
+      picked = await showIOSTimePicker(
+        context: context,
+        initialTime: _selectedTime ?? minimumTime,
+        minimumTime: isToday ? minimumTime : null,
+        title: 'Heure de prise en charge',
+        subtitle: isToday
+            ? 'Au moins 30 minutes à l\'avance'
+            : 'Sélectionnez l\'heure souhaitée',
+      );
+    } else {
+      picked = await showTimePicker(
+        context: context,
+        initialTime: _selectedTime ?? minimumTime,
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.dark(
+                primary: AppColors.accent,
+                onPrimary: Colors.white,
+                surface: AppColors.bgElev,
+                onSurface: Colors.white,
+                secondary: AppColors.accent,
+                onSecondary: Colors.white,
               ),
-              hourMinuteColor: AppColors.bgElev,
-              dialHandColor: AppColors.accent,
-              dialBackgroundColor: AppColors.bgElev,
-              entryModeIconColor: AppColors.accent,
-              helpTextStyle: TextStyle(color: Colors.white),
-              inputDecorationTheme: InputDecorationTheme(
-                border: OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.accent),
+              dialogBackgroundColor: AppColors.bgElev,
+              cardColor: AppColors.bgElev,
+              timePickerTheme: const TimePickerThemeData(
+                hourMinuteTextStyle: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: AppColors.accent, width: 2),
+                hourMinuteColor: AppColors.bgElev,
+                dialHandColor: AppColors.accent,
+                dialBackgroundColor: AppColors.bgElev,
+                entryModeIconColor: AppColors.accent,
+                helpTextStyle: TextStyle(color: Colors.white),
+                inputDecorationTheme: InputDecorationTheme(
+                  border: OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.accent),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.accent, width: 2),
+                  ),
                 ),
               ),
             ),
-          ),
-          child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              alwaysUse24HourFormat: true, // Force le format 24h
+            child: MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                alwaysUse24HourFormat: true, // Force le format 24h
+              ),
+              child: child!,
             ),
-            child: child!,
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    }
 
     if (picked != null && picked != _selectedTime) {
       // Validation supplémentaire : s'assurer que l'heure sélectionnée n'est pas dans le passé
@@ -275,14 +325,18 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
           picked.hour,
           picked.minute,
         );
-        final DateTime minimumDateTime = zurichTime.add(const Duration(minutes: 30));
-        
+        final DateTime minimumDateTime = zurichTime.add(
+          const Duration(minutes: 30),
+        );
+
         if (selectedDateTime.isBefore(minimumDateTime)) {
           // Afficher un message d'erreur
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Veuillez sélectionner une heure au moins 30 minutes dans le futur'),
+                content: Text(
+                  'Veuillez sélectionner une heure au moins 30 minutes dans le futur',
+                ),
                 backgroundColor: Colors.red,
               ),
             );
@@ -290,7 +344,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
           return;
         }
       }
-      
+
       setState(() {
         _selectedTime = picked;
       });
@@ -306,7 +360,7 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
       // Fallback vers l'heure locale si la base de données n'est pas encore initialisée
       zurichTime = DateTime.now();
     }
-    
+
     final now = DateTime(zurichTime.year, zurichTime.month, zurichTime.day);
     final today = DateTime(now.year, now.month, now.day);
     final selectedDay = DateTime(date.year, date.month, date.day);
@@ -552,7 +606,8 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
                                       widget.departureCoordinates,
                                   destinationCoordinates:
                                       widget.destinationCoordinates,
-                                  calculatedPrice: widget.calculatedPrice, // ✅ TRANSMETTRE LE PRIX
+                                  calculatedPrice: widget
+                                      .calculatedPrice, // ✅ TRANSMETTRE LE PRIX
                                 ),
                               ),
                             );

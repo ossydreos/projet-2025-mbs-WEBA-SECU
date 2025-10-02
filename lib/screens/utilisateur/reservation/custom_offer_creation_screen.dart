@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/constants.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/widgets/ios_time_picker.dart';
 
 class Suggestion {
   final String displayName;
@@ -72,22 +72,23 @@ class CustomOfferCreationScreen extends StatefulWidget {
   const CustomOfferCreationScreen({super.key});
 
   @override
-  State<CustomOfferCreationScreen> createState() => _CustomOfferCreationScreenState();
+  State<CustomOfferCreationScreen> createState() =>
+      _CustomOfferCreationScreenState();
 }
 
 class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   final CustomOfferService _customOfferService = CustomOfferService();
   final _Debouncer _debouncer = _Debouncer(const Duration(milliseconds: 500));
-  
+
   // Cache pour éviter les appels répétés
   Position? _cachedPosition;
   DateTime? _lastPositionFetch;
-  
+
   // Contrôleurs de texte
   final TextEditingController _departureController = TextEditingController();
   final TextEditingController _destinationController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
-  
+
   // Variables d'état
   String? _selectedDeparture;
   String? _selectedDestination;
@@ -102,27 +103,28 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   bool _isDestinationActive = false;
   bool _isSelectingSuggestion = false;
   bool _hasTriedToSubmit = false;
-  
+
   // Date et heure
   DateTime _startDate = DateTime.now();
   TimeOfDay? _startTime;
   DateTime _endDate = DateTime.now().add(const Duration(hours: 1));
   TimeOfDay? _endTime;
-  
+
   // Focus nodes
   final FocusNode _departureFocusNode = FocusNode();
   final FocusNode _destinationFocusNode = FocusNode();
   final FocusNode _noteFocusNode = FocusNode();
 
   // Session token pour Google Places
-  final String _placesSessionToken = DateTime.now().microsecondsSinceEpoch.toString();
+  final String _placesSessionToken = DateTime.now().microsecondsSinceEpoch
+      .toString();
 
   @override
   void initState() {
     super.initState();
     _initializeTime();
     _checkForPendingOffers();
-    
+
     // Écouter les changements de focus
     _departureFocusNode.addListener(() {
       setState(() {
@@ -132,7 +134,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         }
       });
     });
-    
+
     _destinationFocusNode.addListener(() {
       setState(() {
         _isDestinationActive = _destinationFocusNode.hasFocus;
@@ -150,12 +152,16 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   void _checkForPendingOffers() async {
     try {
       final offers = await _customOfferService.getUserCustomOffers().first;
-      final pendingOffers = offers.where((o) => o.status == CustomOfferStatus.pending).toList();
-      
+      final pendingOffers = offers
+          .where((o) => o.status == CustomOfferStatus.pending)
+          .toList();
+
       if (pendingOffers.isNotEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Vous avez déjà une offre en attente. Veuillez attendre la réponse du chauffeur.'),
+            content: Text(
+              'Vous avez déjà une offre en attente. Veuillez attendre la réponse du chauffeur.',
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -171,18 +177,32 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
       // Définir l'heure par défaut à 30 minutes après l'heure actuelle de Zurich
       final zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
       final defaultStartTime = zurichTime.add(const Duration(minutes: 30));
-      final defaultEndTime = zurichTime.add(const Duration(hours: 1, minutes: 30));
-      
-      _startTime = TimeOfDay(hour: defaultStartTime.hour, minute: defaultStartTime.minute);
-      _endTime = TimeOfDay(hour: defaultEndTime.hour, minute: defaultEndTime.minute);
+      final defaultEndTime = zurichTime.add(
+        const Duration(hours: 1, minutes: 30),
+      );
+
+      _startTime = TimeOfDay(
+        hour: defaultStartTime.hour,
+        minute: defaultStartTime.minute,
+      );
+      _endTime = TimeOfDay(
+        hour: defaultEndTime.hour,
+        minute: defaultEndTime.minute,
+      );
     } catch (e) {
       // Fallback vers l'heure locale si la base de données n'est pas encore initialisée
       final now = DateTime.now();
       final defaultStartTime = now.add(const Duration(minutes: 30));
       final defaultEndTime = now.add(const Duration(hours: 1, minutes: 30));
-      
-      _startTime = TimeOfDay(hour: defaultStartTime.hour, minute: defaultStartTime.minute);
-      _endTime = TimeOfDay(hour: defaultEndTime.hour, minute: defaultEndTime.minute);
+
+      _startTime = TimeOfDay(
+        hour: defaultStartTime.hour,
+        minute: defaultStartTime.minute,
+      );
+      _endTime = TimeOfDay(
+        hour: defaultEndTime.hour,
+        minute: defaultEndTime.minute,
+      );
     }
   }
 
@@ -199,8 +219,9 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   }
 
   void _onDepartureTextChanged() {
-    if (_isSelectingSuggestion) return; // Ignorer si on est en train de sélectionner une suggestion
-    
+    if (_isSelectingSuggestion)
+      return; // Ignorer si on est en train de sélectionner une suggestion
+
     final query = _departureController.text;
     if (query.isEmpty) {
       setState(() {
@@ -212,8 +233,9 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   }
 
   void _onDestinationTextChanged() {
-    if (_isSelectingSuggestion) return; // Ignorer si on est en train de sélectionner une suggestion
-    
+    if (_isSelectingSuggestion)
+      return; // Ignorer si on est en train de sélectionner une suggestion
+
     final query = _destinationController.text;
     if (query.isEmpty) {
       setState(() {
@@ -229,39 +251,40 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     setState(() {
       _isLoadingDeparture = true;
     });
-    
+
     try {
       final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
           ? AppConstants.googlePlacesWebKey
           : (Platform.isIOS
                 ? AppConstants.googleMapsApiKeyIOS
                 : AppConstants.googleMapsApiKeyAndroid);
-      
+
       // Utiliser la position cachée ou Genève par défaut (plus rapide)
       String locationParam = '';
-      if (_cachedPosition != null && 
-          _lastPositionFetch != null && 
+      if (_cachedPosition != null &&
+          _lastPositionFetch != null &&
           DateTime.now().difference(_lastPositionFetch!).inMinutes < 5) {
         // Utiliser la position cachée si elle est récente (< 5 min)
-        locationParam = '&location=${_cachedPosition!.latitude},${_cachedPosition!.longitude}&radius=50000';
+        locationParam =
+            '&location=${_cachedPosition!.latitude},${_cachedPosition!.longitude}&radius=50000';
       } else {
         // Sinon utiliser Genève par défaut (plus rapide que géolocalisation)
         locationParam = '&location=46.2044,6.1432&radius=50000';
-        
+
         // Récupérer la position en arrière-plan pour le prochain appel
         _updatePositionInBackground();
       }
-      
+
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
         '?input=${Uri.encodeQueryComponent(query)}'
         '&language=fr'
-        '&components=country:ch|country:fr'  // Suisse en premier
+        '&components=country:ch|country:fr' // Suisse en premier
         '&sessiontoken=$_placesSessionToken'
         '$locationParam'
         '&key=$key',
       );
-      
+
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -272,28 +295,30 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
           final suggestions = preds
               .map((p) => Suggestion.fromPlaces(p))
               .toList();
-          
+
           // Tri rapide côté client : Suisse en premier
           suggestions.sort((a, b) {
-            final aIsSwiss = a.address.toLowerCase().contains('suisse') ||
-                             a.address.toLowerCase().contains('switzerland') ||
-                             a.address.toLowerCase().contains('genève') ||
-                             a.address.toLowerCase().contains('zurich') ||
-                             a.address.toLowerCase().contains('bern') ||
-                             a.address.toLowerCase().contains('lausanne');
-            
-            final bIsSwiss = b.address.toLowerCase().contains('suisse') ||
-                             b.address.toLowerCase().contains('switzerland') ||
-                             b.address.toLowerCase().contains('genève') ||
-                             b.address.toLowerCase().contains('zurich') ||
-                             b.address.toLowerCase().contains('bern') ||
-                             b.address.toLowerCase().contains('lausanne');
-            
+            final aIsSwiss =
+                a.address.toLowerCase().contains('suisse') ||
+                a.address.toLowerCase().contains('switzerland') ||
+                a.address.toLowerCase().contains('genève') ||
+                a.address.toLowerCase().contains('zurich') ||
+                a.address.toLowerCase().contains('bern') ||
+                a.address.toLowerCase().contains('lausanne');
+
+            final bIsSwiss =
+                b.address.toLowerCase().contains('suisse') ||
+                b.address.toLowerCase().contains('switzerland') ||
+                b.address.toLowerCase().contains('genève') ||
+                b.address.toLowerCase().contains('zurich') ||
+                b.address.toLowerCase().contains('bern') ||
+                b.address.toLowerCase().contains('lausanne');
+
             if (aIsSwiss && !bIsSwiss) return -1;
             if (!aIsSwiss && bIsSwiss) return 1;
             return 0;
           });
-          
+
           setState(() {
             _departureSuggestions = suggestions;
             _isLoadingDeparture = false;
@@ -323,39 +348,40 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     setState(() {
       _isLoadingDestination = true;
     });
-    
+
     try {
       final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
           ? AppConstants.googlePlacesWebKey
           : (Platform.isIOS
                 ? AppConstants.googleMapsApiKeyIOS
                 : AppConstants.googleMapsApiKeyAndroid);
-      
+
       // Utiliser la position cachée ou Genève par défaut (plus rapide)
       String locationParam = '';
-      if (_cachedPosition != null && 
-          _lastPositionFetch != null && 
+      if (_cachedPosition != null &&
+          _lastPositionFetch != null &&
           DateTime.now().difference(_lastPositionFetch!).inMinutes < 5) {
         // Utiliser la position cachée si elle est récente (< 5 min)
-        locationParam = '&location=${_cachedPosition!.latitude},${_cachedPosition!.longitude}&radius=50000';
+        locationParam =
+            '&location=${_cachedPosition!.latitude},${_cachedPosition!.longitude}&radius=50000';
       } else {
         // Sinon utiliser Genève par défaut (plus rapide que géolocalisation)
         locationParam = '&location=46.2044,6.1432&radius=50000';
-        
+
         // Récupérer la position en arrière-plan pour le prochain appel
         _updatePositionInBackground();
       }
-      
+
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
         '?input=${Uri.encodeQueryComponent(query)}'
         '&language=fr'
-        '&components=country:ch|country:fr'  // Suisse en premier
+        '&components=country:ch|country:fr' // Suisse en premier
         '&sessiontoken=$_placesSessionToken'
         '$locationParam'
         '&key=$key',
       );
-      
+
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -366,28 +392,30 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
           final suggestions = preds
               .map((p) => Suggestion.fromPlaces(p))
               .toList();
-          
+
           // Tri rapide côté client : Suisse en premier
           suggestions.sort((a, b) {
-            final aIsSwiss = a.address.toLowerCase().contains('suisse') ||
-                             a.address.toLowerCase().contains('switzerland') ||
-                             a.address.toLowerCase().contains('genève') ||
-                             a.address.toLowerCase().contains('zurich') ||
-                             a.address.toLowerCase().contains('bern') ||
-                             a.address.toLowerCase().contains('lausanne');
-            
-            final bIsSwiss = b.address.toLowerCase().contains('suisse') ||
-                             b.address.toLowerCase().contains('switzerland') ||
-                             b.address.toLowerCase().contains('genève') ||
-                             b.address.toLowerCase().contains('zurich') ||
-                             b.address.toLowerCase().contains('bern') ||
-                             b.address.toLowerCase().contains('lausanne');
-            
+            final aIsSwiss =
+                a.address.toLowerCase().contains('suisse') ||
+                a.address.toLowerCase().contains('switzerland') ||
+                a.address.toLowerCase().contains('genève') ||
+                a.address.toLowerCase().contains('zurich') ||
+                a.address.toLowerCase().contains('bern') ||
+                a.address.toLowerCase().contains('lausanne');
+
+            final bIsSwiss =
+                b.address.toLowerCase().contains('suisse') ||
+                b.address.toLowerCase().contains('switzerland') ||
+                b.address.toLowerCase().contains('genève') ||
+                b.address.toLowerCase().contains('zurich') ||
+                b.address.toLowerCase().contains('bern') ||
+                b.address.toLowerCase().contains('lausanne');
+
             if (aIsSwiss && !bIsSwiss) return -1;
             if (!aIsSwiss && bIsSwiss) return 1;
             return 0;
           });
-          
+
           setState(() {
             _destinationSuggestions = suggestions;
             _isLoadingDestination = false;
@@ -436,14 +464,14 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
           : (Platform.isIOS
                 ? AppConstants.googleMapsApiKeyIOS
                 : AppConstants.googleMapsApiKeyAndroid);
-      
+
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json'
         '?place_id=$placeId'
         '&fields=geometry'
         '&key=$key',
       );
-      
+
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
@@ -470,12 +498,12 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   Future<void> _onSuggestionTap(Suggestion suggestion, bool isDeparture) async {
     // Marquer qu'on est en train de sélectionner une suggestion
     _isSelectingSuggestion = true;
-    
+
     LatLng? coords = suggestion.coordinates;
     if (coords == null && suggestion.placeId != null) {
       coords = await _fetchPlaceDetailsLatLng(suggestion.placeId!);
     }
-    
+
     if (isDeparture) {
       setState(() {
         _departureController.text = suggestion.shortName;
@@ -491,10 +519,10 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         _selectedDestination = suggestion.shortName;
       });
     }
-    
+
     // Fermer le clavier
     FocusScope.of(context).unfocus();
-    
+
     // Réactiver les listeners après un court délai
     Future.delayed(const Duration(milliseconds: 100), () {
       _isSelectingSuggestion = false;
@@ -503,15 +531,23 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
 
   bool _isFormValid() {
     // Vérifier que départ et destination sont sélectionnés
-    if (_selectedDeparture == null || _selectedDestination == null ||
-        _departureCoordinates == null || _destinationCoordinates == null) {
+    if (_selectedDeparture == null ||
+        _selectedDestination == null ||
+        _departureCoordinates == null ||
+        _destinationCoordinates == null) {
       return false;
     }
-    
+
     // Vérifier que la date/heure de début est dans le futur
     final now = DateTime.now();
-      final startDateTime = DateTime(_startDate.year, _startDate.month, _startDate.day, _startTime!.hour, _startTime!.minute);
-    
+    final startDateTime = DateTime(
+      _startDate.year,
+      _startDate.month,
+      _startDate.day,
+      _startTime!.hour,
+      _startTime!.minute,
+    );
+
     return startDateTime.isAfter(now);
   }
 
@@ -525,16 +561,28 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
 
   bool _isDateTimeValid() {
     if (_startTime == null) return false;
-    
+
     try {
       // Utiliser l'heure de Zurich pour la validation
       final zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
-      final startDateTime = DateTime(_startDate.year, _startDate.month, _startDate.day, _startTime!.hour, _startTime!.minute);
+      final startDateTime = DateTime(
+        _startDate.year,
+        _startDate.month,
+        _startDate.day,
+        _startTime!.hour,
+        _startTime!.minute,
+      );
       return startDateTime.isAfter(zurichTime);
     } catch (e) {
       // Fallback vers l'heure locale
       final now = DateTime.now();
-      final startDateTime = DateTime(_startDate.year, _startDate.month, _startDate.day, _startTime!.hour, _startTime!.minute);
+      final startDateTime = DateTime(
+        _startDate.year,
+        _startDate.month,
+        _startDate.day,
+        _startTime!.hour,
+        _startTime!.minute,
+      );
       return startDateTime.isAfter(now);
     }
   }
@@ -543,7 +591,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     setState(() {
       _hasTriedToSubmit = true;
     });
-    
+
     if (!_isFormValid()) return;
 
     setState(() {
@@ -552,19 +600,33 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
 
     try {
       // Calculer la durée en heures et minutes
-      final startDateTime = DateTime(_startDate.year, _startDate.month, _startDate.day, _startTime!.hour, _startTime!.minute);
-      final endDateTime = DateTime(_endDate.year, _endDate.month, _endDate.day, _endTime!.hour, _endTime!.minute);
+      final startDateTime = DateTime(
+        _startDate.year,
+        _startDate.month,
+        _startDate.day,
+        _startTime!.hour,
+        _startTime!.minute,
+      );
+      final endDateTime = DateTime(
+        _endDate.year,
+        _endDate.month,
+        _endDate.day,
+        _endTime!.hour,
+        _endTime!.minute,
+      );
       final duration = endDateTime.difference(startDateTime);
-      
+
       final durationHours = duration.inHours;
       final durationMinutes = duration.inMinutes % 60;
 
-      final offerId = await _customOfferService.createCustomOffer(
+      await _customOfferService.createCustomOffer(
         departure: _selectedDeparture!,
         destination: _selectedDestination!,
         durationHours: durationHours,
         durationMinutes: durationMinutes,
-        clientNote: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
+        clientNote: _noteController.text.trim().isEmpty
+            ? null
+            : _noteController.text.trim(),
         departureCoordinates: _departureCoordinates != null
             ? {
                 'latitude': _departureCoordinates!.latitude,
@@ -588,7 +650,9 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('${AppLocalizations.of(context).errorUnknownError}: $e'),
+            content: Text(
+              '${AppLocalizations.of(context).errorUnknownError}: $e',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -617,10 +681,23 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   }
 
   Future<void> _selectStartTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: _startTime ?? TimeOfDay.now(),
-    );
+    TimeOfDay? time;
+
+    // Utiliser la roulette iOS sur iOS, picker Android standard sur Android
+    if (Platform.isIOS) {
+      time = await showIOSTimePicker(
+        context: context,
+        initialTime: _startTime ?? TimeOfDay.now(),
+        title: 'Heure de début',
+        subtitle: 'Sélectionnez l\'heure de début de votre offre',
+      );
+    } else {
+      time = await showTimePicker(
+        context: context,
+        initialTime: _startTime ?? TimeOfDay.now(),
+      );
+    }
+
     if (time != null) {
       setState(() {
         _startTime = time;
@@ -643,10 +720,23 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   }
 
   Future<void> _selectEndTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: _endTime ?? TimeOfDay.now(),
-    );
+    TimeOfDay? time;
+
+    // Utiliser la roulette iOS sur iOS, picker Android standard sur Android
+    if (Platform.isIOS) {
+      time = await showIOSTimePicker(
+        context: context,
+        initialTime: _endTime ?? TimeOfDay.now(),
+        title: 'Heure de fin',
+        subtitle: 'Sélectionnez l\'heure de fin de votre offre',
+      );
+    } else {
+      time = await showTimePicker(
+        context: context,
+        initialTime: _endTime ?? TimeOfDay.now(),
+      );
+    }
+
     if (time != null) {
       setState(() {
         _endTime = time;
@@ -701,25 +791,37 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: (_hasTriedToSubmit && (isDeparture ? !_isDepartureValid() : !_isDestinationValid())) 
-                    ? Colors.red.withOpacity(0.6) 
-                    : Colors.white.withOpacity(0.2)
+                color:
+                    (_hasTriedToSubmit &&
+                        (isDeparture
+                            ? !_isDepartureValid()
+                            : !_isDestinationValid()))
+                    ? Colors.red.withOpacity(0.6)
+                    : Colors.white.withOpacity(0.2),
               ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: (_hasTriedToSubmit && (isDeparture ? !_isDepartureValid() : !_isDestinationValid())) 
-                    ? Colors.red.withOpacity(0.6) 
-                    : Colors.white.withOpacity(0.2)
+                color:
+                    (_hasTriedToSubmit &&
+                        (isDeparture
+                            ? !_isDepartureValid()
+                            : !_isDestinationValid()))
+                    ? Colors.red.withOpacity(0.6)
+                    : Colors.white.withOpacity(0.2),
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
-                color: (_hasTriedToSubmit && (isDeparture ? !_isDepartureValid() : !_isDestinationValid())) 
-                    ? Colors.red.withOpacity(0.8) 
-                    : Colors.white.withOpacity(0.4)
+                color:
+                    (_hasTriedToSubmit &&
+                        (isDeparture
+                            ? !_isDepartureValid()
+                            : !_isDestinationValid()))
+                    ? Colors.red.withOpacity(0.8)
+                    : Colors.white.withOpacity(0.4),
               ),
             ),
           ),
@@ -780,14 +882,17 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
               child: GestureDetector(
                 onTap: onDateTap,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: (_hasTriedToSubmit && !_isDateTimeValid()) 
-                          ? Colors.red.withOpacity(0.6) 
-                          : Colors.white.withOpacity(0.2)
+                      color: (_hasTriedToSubmit && !_isDateTimeValid())
+                          ? Colors.red.withOpacity(0.6)
+                          : Colors.white.withOpacity(0.2),
                     ),
                   ),
                   child: Row(
@@ -812,28 +917,25 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
               child: GestureDetector(
                 onTap: onTimeTap,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: (_hasTriedToSubmit && !_isDateTimeValid()) 
-                          ? Colors.red.withOpacity(0.6) 
-                          : Colors.white.withOpacity(0.2)
+                      color: (_hasTriedToSubmit && !_isDateTimeValid())
+                          ? Colors.red.withOpacity(0.6)
+                          : Colors.white.withOpacity(0.2),
                     ),
                   ),
                   child: Row(
                     children: [
-                      Icon(
-                        Icons.access_time,
-                        color: Colors.white70,
-                        size: 20,
-                      ),
+                      Icon(Icons.access_time, color: Colors.white70, size: 20),
                       const SizedBox(width: 12),
                       Text(
-                        time != null 
-                          ? '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}'
-                          : '--:--',
+                        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
                         style: const TextStyle(color: Colors.white),
                       ),
                     ],
@@ -974,7 +1076,9 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : Text(
