@@ -63,18 +63,92 @@
         <key>GMSApiKey</key>
         <string>AIzaSyAYhn4l640vzEvk1gC1BtfoG--5SMFcZoI</string>
 
-        <!-- ✨ NOUVELLES PERMISSIONS AJOUTÉES POUR LA LOCALISATION -->
+        <!-- Permissions de localisation optimisées pour iOS -->
         <key>NSLocationWhenInUseUsageDescription</key>
-        <string>Cette app utilise votre localisation pour vous proposer des services de mobilité adaptés à votre position.</string>
-        
+        <string>Cette app utilise votre localisation pour rechercher des services de mobilité disponibles près de chez vous et calculer des itinéraires optimisés.</string>
+
         <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-        <string>Cette app utilise votre localisation pour vous proposer des services de mobilité même en arrière-plan.</string>
+        <string>Votre localisation est utilisée pour recevoir des notifications de services disponibles même lorsque l'app n'est pas ouverte, et pour améliorer la précision des suggestions de mobilité.</string>
+
+        <key>NSLocationUsageDescription</key>
+        <string>Accès à la localisation nécessaire pour fournir des services de mobilité personnalisés selon votre position géographique.</string>
+
+        <!-- Permissions pour les notifications -->
+        <key>NSUserNotificationsUsageDescription</key>
+        <string>Cette app envoie des notifications pour vous informer des nouvelles offres de mobilité, des mises à jour de statut et des rappels importants.</string>
+
+        <!-- Permission pour l'appareil photo (si utilisée) -->
+        <key>NSCameraUsageDescription</key>
+        <string>L'appareil photo est utilisé pour scanner les codes QR des tickets de transport et améliorer l'expérience utilisateur.</string>
+
+        <!-- Permission pour les contacts (si utilisée) -->
+        <key>NSContactsUsageDescription</key>
+        <string>L'accès aux contacts permet de partager facilement des trajets avec vos amis et contacts de confiance.</string>
+
+        <!-- Permission pour le micro (si utilisée) -->
+        <key>NSMicrophoneUsageDescription</key>
+        <string>Le microphone est utilisé pour la reconnaissance vocale lors de la recherche de destinations et pour améliorer l'accessibilité.</string>
         
-        <!-- ✨ PERMISSION POUR ACCÈS INTERNET (sécurité iOS) -->
+        <!-- Configuration ATS optimisée pour les performances -->
         <key>NSAppTransportSecurity</key>
         <dict>
             <key>NSAllowsArbitraryLoads</key>
+            <false/>
+            <key>NSAllowsLocalNetworking</key>
             <true/>
+            <key>NSExceptionDomains</key>
+            <dict>
+                <key>maps.googleapis.com</key>
+                <dict>
+                    <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                    <false/>
+                    <key>NSExceptionMinimumTLSVersion</key>
+                    <string>TLSv1.2</string>
+                    <key>NSExceptionRequiresForwardSecrecy</key>
+                    <true/>
+                </dict>
+                <key>firebase.googleapis.com</key>
+                <dict>
+                    <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                    <false/>
+                    <key>NSExceptionMinimumTLSVersion</key>
+                    <string>TLSv1.2</string>
+                    <key>NSExceptionRequiresForwardSecrecy</key>
+                    <true/>
+                </dict>
+                <key>places.googleapis.com</key>
+                <dict>
+                    <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                    <false/>
+                    <key>NSExceptionMinimumTLSVersion</key>
+                    <string>TLSv1.2</string>
+                    <key>NSExceptionRequiresForwardSecrecy</key>
+                    <true/>
+                </dict>
+            </dict>
         </dict>
+
+        <!-- Optimisations performances iOS -->
+        <key>UIViewControllerBasedStatusBarAppearance</key>
+        <true/>
+        <key>UIStatusBarStyle</key>
+        <string>UIStatusBarStyleDefault</string>
+
+        <!-- Performance optimisations -->
+        <key>UIApplicationSupportsIndirectInputEvents</key>
+        <true/>
+        <key>UIRequiresPersistentWiFi</key>
+        <false/>
+
+        <!-- Optimisations mémoire -->
+        <key>CADisableMinimumFrameDurationOnPhone</key>
+        <true/>
+
+        <!-- Background modes pour les services de localisation -->
+        <key>UIBackgroundModes</key>
+        <array>
+            <string>location</string>
+            <string>fetch</string>
+        </array>
     </dict>
 </plist>

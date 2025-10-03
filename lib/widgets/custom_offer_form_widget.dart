@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import '../models/place_suggestion.dart';
 import '../services/offer_management_service.dart';
-import '../services/google_places_service.dart';
 import '../utils/logging_service.dart';
 import '../utils/debounce_timer.dart';
 import '../utils/loading_mixin.dart';
@@ -24,17 +22,20 @@ class CustomOfferFormWidget extends StatefulWidget {
   State<CustomOfferFormWidget> createState() => _CustomOfferFormWidgetState();
 }
 
-class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with LoadingMixin {
+class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget>
+    with LoadingMixin {
   // Services centralisés
   final OfferManagementService _offerService = OfferManagementService.instance;
-  final DebounceTimer _distanceDebouncer = DebounceTimer(const Duration(milliseconds: 500));
+  final DebounceTimer _distanceDebouncer = DebounceTimer(
+    const Duration(milliseconds: 500),
+  );
 
   // Contrôleurs pour les formulaires
   LatLng? _departureLocation;
   LatLng? _destinationLocation;
   DateTime _selectedDateTime = DateTime.now();
   int _passengerCount = 1;
-  
+
   // Cache pour éviter les appels répétés
   double? _cachedDistance;
   DateTime? _lastDistanceCalculation;
@@ -49,9 +50,9 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
           // Titre
           Text(
             'Créer une offre personnalisée',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
 
@@ -101,9 +102,9 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
         children: [
           Text(
             'Date & Heure',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Row(
@@ -161,15 +162,17 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
         children: [
           Text(
             'Nombre de passagers',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Row(
             children: [
               IconButton(
-                onPressed: _passengerCount > 1 ? () => setState(() => _passengerCount--) : null,
+                onPressed: _passengerCount > 1
+                    ? () => setState(() => _passengerCount--)
+                    : null,
                 icon: const Icon(Icons.remove),
               ),
               Text(
@@ -177,7 +180,9 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               IconButton(
-                onPressed: _passengerCount < 6 ? () => setState(() => _passengerCount++) : null,
+                onPressed: _passengerCount < 6
+                    ? () => setState(() => _passengerCount++)
+                    : null,
                 icon: const Icon(Icons.add),
               ),
             ],
@@ -190,7 +195,7 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
   /// Construit l'estimateur de prix
   Widget _buildPriceEstimator() {
     if (_cachedDistance == null) return const SizedBox.shrink();
-    
+
     final pricing = _offerService.calculateOfferPricing(
       distanceKm: _cachedDistance!,
       vehicleType: 'standard',
@@ -210,9 +215,9 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
         children: [
           Text(
             'Estimation',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text('Distance: ${_cachedDistance!.toStringAsFixed(1)} km'),
@@ -263,9 +268,10 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
   /// Recalcule la distance entre les points
   void _recalculateDistance() {
     if (_departureLocation == null || _destinationLocation == null) return;
-    
+
     final now = DateTime.now();
-    if (_cachedDistance != null && _lastDistanceCalculation != null && 
+    if (_cachedDistance != null &&
+        _lastDistanceCalculation != null &&
         now.difference(_lastDistanceCalculation!).inMinutes < 5) {
       return; // Cache encore valide
     }
@@ -279,10 +285,10 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
 
     try {
       final distance = await _offerService.calculateDistance(
-        _departureLocation!, 
-        _destinationLocation!
+        _departureLocation!,
+        _destinationLocation!,
       );
-      
+
       if (mounted) {
         setState(() {
           _cachedDistance = distance;
@@ -290,7 +296,9 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
         });
       }
 
-      LoggingService.info('Distance calculée: ${distance?.toStringAsFixed(1)} km');
+      LoggingService.info(
+        'Distance calculée: ${distance?.toStringAsFixed(1)} km',
+      );
     } catch (e) {
       LoggingService.error('Erreur calcul distance', error: e);
     }
@@ -304,7 +312,7 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 30)),
     );
-    
+
     if (date != null) {
       setState(() {
         _selectedDateTime = DateTime(
@@ -324,7 +332,7 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
       context: context,
       initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
     );
-    
+
     if (time != null) {
       setState(() {
         _selectedDateTime = DateTime(
@@ -340,36 +348,34 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget> with Load
 
   /// Estime l'heure d'arrivée
   DateTime _estimateArrival() {
-    final duration = _cachedDistance != null 
-        ? Duration(minutes: (_cachedDistance! / 30 * 60).round()) 
+    final duration = _cachedDistance != null
+        ? Duration(minutes: (_cachedDistance! / 30 * 60).round())
         : const Duration(minutes: 15);
-    
+
     return _selectedDateTime.add(duration);
   }
 
   /// Vérifie si on peut soumettre l'offre
   bool _canSubmit() {
-    return _departureLocation != null && 
-           _destinationLocation != null &&
-           _selectedDateTime.isAfter(DateTime.now());
+    return _departureLocation != null &&
+        _destinationLocation != null &&
+        _selectedDateTime.isAfter(DateTime.now());
   }
 
   /// Soumet l'offre
   void _submitOffer() {
     if (!_canSubmit()) return;
-    
+
     widget.onOfferReady(
       _departureLocation,
       _destinationLocation,
       _selectedDateTime,
       _passengerCount,
     );
-    
-    LoggingService.userAction('Custom offer created', metadata: {
-      'departure': _departureLocation.toString(),
-      'destination': _destinationLocation.toString(),
-      'datetime': _selectedDateTime.toString(),
-      'passengers': _passengerCount,
-    });
+
+    LoggingService.info(
+      'Custom offer created - departure: $_departureLocation, destination: $_destinationLocation, datetime: $_selectedDateTime, passengers: $_passengerCount',
+      tag: 'UserAction',
+    );
   }
 }

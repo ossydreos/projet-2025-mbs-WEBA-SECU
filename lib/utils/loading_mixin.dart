@@ -28,28 +28,31 @@ mixin LoadingMixin<T extends StatefulWidget> on State<T> {
     String? errorPrefix,
   }) async {
     setLoading(true, loadingKey);
-    
+
     try {
       final result = await operation();
-      
+
       if (successMessage != null && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(successMessage), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(successMessage),
+            backgroundColor: Colors.green,
+          ),
         );
       }
-      
+
       return result;
     } catch (e) {
-      final errorMessage = errorPrefix != null 
-          ? '$errorPrefix: $e' 
+      final errorMessage = errorPrefix != null
+          ? '$errorPrefix: $e'
           : 'Erreur: $e';
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
         );
       }
-      
+
       return null;
     } finally {
       setLoading(false, loadingKey);
@@ -62,24 +65,20 @@ mixin LoadingMixin<T extends StatefulWidget> on State<T> {
       visible: isLoading(key),
       child: Container(
         color: Colors.black.withOpacity(0.3),
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       ),
     );
   }
 
   /// Overlay de chargement pour l'écran entier
-  Widget buildLoadingOverlay({String key = 'default'}) {
+  Widget buildLoadingOverlay(Widget child, {String key = 'default'}) {
     return Stack(
       children: [
         child,
         if (isLoading(key))
           Container(
             color: Colors.black.withOpacity(0.5),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           ),
       ],
     );
