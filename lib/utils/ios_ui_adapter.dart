@@ -90,7 +90,7 @@ class IOSUIAdapter {
     VoidCallback? onCancel,
   }) async {
     if (useIOSDesign) {
-      final result = await showCupertinoDialog<bool>(
+      await showCupertinoDialog<bool>(
         context: context,
         builder: (context) => CupertinoAlertDialog(
           title: Text(title),
@@ -116,7 +116,7 @@ class IOSUIAdapter {
         ),
       );
     } else {
-      final result = await showDialog<bool>(
+      await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(title),

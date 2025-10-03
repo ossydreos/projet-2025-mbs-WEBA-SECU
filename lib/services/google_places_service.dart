@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io' show Platform;
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import '../models/place_suggestion.dart';
@@ -35,7 +36,24 @@ class GooglePlacesService {
 
     if (cachedSuggestions != null) {
       LoggingService.info('Suggestions récupérées du cache iOS: $query');
-      return cachedSuggestions.map((s) => PlaceSuggestion.fromJson(s)).toList();
+      return cachedSuggestions
+          .map(
+            (s) => PlaceSuggestion(
+              displayName: s['displayName'] ?? '',
+              shortName: s['shortName'] ?? '',
+              address: s['address'] ?? '',
+              coordinates: s['coordinates'] != null
+                  ? LatLng(
+                      (s['coordinates']['lat'] as num).toDouble(),
+                      (s['coordinates']['lng'] as num).toDouble(),
+                    )
+                  : null,
+              icon: Icons.location_on,
+              distance: s['distance'] ?? '',
+              placeId: s['placeId'],
+            ),
+          )
+          .toList();
     }
 
     try {
@@ -65,7 +83,23 @@ class GooglePlacesService {
           // Cache les résultats (optimisé pour iOS)
           await cache.setPlaceSuggestions(
             query,
-            sortedSuggestions.map((s) => s.toJson()).toList(),
+            sortedSuggestions
+                .map(
+                  (s) => {
+                    'displayName': s.displayName,
+                    'shortName': s.shortName,
+                    'address': s.address,
+                    'coordinates': s.coordinates != null
+                        ? {
+                            'lat': s.coordinates!.latitude,
+                            'lng': s.coordinates!.longitude,
+                          }
+                        : null,
+                    'distance': s.distance,
+                    'placeId': s.placeId,
+                  },
+                )
+                .toList(),
           );
 
           return sortedSuggestions;

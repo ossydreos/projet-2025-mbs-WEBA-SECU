@@ -1,8 +1,7 @@
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, Directory, File;
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
-import 'package:collection/collection.dart';
 
 /// Service de cache optimisé spécifiquement pour iOS
 /// Améliore les performances en gérant intelligemment la mémoire et le stockage

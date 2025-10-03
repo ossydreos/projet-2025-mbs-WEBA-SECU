@@ -97,7 +97,7 @@ class IOSTheme {
       ),
 
       // Style des cartes
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: CupertinoColors.secondarySystemBackground,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -254,7 +254,7 @@ class IOSTheme {
         ),
       ),
 
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: CupertinoColors.systemGrey6.darkColor,
         elevation: 0,
         shape: RoundedRectangleBorder(
