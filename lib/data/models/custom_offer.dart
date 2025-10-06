@@ -60,6 +60,8 @@ class CustomOffer {
   final String? userName; // Nom de l'utilisateur
   final String departure;
   final String destination;
+  final String? vehicleId; // ID du véhicule choisi par le client
+  final String? vehicleName; // Nom lisible du véhicule choisi
   final int durationHours; // Durée en heures
   final int durationMinutes; // Durée en minutes (0-59)
   final String? clientNote; // Note du client pour le chauffeur
@@ -92,6 +94,8 @@ class CustomOffer {
     this.userName,
     required this.departure,
     required this.destination,
+    this.vehicleId,
+    this.vehicleName,
     required this.durationHours,
     required this.durationMinutes,
     this.clientNote,
@@ -120,6 +124,8 @@ class CustomOffer {
       'userName': userName,
       'departure': departure,
       'destination': destination,
+      'vehicleId': vehicleId,
+      'vehicleName': vehicleName,
       'durationHours': durationHours,
       'durationMinutes': durationMinutes,
       'clientNote': clientNote,
@@ -149,6 +155,8 @@ class CustomOffer {
       userName: map['userName'],
       departure: map['departure'] ?? '',
       destination: map['destination'] ?? '',
+      vehicleId: map['vehicleId'],
+      vehicleName: map['vehicleName'],
       durationHours: map['durationHours'] ?? 0,
       durationMinutes: map['durationMinutes'] ?? 0,
       clientNote: map['clientNote'],
@@ -192,6 +200,8 @@ class CustomOffer {
     String? userName,
     String? departure,
     String? destination,
+    String? vehicleId,
+    String? vehicleName,
     int? durationHours,
     int? durationMinutes,
     String? clientNote,
@@ -217,6 +227,8 @@ class CustomOffer {
       userName: userName ?? this.userName,
       departure: departure ?? this.departure,
       destination: destination ?? this.destination,
+      vehicleId: vehicleId ?? this.vehicleId,
+      vehicleName: vehicleName ?? this.vehicleName,
       durationHours: durationHours ?? this.durationHours,
       durationMinutes: durationMinutes ?? this.durationMinutes,
       clientNote: clientNote ?? this.clientNote,

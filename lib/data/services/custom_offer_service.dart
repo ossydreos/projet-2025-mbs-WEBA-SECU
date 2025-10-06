@@ -15,6 +15,8 @@ class CustomOfferService {
     required String destination,
     required int durationHours,
     required int durationMinutes,
+    String? vehicleId,
+    String? vehicleName,
     String? clientNote,
     Map<String, dynamic>? departureCoordinates,
     Map<String, dynamic>? destinationCoordinates,
@@ -36,6 +38,8 @@ class CustomOfferService {
         userName: user.displayName,
         departure: departure,
         destination: destination,
+        vehicleId: vehicleId,
+        vehicleName: vehicleName,
         durationHours: durationHours,
         durationMinutes: durationMinutes,
         clientNote: clientNote,
@@ -105,15 +109,16 @@ class CustomOfferService {
 
   // Récupérer les offres en attente (pour les chauffeurs)
   Stream<List<CustomOffer>> getPendingCustomOffers() {
+    // Pas d'ordre pour éviter l'index composite requis; tri côté client
     return _firestore
         .collection(_collection)
         .where('status', isEqualTo: CustomOfferStatus.pending.name)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
           .map((doc) => CustomOffer.fromMap(doc.data()))
-          .toList();
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     });
   }
 

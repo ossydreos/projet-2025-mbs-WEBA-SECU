@@ -5,6 +5,9 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/services/custom_offer_service.dart';
+import 'package:my_mobility_services/data/models/custom_offer.dart';
+import 'package:my_mobility_services/screens/admin/offres/admin_custom_offer_detail_screen.dart';
 import 'package:my_mobility_services/data/services/admin_global_notification_service.dart';
 import 'package:my_mobility_services/data/services/support_chat_service.dart';
 import 'package:my_mobility_services/data/models/support_thread.dart';
@@ -33,6 +36,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   final ReservationService _reservationService = ReservationService();
   final AdminGlobalNotificationService _notificationService =
       AdminGlobalNotificationService();
+  final CustomOfferService _customOfferService = CustomOfferService();
 
   // État pour suivre les réservations en cours de traitement
   final Set<String> _processingReservations = <String>{};
@@ -327,6 +331,11 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
         // Widget des réservations en attente
         _buildPendingReservations(),
+
+        const SizedBox(height: 24),
+
+        // Widget des offres personnalisées en attente
+        _buildPendingCustomOffers(),
       ],
     );
   }
@@ -385,6 +394,215 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPendingCustomOffers() {
+    return StreamBuilder<List<CustomOffer>>(
+      stream: _customOfferService.getPendingCustomOffers(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final offers = snapshot.data ?? <CustomOffer>[];
+        if (offers.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.star_outline, color: AppColors.accent, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  'Offres personnalisées en attente',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textStrong,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...offers.map(_buildCustomOfferCard).toList(),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCustomOfferCard(CustomOffer offer) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.assignment, color: AppColors.accent),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        offer.userName ?? 'Client',
+                        style: TextStyle(
+                          color: AppColors.textStrong,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _formatDate(offer.createdAt),
+                        style: TextStyle(color: AppColors.textWeak, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text('En attente', style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            // Trajet
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Column(
+                  children: [
+                    Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)),
+                    Container(width: 1, height: 18, color: AppColors.textWeak.withOpacity(0.5)),
+                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFF6B6B), shape: BoxShape.circle)),
+                  ],
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(offer.departure, style: TextStyle(color: AppColors.text, fontSize: 14)),
+                      const SizedBox(height: 6),
+                      Text(offer.destination, style: TextStyle(color: AppColors.text, fontSize: 14)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            // Véhicule choisi par l'utilisateur (si présent)
+            if ((offer.vehicleName ?? '').isNotEmpty) Row(
+              children: [
+                const Icon(Icons.directions_car, size: 16, color: AppColors.textWeak),
+                const SizedBox(width: 8),
+                Text(
+                  offer.vehicleName!,
+                  style: TextStyle(color: AppColors.textWeak, fontSize: 14),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            if (offer.clientNote != null && offer.clientNote!.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.accent.withOpacity(0.18)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.note, color: AppColors.accent, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        offer.clientNote!,
+                        style: TextStyle(color: AppColors.text, fontSize: 14, height: 1.3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => AdminCustomOfferDetailScreen(offer: offer),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Gérer'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await _customOfferService.updateOfferStatus(
+                          offerId: offer.id,
+                          status: CustomOfferStatus.rejected,
+                        );
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Offre refusée'), backgroundColor: Colors.red),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.close),
+                    label: const Text('Refuser'),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -148,6 +148,50 @@ class VehiculeType {
 
   // Créer depuis un document Firebase
   factory VehiculeType.fromMap(Map<String, dynamic> map) {
+    // Supporter plusieurs formats possibles en BDD:
+    // - icon: int (codePoint)
+    // - icon: num (Firestore peut renvoyer num)
+    // - icon: String (codePoint en string)
+    // - iconName: String (nom d'icône Material)
+    IconData _resolveIconFromMap(Map<String, dynamic> m) {
+      final dynamic raw = m['icon'];
+      if (raw is int) {
+        return IconData(raw, fontFamily: 'MaterialIcons');
+      }
+      if (raw is num) {
+        return IconData(raw.toInt(), fontFamily: 'MaterialIcons');
+      }
+      if (raw is String) {
+        final parsed = int.tryParse(raw);
+        if (parsed != null) {
+          return IconData(parsed, fontFamily: 'MaterialIcons');
+        }
+      }
+      final String? iconName = m['iconName'] as String?;
+      if (iconName != null) {
+        switch (iconName) {
+          case 'directions_car':
+            return Icons.directions_car;
+          case 'local_taxi':
+            return Icons.local_taxi;
+          case 'airport_shuttle':
+            return Icons.airport_shuttle;
+          case 'electric_car':
+            return Icons.electric_car;
+          case 'two_wheeler':
+            return Icons.two_wheeler;
+          case 'car_rental':
+            return Icons.car_rental;
+          case 'airport':
+            return Icons.airport_shuttle; // fallback proche
+          default:
+            return Icons.directions_car;
+        }
+      }
+      return Icons.directions_car;
+    }
+    final IconData resolvedIcon = _resolveIconFromMap(map);
+
     return VehiculeType(
       id: map['id'] ?? '',
       name: map['name'] ?? '',
@@ -160,7 +204,7 @@ class VehiculeType {
       maxLuggage: map['maxLuggage'] ?? 2,
       description: map['description'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
-      icon: Icons.directions_car, // Utiliser une icône constante pour éviter l'erreur de build
+      icon: resolvedIcon,
       isActive: map['isActive'] ?? true,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: map['updatedAt'] != null 

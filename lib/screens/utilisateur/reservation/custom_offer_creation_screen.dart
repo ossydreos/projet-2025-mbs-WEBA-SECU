@@ -10,6 +10,8 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/constants.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
+import 'package:my_mobility_services/data/models/vehicule_type.dart';
+import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/widgets/ios_time_picker.dart';
 
@@ -79,6 +81,19 @@ class CustomOfferCreationScreen extends StatefulWidget {
 class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   final CustomOfferService _customOfferService = CustomOfferService();
   final _Debouncer _debouncer = _Debouncer(const Duration(milliseconds: 500));
+  final VehicleService _vehicleService = VehicleService();
+
+  // Couleur par catégorie (aligné sur BookingScreen)
+  Color _getVehicleColor(VehicleCategory category) {
+    switch (category) {
+      case VehicleCategory.economique:
+        return AppColors.accent;
+      case VehicleCategory.van:
+        return AppColors.accent2;
+      case VehicleCategory.luxe:
+        return AppColors.hot;
+    }
+  }
 
   // Cache pour éviter les appels répétés
   Position? _cachedPosition;
@@ -109,6 +124,9 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   TimeOfDay? _startTime;
   DateTime _endDate = DateTime.now().add(const Duration(hours: 1));
   TimeOfDay? _endTime;
+  
+  // Sélection de véhicule
+  VehiculeType? _selectedVehicle;
 
   // Focus nodes
   final FocusNode _departureFocusNode = FocusNode();
@@ -624,6 +642,8 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         destination: _selectedDestination!,
         durationHours: durationHours,
         durationMinutes: durationMinutes,
+        vehicleId: _selectedVehicle?.id,
+        vehicleName: _selectedVehicle?.name,
         clientNote: _noteController.text.trim().isEmpty
             ? null
             : _noteController.text.trim(),
@@ -1015,6 +1035,110 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
 
               const SizedBox(height: 24),
 
+              // Sélecteur de véhicule (liste en temps réel)
+              const Text(
+                'Véhicule',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.12)),
+                ),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 260),
+                  child: StreamBuilder<List<VehiculeType>>(
+                    stream: _vehicleService.getVehiclesStream(),
+                    initialData: const <VehiculeType>[],
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting && snapshot.data == null) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator(color: Colors.white)),
+                        );
+                      }
+
+                      if (snapshot.hasError) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('Erreur de chargement des véhicules', style: TextStyle(color: Colors.red)),
+                        );
+                      }
+
+                      final vehicles = snapshot.data ?? <VehiculeType>[];
+                      final sortedVehicles = List<VehiculeType>.from(vehicles)
+                        ..sort((a, b) {
+                          if (a.isActive && !b.isActive) return -1;
+                          if (!a.isActive && b.isActive) return 1;
+                          return 0;
+                        });
+
+                      if (sortedVehicles.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('Aucun véhicule disponible pour le moment', style: TextStyle(color: Colors.white70)),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: sortedVehicles.length,
+                        separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.08), height: 1),
+                        itemBuilder: (context, index) {
+                          final vehicle = sortedVehicles[index];
+                          final isSelected = _selectedVehicle?.id == vehicle.id;
+                          final isActive = vehicle.isActive;
+
+                          return Opacity(
+                            opacity: isActive ? 1.0 : 0.5,
+                            child: ListTile(
+                              onTap: isActive
+                                  ? () {
+                                      setState(() {
+                                        _selectedVehicle = vehicle;
+                                      });
+                                    }
+                                  : null,
+                              leading: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: _getVehicleColor(vehicle.category).withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  vehicle.icon,
+                                  color: _getVehicleColor(vehicle.category),
+                                  size: 20,
+                                ),
+                              ),
+                              title: Text(
+                                vehicle.name,
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                              ),
+                              subtitle: Text(
+                                '${vehicle.category.categoryInFrench} • ${vehicle.capacityDisplay}',
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                              trailing: isSelected
+                                  ? const Icon(Icons.radio_button_checked, color: Colors.white)
+                                  : const Icon(Icons.radio_button_off, color: Colors.white54),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+              
+
               // Point de destination
               _buildLocationField(
                 label: AppLocalizations.of(context).destination,
@@ -1058,11 +1182,11 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isFormValid() && !_isCreatingOffer
+                  onPressed: _isFormValid() && !_isCreatingOffer && _selectedVehicle != null
                       ? _createCustomOffer
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _isFormValid() && !_isCreatingOffer
+                    backgroundColor: _isFormValid() && !_isCreatingOffer && _selectedVehicle != null
                         ? AppColors.accent
                         : Colors.grey,
                     padding: const EdgeInsets.symmetric(vertical: 16),

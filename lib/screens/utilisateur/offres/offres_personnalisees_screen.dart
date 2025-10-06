@@ -437,7 +437,9 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
         id: '', // Pas d'ID encore
         userId: user.uid,
         userName: user.displayName ?? user.email?.split('@').first,
-        vehicleName: 'Offre personnalisée',
+        vehicleName: offer.vehicleName?.isNotEmpty == true
+            ? offer.vehicleName!
+            : 'Offre personnalisée',
         departure: offer.departure,
         destination: offer.destination,
         selectedDate: selectedDate,

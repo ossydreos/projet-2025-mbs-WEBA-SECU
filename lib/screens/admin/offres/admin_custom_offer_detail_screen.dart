@@ -3,6 +3,8 @@ import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/data/services/vehicle_service.dart';
+import 'package:my_mobility_services/data/models/vehicule_type.dart';
 
 class AdminCustomOfferDetailScreen extends StatefulWidget {
   final CustomOffer offer;
@@ -21,6 +23,8 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
   bool _isProcessing = false;
+  final VehicleService _vehicleService = VehicleService();
+  VehiculeType? _offerVehicle;
   
   // Variables pour la modification
   late DateTime _modifiedStartDate;
@@ -44,6 +48,13 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
     _modifiedEndDate = DateTime.now().add(const Duration(hours: 1));
     _modifiedStartTime = TimeOfDay.now();
     _modifiedEndTime = TimeOfDay.now();
+
+    // Charger le véhicule choisi s'il existe
+    if ((widget.offer.vehicleId ?? '').isNotEmpty) {
+      _vehicleService.getVehicleById(widget.offer.vehicleId!).then((v) {
+        if (mounted) setState(() => _offerVehicle = v);
+      });
+    }
   }
 
   @override
@@ -248,10 +259,86 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+
+            // Véhicule choisi (si présent) - rendu plus graphique
+            if ((widget.offer.vehicleName ?? '').isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.12)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _getVehicleColor(_offerVehicle?.category)
+                            .withOpacity(0.20),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        _offerVehicle?.icon ?? Icons.directions_car,
+                        color: _getVehicleColor(_offerVehicle?.category),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.offer.vehicleName!,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (_offerVehicle != null)
+                            Text(
+                              '${_offerVehicle!.category.categoryInFrench} • ${_offerVehicle!.capacityDisplay}',
+                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Véhicule choisi',
+                        style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
     );
+  }
+
+  // Couleur par catégorie
+  Color _getVehicleColor(VehicleCategory? category) {
+    if (category == null) return AppColors.accent;
+    switch (category) {
+      case VehicleCategory.economique:
+        return AppColors.accent;
+      case VehicleCategory.van:
+        return AppColors.accent2;
+      case VehicleCategory.luxe:
+        return AppColors.hot;
+    }
   }
 
   Widget _buildTimeInfoCard() {
