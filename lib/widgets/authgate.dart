@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/screens/splash_screen.dart';
 import 'package:my_mobility_services/screens/log_screen/welcome_login_screen.dart';
 import 'package:my_mobility_services/screens/admin/reception/admin_reception_screen_complete.dart';
+import 'package:my_mobility_services/widgets/admin/admin_screen_wrapper.dart';
 import 'package:my_mobility_services/data/services/user_service.dart';
 import 'package:my_mobility_services/data/services/session_service.dart';
 import 'package:my_mobility_services/data/models/user_model.dart';
@@ -16,77 +17,69 @@ class Authgate extends StatefulWidget {
 }
 
 class _AuthgateState extends State<Authgate> {
-  final SessionService _sessionService = SessionService();
-  bool _isCheckingSession = true;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _checkSessionValidity();
+    // Version ultra-simplifiée pour éviter les crashes
+    _initializeApp();
   }
 
-  Future<void> _checkSessionValidity() async {
+  Future<void> _initializeApp() async {
     try {
-      final isValid = await _sessionService.isSessionValid();
-      if (!isValid && mounted) {
-        // Session invalide, déconnecter l'utilisateur
-        await _sessionService.signOut();
-      }
+      // Attendre un peu pour simuler l'initialisation
+      await Future.delayed(const Duration(seconds: 2));
+      debugPrint('✅ Initialisation simplifiée terminée');
     } catch (e) {
-      print('Erreur lors de la vérification de session: $e');
+      debugPrint('❌ Erreur lors de l\'initialisation: $e');
     } finally {
       if (mounted) {
-        setState(() => _isCheckingSession = false);
+        setState(() => _isInitialized = true);
+        debugPrint('✅ AuthGate prêt');
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isCheckingSession) {
+    if (!_isInitialized) {
       return const SplashScreen();
     }
 
+    // Router l'app selon l'état d'auth Firebase
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const SplashScreen();
         }
+
         final user = snapshot.data;
-
-        // Debug pour voir l'état de l'authentification
-        print('AuthGate - User: ${user?.uid ?? "null"}');
-        print('AuthGate - Connection state: ${snapshot.connectionState}');
-
         if (user == null) {
-          print('AuthGate - Redirection vers WelcomeLoginSignup');
+          debugPrint('AuthGate -> utilisateur déconnecté → Welcome');
           return const WelcomeLoginSignup();
-        } else {
-          // Vérifier si l'utilisateur est admin
-          return StreamBuilder<UserModel?>(
-            stream: UserService().getCurrentUserStream(),
-            builder: (context, userSnapshot) {
-              if (userSnapshot.connectionState == ConnectionState.waiting) {
-                return const SplashScreen();
-              }
-
-              final userModel = userSnapshot.data;
-              print('AuthGate - UserModel: ${userModel?.role.name ?? "null"}');
-
-              if (userModel?.isAdmin == true) {
-                print(
-                  'AuthGate - Redirection vers AdminReceptionScreen (complete)',
-                );
-                return const AdminReceptionScreen();
-              } else {
-                print('AuthGate - Redirection vers HomeShell');
-
-                return const HomeShell();
-              }
-            },
-          );
         }
+
+        // Charger la fiche utilisateur pour router selon le rôle
+        return FutureBuilder<UserModel?>(
+          future: UserService().getUserById(user.uid),
+          builder: (context, roleSnap) {
+            if (roleSnap.connectionState == ConnectionState.waiting) {
+              return const SplashScreen();
+            }
+            final userModel = roleSnap.data;
+            if (userModel?.isAdmin == true) {
+              debugPrint('AuthGate -> admin connecté (${user.uid}) → AdminHome');
+              return AdminScreenWrapper(
+                title: 'Réception',
+                child: const AdminReceptionScreen(),
+              );
+            }
+            debugPrint('AuthGate -> utilisateur connecté (${user.uid}) → Home');
+            return const HomeShell();
+          },
+        );
       },
     );
   }

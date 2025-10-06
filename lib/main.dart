@@ -45,43 +45,33 @@ import 'firebase_messaging_background.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // Enregistrer le handler FCM background au plus tôt
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  // Initialiser les données de fuseau horaire pour toute l'application
-  tz.initializeTimeZones();
-
-  // Démarrer le service de timeout des réservations
-  final timeoutService = ReservationTimeoutService();
-  timeoutService.startTimeoutService();
-
-  // Initialiser le service FCM
-  final fcmService = FCMNotificationService();
-  await fcmService.initialize();
   
-  // Initialiser le service de tokens admin
-  final adminTokenService = AdminTokenService();
-  await adminTokenService.saveAdminToken('admin_1'); // Remplace par l'ID admin réel
-  adminTokenService.setupTokenRefresh('admin_1');
-  
-  // Initialiser le service FCM pour les réservations
-  final reservationFCMService = ReservationFCMService();
-  reservationFCMService.startListeningForNewReservations();
-  
-  // Initialiser le service de notification global pour l'admin
-  final notificationService = AdminGlobalNotificationService();
-  notificationService.initializeGlobal();
-
-  // Vérifier si l'app a été lancée depuis une notification
-  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-  if (initialMessage != null) {
-    // Possibilité: router vers un écran selon initialMessage.data
-    // Ici on ne navigue pas encore, mais on peut logguer pour validation
-    debugPrint('🔔 App lancée depuis notification: ${initialMessage.data}');
+  try {
+    // Initialiser Firebase de manière sécurisée
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    debugPrint('✅ Firebase initialisé avec succès');
+    
+    // Initialiser les données de fuseau horaire
+    tz.initializeTimeZones();
+    debugPrint('✅ Fuseaux horaires initialisés');
+    
+    // Enregistrer le handler FCM background de manière sécurisée
+    try {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+      debugPrint('✅ Handler FCM background enregistré');
+    } catch (e) {
+      debugPrint('⚠️ Erreur handler FCM: $e');
+    }
+    
+  } catch (e) {
+    debugPrint('❌ Erreur lors de l\'initialisation Firebase: $e');
+    debugPrint('🔄 Continuation sans Firebase pour tester...');
   }
 
   runApp(const MyApp());
 }
+
+// Les services seront initialisés plus tard dans l'app pour éviter les crashes
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

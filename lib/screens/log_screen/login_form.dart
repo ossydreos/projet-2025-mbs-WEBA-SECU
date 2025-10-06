@@ -114,11 +114,16 @@ class LoginFormState extends State<LoginForm> {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).welcomeMessage)));
-
+      // Confirmer la connexion à l'utilisateur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context).welcomeMessage)),
+      );
+      // Fermer la feuille
       widget.onClose();
+      // Navigation immédiate vers l'accueil (en plus du routing par AuthGate)
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
+      }
     } on FirebaseAuthException catch (e) {
       String msg;
       switch (e.code) {
