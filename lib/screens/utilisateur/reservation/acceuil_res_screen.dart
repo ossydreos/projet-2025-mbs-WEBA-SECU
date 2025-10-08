@@ -18,6 +18,7 @@ import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:my_mobility_services/services/contact_launcher_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -726,8 +727,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     super.build(context);
     final bottomSafe = MediaQuery.of(context).padding.bottom;
 
-    return GlassBackground(
-      child: Scaffold(
+    final scaffold = Scaffold(
         backgroundColor: Colors.transparent,
         // IMPORTANT : permet au body de passer SOUS la navbar (elle reste au-dessus et à la bonne place)
         extendBody: true,
@@ -896,57 +896,28 @@ class _AccueilScreenState extends State<AccueilScreen>
                 onTap: _onItemTapped,
               )
             : null,
-      ),
-    );
+      );
+
+    return widget.showBottomBar ? GlassBackground(child: scaffold) : scaffold;
   }
 
-  // Lancer un appel téléphonique
+  // Appeler: utilise le système natif
   Future<void> _makePhoneCall() async {
     try {
-      final phoneNumber = await _adminService.getAdminPhoneNumber();
-      if (phoneNumber != null) {
-        final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-        try {
-          if (await canLaunchUrl(phoneUri)) {
-            await launchUrl(phoneUri);
-          } else {
-            // Fallback: essayer de lancer directement sans vérification
-            await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
-          }
-        } catch (e) {
-          // Fallback: essayer de lancer directement
-          await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
-        }
-      } else {
-        _showErrorSnackBar(AppLocalizations.of(context).adminPhoneNotAvailable);
-      }
+      final contactService = ContactLauncherService(context);
+      await contactService.launchPhoneCall();
     } catch (e) {
       _showErrorSnackBar('Erreur lors de l\'appel: $e');
     }
   }
 
-  // Envoyer un SMS
+  // Envoyer un message: utilise le système natif
   Future<void> _sendSMS() async {
     try {
-      final phoneNumber = await _adminService.getAdminPhoneNumber();
-      if (phoneNumber != null) {
-        final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
-        try {
-          if (await canLaunchUrl(smsUri)) {
-            await launchUrl(smsUri);
-          } else {
-            // Fallback: essayer de lancer directement sans vérification
-            await launchUrl(smsUri, mode: LaunchMode.externalApplication);
-          }
-        } catch (e) {
-          // Fallback: essayer de lancer directement
-          await launchUrl(smsUri, mode: LaunchMode.externalApplication);
-        }
-      } else {
-        _showErrorSnackBar(AppLocalizations.of(context).adminPhoneNotAvailable);
-      }
+      final contactService = ContactLauncherService(context);
+      await contactService.launchMessage();
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de l\'envoi du SMS: $e');
+      _showErrorSnackBar('Erreur lors de l\'envoi du message: $e');
     }
   }
 

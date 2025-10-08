@@ -11,6 +11,7 @@ import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/pdf_export_service.dart';
 import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:my_mobility_services/services/contact_launcher_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 // 👇 importe la barre réutilisable
@@ -98,8 +99,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return GlassBackground(
-      child: Scaffold(
+    final scaffold = Scaffold(
         backgroundColor: Colors.transparent,
 
         appBar: GlassAppBar(
@@ -135,13 +135,14 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         bottomNavigationBar: _isSelectionMode
             ? _buildSelectionBottomBar()
             : (widget.showBottomBar
-                  ? CustomBottomNavigationBar(
-                      currentIndex: _selectedIndex,
-                      onTap: _onItemTapped,
-                    )
-                  : null),
-      ),
-    );
+                ? CustomBottomNavigationBar(
+                    currentIndex: _selectedIndex,
+                    onTap: _onItemTapped,
+                  )
+                : null),
+      );
+
+    return widget.showBottomBar ? GlassBackground(child: scaffold) : scaffold;
   }
 
   // Méthode pour récupérer une offre personnalisée par son ID
@@ -168,7 +169,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       ),
       initialData: const [],
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        final reservations = snapshot.data ?? const <Reservation>[];
+        final hasAnyData = reservations.isNotEmpty;
+        if (snapshot.connectionState == ConnectionState.waiting && !hasAnyData) {
           return const Center(
             child: CircularProgressIndicator(color: AppColors.accent),
           );
@@ -212,8 +215,6 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           );
         }
 
-        final reservations = snapshot.data ?? [];
-
         // Mettre à jour les réservations actuelles pour l'export
         _currentReservations = reservations;
 
@@ -247,7 +248,9 @@ class _TrajetsScreenState extends State<TrajetsScreen>
       ),
       initialData: const [],
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        final reservations = snapshot.data ?? const <Reservation>[];
+        final hasAnyData = reservations.isNotEmpty;
+        if (snapshot.connectionState == ConnectionState.waiting && !hasAnyData) {
           return const Center(
             child: CircularProgressIndicator(color: AppColors.accent),
           );
@@ -280,8 +283,6 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             ),
           );
         }
-
-        final reservations = snapshot.data ?? [];
 
         if (reservations.isEmpty) {
           return _buildEmptyCompletedView();
@@ -685,6 +686,20 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   ),
                 ],
               ),
+              const SizedBox(height: 6),
+              // Moyen de paiement sous l'adresse
+              Row(
+                children: [
+                  Icon(Icons.credit_card, color: AppColors.text, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    reservation.paymentMethod.isNotEmpty
+                        ? reservation.paymentMethod
+                        : 'Méthode de paiement',
+                    style: TextStyle(fontSize: 13, color: AppColors.text),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               // Affichage des dates selon le type de réservation
               if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
@@ -926,6 +941,20 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   ),
                 ],
               ),
+              const SizedBox(height: 6),
+              // Moyen de paiement sous l'adresse
+              Row(
+                children: [
+                  Icon(Icons.credit_card, color: AppColors.text, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    reservation.paymentMethod.isNotEmpty
+                        ? reservation.paymentMethod
+                        : 'Méthode de paiement',
+                    style: TextStyle(fontSize: 13, color: AppColors.text),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -944,53 +973,23 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     );
   }
 
-  // Lancer un appel téléphonique
+  // Appeler: utilise le système natif
   Future<void> _makePhoneCall() async {
     try {
-      final phoneNumber = await _adminService.getAdminPhoneNumber();
-      if (phoneNumber != null) {
-        final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
-        try {
-          if (await canLaunchUrl(phoneUri)) {
-            await launchUrl(phoneUri);
-          } else {
-            // Fallback: essayer de lancer directement sans vérification
-            await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
-          }
-        } catch (e) {
-          // Fallback: essayer de lancer directement
-          await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
-        }
-      } else {
-        _showErrorSnackBar('Numéro de téléphone admin non disponible');
-      }
+      final contactService = ContactLauncherService(context);
+      await contactService.launchPhoneCall();
     } catch (e) {
       _showErrorSnackBar('Erreur lors de l\'appel: $e');
     }
   }
 
-  // Envoyer un SMS
+  // Envoyer un message: utilise le système natif
   Future<void> _sendSMS() async {
     try {
-      final phoneNumber = await _adminService.getAdminPhoneNumber();
-      if (phoneNumber != null) {
-        final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
-        try {
-          if (await canLaunchUrl(smsUri)) {
-            await launchUrl(smsUri);
-          } else {
-            // Fallback: essayer de lancer directement sans vérification
-            await launchUrl(smsUri, mode: LaunchMode.externalApplication);
-          }
-        } catch (e) {
-          // Fallback: essayer de lancer directement
-          await launchUrl(smsUri, mode: LaunchMode.externalApplication);
-        }
-      } else {
-        _showErrorSnackBar('Numéro de téléphone admin non disponible');
-      }
+      final contactService = ContactLauncherService(context);
+      await contactService.launchMessage();
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de l\'envoi du SMS: $e');
+      _showErrorSnackBar('Erreur lors de l\'envoi du message: $e');
     }
   }
 

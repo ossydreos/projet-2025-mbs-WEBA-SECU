@@ -231,7 +231,7 @@ class StripeCheckoutService {
     }
   }
 
-  // ✅ Créer une session Stripe via l'API (pour référence, non utilisée)
+  // ✅ Créer une session Stripe via l'API avec personnalisation
   static Future<Map<String, dynamic>> _createStripeSession({
     required double amount,
     required String currency,
@@ -245,7 +245,6 @@ class StripeCheckoutService {
       final body = {
         'payment_method_types[0]': 'card',    // Carte bancaire
         'payment_method_types[1]': 'twint',  // Twint
-        'payment_method_types[2]': 'klarna', // Klarna (si vous voulez)
         'line_items[0][price_data][currency]': currency.toLowerCase(),
       'line_items[0][price_data][product_data][name]': 'Réservation $vehicleName',
       'line_items[0][price_data][product_data][description]': 'De $departure vers $destination',
@@ -259,6 +258,18 @@ class StripeCheckoutService {
       // ✅ Configuration pour Apple Pay et Google Pay
       'payment_method_options[card][request_three_d_secure]': 'automatic',
       'automatic_tax[enabled]': 'false',
+      
+      // 🎨 PERSONNALISATION DE LA PAGE STRIPE CHECKOUT
+      'custom_text[submit][message]': 'Merci de votre confiance ! Votre réservation sera confirmée immédiatement.',
+      'consent_collection[terms_of_service]': 'required',
+      'custom_text[terms_of_service_acceptance][message]': 'En effectuant ce paiement, vous acceptez nos conditions d\'utilisation.',
+      
+      // 🎨 COULEURS ET BRANDING (si configuré dans le dashboard Stripe)
+      // Pas de collecte d'adresse pour Twint
+      
+      // 📱 Configuration mobile optimisée
+      // Pas de collecte de téléphone
+      'customer_creation': 'always',
     };
 
     final response = await http.post(
@@ -293,6 +304,7 @@ class StripeCheckoutService {
         'status': ReservationStatus.confirmed.name,
         'isPaid': true,
         'waitingForPayment': false, // Plus en attente de paiement
+        'paymentMethod': 'Carte bancaire',
         'lastUpdated': Timestamp.now(),
         'paymentAmount': amount,
         'paymentCurrency': currency,
@@ -318,6 +330,7 @@ class StripeCheckoutService {
         'status': ReservationStatus.confirmed.name,
         'isPaid': true,
         'waitingForPayment': false, // Plus en attente de paiement
+        'paymentMethod': 'Carte bancaire',
         'lastUpdated': Timestamp.now(),
         'paymentAmount': amount,
         'paymentCurrency': currency,

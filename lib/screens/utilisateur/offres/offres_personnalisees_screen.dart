@@ -24,7 +24,8 @@ class OffresPersonnaliseesScreen extends StatefulWidget {
   State<OffresPersonnaliseesScreen> createState() => _OffresPersonnaliseesScreenState();
 }
 
-class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen> {
+class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
+    with AutomaticKeepAliveClientMixin {
   final CustomOfferService _customOfferService = CustomOfferService();
   final ReservationService _reservationService = ReservationService();
 
@@ -569,15 +570,20 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
-    return GlassBackground(
-      child: Scaffold(
+    super.build(context);
+    final scaffold = Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(title: AppLocalizations.of(context).offers),
         body: StreamBuilder<List<CustomOffer>>(
           stream: _customOfferService.getUserCustomOffers(),
+          initialData: const <CustomOffer>[],
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            final hasAnyData = (snapshot.data != null && snapshot.data!.isNotEmpty);
+            if (snapshot.connectionState == ConnectionState.waiting && !hasAnyData) {
               return const Center(
                 child: CircularProgressIndicator(color: Colors.white),
               );
@@ -746,7 +752,8 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
             );
           },
         ),
-      ),
-    );
+      );
+
+    return widget.showBottomBar ? GlassBackground(child: scaffold) : scaffold;
   }
 }

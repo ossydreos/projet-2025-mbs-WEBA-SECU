@@ -60,7 +60,8 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with AutomaticKeepAliveClientMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -68,11 +69,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   User? get _currentUser => _auth.currentUser;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return StreamBuilder<User?>(
       stream: _auth.authStateChanges(),
+      initialData: _auth.currentUser,
       builder: (context, authSnapshot) {
-        if (authSnapshot.connectionState == ConnectionState.waiting) {
+        final hasAuth = authSnapshot.data != null;
+        if (authSnapshot.connectionState == ConnectionState.waiting && !hasAuth) {
           return const GlassBackground(
             child: Scaffold(
               backgroundColor: Colors.transparent,
@@ -87,46 +94,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         return StreamBuilder<DocumentSnapshot>(
           stream: _firestore.collection('users').doc(authSnapshot.data!.uid).snapshots(),
+          initialData: null,
           builder: (context, userSnapshot) {
-            if (userSnapshot.connectionState == ConnectionState.waiting) {
-              return const GlassBackground(
-                child: Scaffold(
-                  backgroundColor: Colors.transparent,
-                  body: Center(child: CircularProgressIndicator()),
-                ),
+            final hasUserData = userSnapshot.hasData && userSnapshot.data?.data() != null;
+            if (userSnapshot.connectionState == ConnectionState.waiting && !hasUserData) {
+              final loading = const Scaffold(
+                backgroundColor: Colors.transparent,
+                body: Center(child: CircularProgressIndicator()),
               );
+              return widget.showBottomBar ? GlassBackground(child: loading) : loading;
             }
 
             final utilisateur = userSnapshot.hasData 
                 ? Utilisateur.fromFirestore(userSnapshot.data!)
                 : _getDefaultUser(authSnapshot.data!);
 
-            return GlassBackground(
-              child: Scaffold(
-                backgroundColor: Colors.transparent,
-                appBar: GlassAppBar(title: AppLocalizations.of(context).profile),
-                body: Stack(
-                  children: [
-                    // Contenu principal avec espacement
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: _buildContent(utilisateur),
-                    ),
-                    // Barre de navigation en bas
-                    if (widget.showBottomBar)
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: CustomBottomNavigationBar(
-                          currentIndex: 2,
-                          onTap: _handleNavigation,
-                        ),
+            final scaffold = Scaffold(
+              backgroundColor: Colors.transparent,
+              appBar: GlassAppBar(title: AppLocalizations.of(context).profile),
+              body: Stack(
+                children: [
+                  // Contenu principal avec espacement
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: _buildContent(utilisateur),
+                  ),
+                  // Barre de navigation en bas
+                  if (widget.showBottomBar)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: CustomBottomNavigationBar(
+                        currentIndex: 3,
+                        onTap: _handleNavigation,
                       ),
-                  ],
-                ),
+                    ),
+                ],
               ),
             );
+
+            return widget.showBottomBar ? GlassBackground(child: scaffold) : scaffold;
           },
         );
       },
@@ -147,7 +155,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Gestion de la navigation
   void _handleNavigation(int index) {
-    if (index == 2) return; // Déjà sur la page profil
+    if (index == 3) return; // Déjà sur la page profil
     widget.onNavigate?.call(index);
   }
 

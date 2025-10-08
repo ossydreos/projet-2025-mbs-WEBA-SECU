@@ -1,5 +1,6 @@
 import '../data/models/reservation.dart';
-import '../data/services/fcm_notification_service.dart';
+import '../data/services/admin_global_notification_service.dart';
+import '../data/services/client_notification_service.dart';
 import '../utils/logging_service.dart';
 
 /// Proxy centralisé pour éviter les dépendances circulaires
@@ -21,18 +22,19 @@ class ServiceProxy {
   }
 
   static dynamic getNotificationService() {
-    return null; // To be implemented
+    return AdminGlobalNotificationService();
   }
 
-  static dynamic getFCMService() {
-    return FCMNotificationService();
+  static dynamic getClientNotificationService() {
+    return ClientNotificationService();
   }
 
   /// Méthode centrale pour toutes les notifications admin
   static Future<void> notifyAdminNewReservation(Reservation reservation) async {
     try {
-      // Logique centralisée ici au lieu d'être éparpillée
-      await FCMNotificationService().sendNotificationToAdmin(reservation);
+      // Utiliser le service admin global pour les notifications
+      final adminService = AdminGlobalNotificationService();
+      adminService.forceShowNotification(reservation);
     } catch (e) {
       LoggingService.info('Erreur notification admin: $e');
     }
@@ -43,7 +45,13 @@ class ServiceProxy {
     Reservation reservation,
   ) async {
     try {
-      await FCMNotificationService().sendNotificationToClient(reservation);
+      final clientService = ClientNotificationService();
+      await clientService.notifyReservationStatusChanged(
+        userId: reservation.userId,
+        reservationId: reservation.id,
+        oldStatus: ReservationStatus.pending,
+        newStatus: reservation.status,
+      );
     } catch (e) {
       LoggingService.info('Erreur notification client: $e');
     }

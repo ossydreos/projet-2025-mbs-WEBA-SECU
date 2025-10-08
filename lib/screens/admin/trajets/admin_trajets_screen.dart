@@ -533,6 +533,25 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                 iconColor: AppColors.hot,
                 address: reservation.destination,
               ),
+              const SizedBox(height: 6),
+
+              // Moyen de paiement sous les adresses
+              Row(
+                children: [
+                  const Icon(Icons.credit_card, color: AppColors.textWeak, size: 14),
+                  const SizedBox(width: 6),
+                  Text(
+                    reservation.paymentMethod.isNotEmpty
+                        ? reservation.paymentMethod
+                        : 'Paiement',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textWeak,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
 
               // Affichage des dates selon le type de réservation

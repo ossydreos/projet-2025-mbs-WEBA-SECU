@@ -81,10 +81,7 @@
     <key>NSContactsUsageDescription</key>
     <string>L&apos;accès aux contacts permet de partager facilement des trajets avec vos amis et contacts de confiance.</string>
     
-    <!-- Location Permission - Always (Background) -->
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Votre localisation est utilisée pour recevoir des notifications de services disponibles même lorsque l&apos;app n&apos;est pas ouverte, et pour améliorer la précision des suggestions de mobilité.</string>
-    
+    <!-- Location Permission - Always (Background) RETIREE -->
     <!-- Location Permission - When In Use (Foreground) -->
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Cette app utilise votre localisation pour rechercher des services de mobilité disponibles près de chez vous et calculer des itinéraires optimisés.</string>
@@ -112,10 +109,9 @@
     <key>UIApplicationSupportsIndirectInputEvents</key>
     <true/>
     
-    <!-- Background Modes -->
+    <!-- Background Modes (location retiré) -->
     <key>UIBackgroundModes</key>
     <array>
-        <string>location</string>
         <string>fetch</string>
     </array>
     

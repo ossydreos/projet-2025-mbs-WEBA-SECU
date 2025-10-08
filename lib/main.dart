@@ -38,9 +38,6 @@ import 'screens/admin/gestion/users/admin_users_screen.dart';
 import 'widgets/admin/test_notification_demo.dart';
 import 'data/services/reservation_timeout_service.dart';
 import 'data/services/admin_global_notification_service.dart';
-import 'data/services/fcm_notification_service.dart';
-import 'data/services/admin_token_service.dart';
-import 'data/services/reservation_fcm_service.dart';
 import 'data/services/stripe_checkout_service.dart';
 import 'firebase_messaging_background.dart';
 import 'package:app_links/app_links.dart';
@@ -68,6 +65,9 @@ void main() async {
     } catch (e) {
       debugPrint('⚠️ Erreur handler FCM: $e');
     }
+    
+    // Les notifications admin sont gérées par AdminGlobalNotificationService
+    // qui s'initialise automatiquement dans AdminScreenWrapper pour les admins uniquement
     
     // Initialiser la gestion des deep links
     try {

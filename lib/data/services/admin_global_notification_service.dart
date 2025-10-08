@@ -1,10 +1,14 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/notification_manager.dart';
-import 'package:my_mobility_services/data/services/fcm_notification_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 
 class AdminGlobalNotificationService {
@@ -15,13 +19,19 @@ class AdminGlobalNotificationService {
 
   final ReservationService _reservationService = ReservationService();
   final NotificationManager _notificationManager = NotificationManager();
-  final FCMNotificationService _fcmService = FCMNotificationService();
+  final FlutterLocalNotificationsPlugin _localNotifications = 
+      FlutterLocalNotificationsPlugin();
+  final AudioPlayer _audioPlayer = AudioPlayer();
   StreamSubscription<QuerySnapshot>? _reservationSubscription;
   BuildContext? _globalContext;
   DateTime _lastSeenReservationAt = DateTime.now().subtract(
     const Duration(minutes: 5),
   );
   bool _isInitialized = false;
+  bool _isPlaying = false;
+  Timer? _soundTimer;
+  int _soundCount = 0;
+  static const Duration _soundInterval = Duration(seconds: 3);
   Map<String, dynamic>? _pendingNotification;
   Set<String> _processedReservations = <String>{};
 
@@ -52,18 +62,66 @@ class AdminGlobalNotificationService {
   }
 
   // Initialiser le service sans contexte (pour le démarrage global)
-  void initializeGlobal() {
+  Future<void> initializeGlobal() async {
     if (!_isInitialized) {
       _isInitialized = true;
       print(
         '🔔 AdminGlobalNotificationService: Initialisation globale sans contexte',
       );
+      
+      // Initialiser les notifications locales
+      await _initializeLocalNotifications();
+      
       // Réinitialiser le timestamp pour capturer toutes les nouvelles réservations
       _lastSeenReservationAt = DateTime.now().subtract(
         const Duration(minutes: 1),
       );
       _processedReservations.clear();
       _startListeningToReservations();
+    }
+  }
+
+  // Initialiser les notifications locales
+  Future<void> _initializeLocalNotifications() async {
+    print('🔔 AdminGlobalNotificationService: Initialisation notifications locales...');
+
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings();
+    const InitializationSettings settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _localNotifications.initialize(settings);
+    await _createNotificationChannels();
+
+    print('🔔 AdminGlobalNotificationService: Notifications locales initialisées');
+  }
+
+  // Créer les canaux de notification
+  Future<void> _createNotificationChannels() async {
+    if (Platform.isAndroid) {
+      // Canal pour les nouvelles réservations
+      final AndroidNotificationChannel reservationChannel = AndroidNotificationChannel(
+        'new_reservation_channel',
+        'Nouvelles Réservations',
+        description: 'Notifications pour les nouvelles demandes de réservation',
+        importance: Importance.high,
+        playSound: true,
+        enableVibration: true,
+        enableLights: true,
+        ledColor: Color(0xFF4CAF50),
+      );
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(reservationChannel);
+
+      print('🔔 AdminGlobalNotificationService: Canaux de notification créés');
     }
   }
 
@@ -229,6 +287,16 @@ class AdminGlobalNotificationService {
                 print(
                   '🔔 AdminGlobalNotificationService: Changement de type ${change.type}, ignoré',
                 );
+                
+                // Si c'est une modification et que le statut n'est plus pending, arrêter la musique
+                if (change.type == DocumentChangeType.modified) {
+                  final data = change.doc.data() as Map<String, dynamic>;
+                  final status = data['status'] as String?;
+                  if (status != null && status != ReservationStatus.pending.name) {
+                    print('🔔 AdminGlobalNotificationService: Réservation traitée, arrêt de la musique');
+                    _stopLocalNotifications();
+                  }
+                }
                 continue;
               }
 
@@ -319,17 +387,76 @@ class AdminGlobalNotificationService {
       '🔔 AdminGlobalNotificationService: Contexte monté: ${_globalContext?.mounted ?? false}',
     );
 
-    if (_globalContext == null || !_globalContext!.mounted) {
+    // Toujours afficher une notification locale, même sans contexte
+    _showLocalNotificationForReservation(data);
+
+    // Si on a un contexte, afficher aussi l'interface admin
+    if (_globalContext != null && _globalContext!.mounted) {
+      _showAdminInterfaceNotification(data);
+    } else {
       print(
-        '🔔 AdminGlobalNotificationService: Contexte non disponible, notification mise en attente',
+        '🔔 AdminGlobalNotificationService: Contexte non disponible, notification mise en attente pour l\'interface',
       );
       // Stocker la notification en attente pour l'afficher quand le contexte sera disponible
       _pendingNotification = data;
-      return;
     }
+  }
 
+  // Afficher une notification locale du système
+  Future<void> _showLocalNotificationForReservation(Map<String, dynamic> data) async {
+    final userName = data['userName'] as String? ?? 'Client';
+    final destination = data['destination'] as String? ?? 'Destination inconnue';
+    final price = data['totalPrice']?.toString() ?? '0.00';
+    final reservationId = data['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+    print('🔔 AdminGlobalNotificationService: Notification locale pour $userName');
+
+    // Démarrer la musique répétitive
+    await _startSoundLoop();
+
+    final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'new_reservation_channel',
+      'Nouvelles Réservations',
+      channelDescription: 'Notifications pour les nouvelles demandes de réservation',
+      importance: Importance.high,
+      priority: Priority.high,
+      showWhen: true,
+      enableVibration: true,
+      playSound: true,
+      ongoing: false,
+      autoCancel: true,
+      category: AndroidNotificationCategory.transport,
+      visibility: NotificationVisibility.public,
+      ledColor: Color(0xFF4CAF50),
+      ledOnMs: 1000,
+      ledOffMs: 500,
+    );
+
+    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+      categoryIdentifier: 'reservation_category',
+      threadIdentifier: 'reservation_thread',
+    );
+
+    final NotificationDetails details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
+    );
+
+    await _localNotifications.show(
+      reservationId.hashCode,
+      '🚗 Nouvelle réservation',
+      'Demande de $userName vers $destination - $price€',
+      details,
+    );
+  }
+
+  // Afficher l'interface admin (si contexte disponible)
+  void _showAdminInterfaceNotification(Map<String, dynamic> data) {
     print(
-      '🔔 AdminGlobalNotificationService: Affichage de la notification pour la réservation',
+      '🔔 AdminGlobalNotificationService: Affichage de l\'interface admin pour la réservation',
     );
 
     final userName = data['userName'] as String? ?? 'Client';
@@ -369,64 +496,87 @@ class AdminGlobalNotificationService {
     );
 
     try {
-      // Démarrer la notification FCM Uber style
-      _fcmService.startUberStyleNotification(
-        clientName: reservation.userName ?? 'Client',
-        reservationId: reservation.id,
-      );
-
       _notificationManager.showGlobalNotification(
         _globalContext!,
         reservation,
         onAccept: () {
           // Arrêter la notification quand l'admin répond
-          _fcmService.stopNotification();
+          _stopLocalNotifications();
           _acceptReservation(reservation.id);
         },
         onDecline: () {
           // Arrêter la notification quand l'admin répond
-          _fcmService.stopNotification();
+          _stopLocalNotifications();
           _showRefusalOptions(reservation);
         },
         onCounterOffer: () {
           // Arrêter la notification quand l'admin répond
-          _fcmService.stopNotification();
+          _stopLocalNotifications();
           _showCounterOfferDialog(reservation);
         },
       );
 
       print(
-        '🔔 AdminGlobalNotificationService: Notification affichée avec succès pour ${reservation.userName}',
+        '🔔 AdminGlobalNotificationService: Interface admin affichée avec succès pour ${reservation.userName}',
       );
     } catch (e) {
       print(
-        '🔔 AdminGlobalNotificationService: Erreur lors de l\'affichage de la notification: $e',
+        '🔔 AdminGlobalNotificationService: Erreur lors de l\'affichage de l\'interface admin: $e',
       );
+    }
+  }
 
-      // Fallback: afficher une notification simple si le système principal échoue
-      if (_globalContext != null && _globalContext!.mounted) {
-        ScaffoldMessenger.of(_globalContext!).showSnackBar(
-          SnackBar(
-            content: Text(
-              '🔔 Nouvelle réservation de ${reservation.userName} de ${reservation.departure} vers ${reservation.destination}',
-            ),
-            backgroundColor: Colors.blue,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 5),
-            action: SnackBarAction(
-              label: 'Voir',
-              textColor: Colors.white,
-              onPressed: () {
-                // Optionnel: naviguer vers la page de gestion des réservations
-                print(
-                  '🔔 Action "Voir" cliquée pour la réservation ${reservation.id}',
-                );
-              },
-            ),
-          ),
-        );
+  // Démarrer la boucle de son répétitive
+  Future<void> _startSoundLoop() async {
+    if (_isPlaying) return;
+
+    _isPlaying = true;
+    _soundCount = 0;
+
+    print('🔔 AdminGlobalNotificationService: Démarrage boucle son');
+
+    // Jouer le premier son immédiatement
+    await _playNotificationSound();
+
+    // Programmer les sons suivants
+    _soundTimer = Timer.periodic(_soundInterval, (timer) async {
+      if (!_isPlaying) {
+        timer.cancel();
+        return;
+      }
+      await _playNotificationSound();
+    });
+  }
+
+  // Jouer le son de notification
+  Future<void> _playNotificationSound() async {
+    try {
+      print('🔔 AdminGlobalNotificationService: Lecture son ${_soundCount + 1}');
+
+      // Essayer de jouer le son personnalisé
+      await _audioPlayer.play(AssetSource('sounds/uber_classic_retro.mp3'));
+
+      _soundCount++;
+      print('🔔 AdminGlobalNotificationService: Son joué avec succès');
+    } catch (e) {
+      print('🔔 AdminGlobalNotificationService: Erreur lecture son: $e');
+
+      // Fallback vers le son système
+      try {
+        await _audioPlayer.play(AssetSource('sounds/system_alert.mp3'));
+      } catch (e2) {
+        print('🔔 AdminGlobalNotificationService: Erreur son système: $e2');
       }
     }
+  }
+
+  // Arrêter les notifications locales
+  void _stopLocalNotifications() {
+    print('🔔 AdminGlobalNotificationService: Arrêt des notifications locales');
+    _isPlaying = false;
+    _soundTimer?.cancel();
+    _soundTimer = null;
+    _audioPlayer.stop();
   }
 
   // Accepter une réservation (délègue à l'écran de réception pour la même logique)
@@ -434,6 +584,9 @@ class AdminGlobalNotificationService {
     print(
       '🔔 AdminGlobalNotificationService: Acceptation de la réservation $reservationId',
     );
+
+    // Arrêter la musique quand l'admin accepte
+    _stopLocalNotifications();
 
     // Utiliser le callback pour faire exactement la même chose que la liste des demandes en attente
     // Cela garantit que la réservation est ajoutée à _processingReservations et gérée correctement
@@ -462,6 +615,9 @@ class AdminGlobalNotificationService {
     print(
       '🔔 AdminGlobalNotificationService: Refus de la réservation $reservationId',
     );
+
+    // Arrêter la musique quand l'admin refuse
+    _stopLocalNotifications();
 
     try {
       // Mettre à jour le statut de la réservation à cancelled (comme dans _refuseReservation)
@@ -763,6 +919,9 @@ class AdminGlobalNotificationService {
     String newTime,
     String message,
   ) async {
+    // Arrêter la musique quand l'admin fait une contre-offre
+    _stopLocalNotifications();
+
     try {
       await FirebaseFirestore.instance
           .collection('reservations')
@@ -869,10 +1028,21 @@ class AdminGlobalNotificationService {
     }
   }
 
+  // Afficher une notification locale
+  void _showLocalNotification({
+    required String clientName,
+    required String reservationId,
+  }) {
+    print('🔔 AdminGlobalNotificationService: Notification locale pour $clientName');
+    // La notification sera gérée par le BackgroundNotificationService
+  }
+
+
   // Nettoyer les ressources
   void dispose() {
     _reservationSubscription?.cancel();
-    _fcmService.dispose();
+    _soundTimer?.cancel();
+    _audioPlayer.dispose();
     _globalContext = null;
     _isInitialized = false;
     _processedReservations.clear();

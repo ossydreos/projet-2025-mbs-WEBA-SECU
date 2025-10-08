@@ -20,6 +20,7 @@ class HomeShell extends StatefulWidget {
 class _HomeShellState extends State<HomeShell> {
   late int _currentIndex;
   bool _navLocked = false;
+  final PageStorageBucket _bucket = PageStorageBucket();
 
   @override
   void initState() {
@@ -45,28 +46,35 @@ class _HomeShellState extends State<HomeShell> {
         body: Stack(
           children: [
             // Préchargement Google Map invisible (1x1) pour initialiser le moteur dès l'ouverture
-            
-            // Contenu persistant avec IndexedStack
-            IndexedStack(
-              index: _currentIndex,
-              children: [
-                AccueilScreen(
-                  onNavigate: _onTap,
-                  showBottomBar: false,
-                ),
-                OffresPersonnaliseesScreen(
-                  onNavigate: _onTap,
-                  showBottomBar: false,
-                ),
-                TrajetsScreen(
-                  onNavigate: _onTap,
-                  showBottomBar: false,
-                ),
-                ProfileScreen(
-                  onNavigate: _onTap,
-                  showBottomBar: false,
-                ),
-              ],
+
+            // Contenu persistant avec IndexedStack + PageStorage
+            PageStorage(
+              bucket: _bucket,
+              child: IndexedStack(
+                index: _currentIndex,
+                children: [
+                  AccueilScreen(
+                    key: const PageStorageKey('tab-home'),
+                    onNavigate: (index) => _onTap(index),
+                    showBottomBar: false,
+                  ),
+                  OffresPersonnaliseesScreen(
+                    key: const PageStorageKey('tab-offers'),
+                    onNavigate: (index) => _onTap(index),
+                    showBottomBar: false,
+                  ),
+                  TrajetsScreen(
+                    key: const PageStorageKey('tab-trips'),
+                    onNavigate: (index) => _onTap(index),
+                    showBottomBar: false,
+                  ),
+                  ProfileScreen(
+                    key: const PageStorageKey('tab-profile'),
+                    onNavigate: (index) => _onTap(index),
+                    showBottomBar: false,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

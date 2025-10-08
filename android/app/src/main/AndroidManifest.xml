@@ -4,8 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
-    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <!-- CALL_PHONE/SEND_SMS retirées: appels et SMS se font via intents (tel:/sms:) sans permissions -->
     
     <!-- Permissions pour les notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
