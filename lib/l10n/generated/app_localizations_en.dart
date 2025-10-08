@@ -1278,7 +1278,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termsOfService => 'Terms of service';
 
   @override
-  String get privacyPolicy => 'Privacy policy';
+  String get privacyPolicy => 'Privacy Policy';
 
   @override
   String get language => 'Language';
@@ -1680,4 +1680,139 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get error => 'Error';
+
+  @override
+  String get termsConditions => 'Terms & Conditions';
+
+  @override
+  String get legalMentions => 'Legal Mentions';
+
+  @override
+  String get lastUpdated => 'Last updated';
+
+  @override
+  String get dataCollection => 'Data Collection';
+
+  @override
+  String get dataCollectionDescription =>
+      'We only collect data necessary for the operation of our mobility service: name, email, phone number, departure/arrival addresses, and geolocation data. This information is used exclusively to provide our transportation services.';
+
+  @override
+  String get dataUsage => 'Data Usage';
+
+  @override
+  String get dataUsageDescription =>
+      'Your personal data is used to:\n• Facilitate booking and management of your trips\n• Communicate with you regarding your reservations\n• Improve the quality of our services\n• Comply with our legal obligations';
+
+  @override
+  String get dataSharing => 'Data Sharing';
+
+  @override
+  String get dataSharingDescription =>
+      'We never sell your personal data. We may share your information only with:\n• Drivers assigned to your trips (name and phone number)\n• Our service providers (payment, hosting) under confidentiality agreements\n• Authorities if required by law';
+
+  @override
+  String get dataSecurity => 'Data Security';
+
+  @override
+  String get dataSecurityDescription =>
+      'We use advanced security measures to protect your data:\n• SSL/TLS encryption for all communications\n• Secure storage on certified servers\n• Restricted access to personal data\n• Regular security audits';
+
+  @override
+  String get userRights => 'Your Rights';
+
+  @override
+  String get userRightsDescription =>
+      'In accordance with GDPR, you have the right to:\n• Access your personal data\n• Rectify incorrect information\n• Delete your account and data\n• Limit the processing of your data\n• Data portability\n• Object to processing';
+
+  @override
+  String get contactInfo => 'Contact';
+
+  @override
+  String get contactInfoDescription =>
+      'For any questions regarding your personal data:\n• Email: privacy@mymobilityservices.com\n• Phone: +41 22 123 45 67\n• Address: 123 Rue de la Mobilité, 1200 Geneva, Switzerland';
+
+  @override
+  String get serviceDescription => 'Service Description';
+
+  @override
+  String get serviceDescriptionText =>
+      'My Mobility Services is a private transportation booking platform. We connect users with professional drivers for personalized trips.';
+
+  @override
+  String get userObligations => 'User Obligations';
+
+  @override
+  String get userObligationsText =>
+      'By using our service, you agree to:\n• Provide accurate and up-to-date information\n• Respect drivers and equipment\n• Pay for services used within deadlines\n• Respect safety and civility rules\n• Not use the service for illegal purposes';
+
+  @override
+  String get companyObligations => 'Our Obligations';
+
+  @override
+  String get companyObligationsText =>
+      'We commit to:\n• Provide quality and secure service\n• Respect your privacy and data\n• Maintain platform availability\n• Ensure driver training and verification\n• Provide responsive customer support';
+
+  @override
+  String get paymentTerms => 'Payment Terms';
+
+  @override
+  String get paymentTermsText =>
+      '• Payment is made before the start of the trip\n• We accept bank cards, Apple Pay, Google Pay and cash payment\n• Prices are calculated based on distance and vehicle type\n• No hidden fees, all costs are transparent';
+
+  @override
+  String get cancellationPolicy => 'Cancellation Policy';
+
+  @override
+  String get cancellationPolicyText =>
+      '• Free cancellation up to 30 minutes before the trip\n• Cancellation between 30 min and 5 min: 50% of the amount\n• Cancellation less than 5 min before: 100% of the amount\n• In case of driver cancellation: full refund';
+
+  @override
+  String get liabilityLimitation => 'Liability Limitation';
+
+  @override
+  String get liabilityLimitationText =>
+      'Our liability is limited to the transaction amount. We are not responsible for delays due to traffic conditions, force majeure events, or actions of independent drivers.';
+
+  @override
+  String get disputeResolution => 'Dispute Resolution';
+
+  @override
+  String get disputeResolutionText =>
+      'In case of dispute, we favor amicable resolution. If necessary, Swiss courts will have jurisdiction. We adhere to Swiss consumer mediation services.';
+
+  @override
+  String get companyInfo => 'Company Information';
+
+  @override
+  String get companyInfoText =>
+      'My Mobility Services SA\nUID: CHE-123.456.789\nCommercial Register: Geneva\nShare capital: 50,000 CHF\nVAT: CHE-123.456.789 MWST';
+
+  @override
+  String get publisherInfo => 'Website Publisher';
+
+  @override
+  String get publisherInfoText =>
+      'Publication director: Jean Dupont\nEmail: contact@mymobilityservices.com\nPhone: +41 22 123 45 67\nAddress: 123 Rue de la Mobilité, 1200 Geneva, Switzerland';
+
+  @override
+  String get hostingInfo => 'Hosting';
+
+  @override
+  String get hostingInfoText =>
+      'The site is hosted by:\nGoogle Cloud Platform\n1600 Amphitheatre Parkway\nMountain View, CA 94043, USA\nISO 27001 certified';
+
+  @override
+  String get intellectualProperty => 'Intellectual Property';
+
+  @override
+  String get intellectualPropertyText =>
+      'All elements of this site (texts, images, logos, design) are protected by copyright. Any reproduction without authorization is prohibited. The application and its database are intellectual works protected by the Intellectual Property Code.';
+
+  @override
+  String get applicableLaw => 'Applicable Law';
+
+  @override
+  String get applicableLawText =>
+      'These terms are subject to Swiss law. In case of dispute, Swiss courts will have sole jurisdiction. The reference language is French.';
 }

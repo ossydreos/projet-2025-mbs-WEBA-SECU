@@ -9,6 +9,7 @@ import 'package:my_mobility_services/data/models/vehicule_type.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/services/custom_marker_service.dart';
 
 class BookingScreen extends StatefulWidget {
   final String departure;
@@ -49,10 +50,13 @@ class _BookingScreenState extends State<BookingScreen>
   String _estimatedArrival = 'Estimated arrival 10:13'; // Will be translated dynamically
   List<gmaps.LatLng> _routePoints = []; // Points de la route réelle
   bool _isCalculating = true; // État de calcul en cours
+  gmaps.BitmapDescriptor? _departureIcon;
+  gmaps.BitmapDescriptor? _destinationIcon;
 
   @override
   void initState() {
     super.initState();
+    _initializeCustomIcons();
     // Contrôleur Google Maps créé via onMapCreated
 
     // Initialiser l'animation du panneau
@@ -82,6 +86,15 @@ class _BookingScreenState extends State<BookingScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _centerMapOnRoute();
     });
+  }
+
+  Future<void> _initializeCustomIcons() async {
+    _departureIcon = await CustomMarkerService.createDepartureIcon(
+      customIconPath: 'assets/icons/taxi_1f695.png',
+    );
+    _destinationIcon = await CustomMarkerService.createDestinationIcon(
+      customIconPath: 'assets/icons/Red_Pin_Emoji_large.webp',
+    );
   }
 
   @override
@@ -490,7 +503,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         const LatLng(48.8566, 2.3522))
                                     .longitude,
                               ),
-                              icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+                              icon: _departureIcon ?? gmaps.BitmapDescriptor.defaultMarkerWithHue(
                                 gmaps.BitmapDescriptor.hueAzure,
                               ),
                             ),
@@ -504,7 +517,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         const LatLng(48.8584, 2.2945))
                                     .longitude,
                               ),
-                              icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+                              icon: _destinationIcon ?? gmaps.BitmapDescriptor.defaultMarkerWithHue(
                                 gmaps.BitmapDescriptor.hueRed,
                               ),
                             ),

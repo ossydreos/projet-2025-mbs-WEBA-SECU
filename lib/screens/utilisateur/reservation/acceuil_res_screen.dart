@@ -24,6 +24,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/services/support_chat_service.dart';
 import 'package:my_mobility_services/data/models/support_thread.dart';
 import 'package:my_mobility_services/screens/support/support_home_screen.dart';
+import 'package:my_mobility_services/services/custom_marker_service.dart';
 
 class AccueilScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -48,6 +49,8 @@ class _AccueilScreenState extends State<AccueilScreen>
   LatLng? _destinationCoordinates;
   LatLng? _userLocation;
   bool _isLoadingLocation = true;
+  gmaps.BitmapDescriptor? _userLocationIcon;
+  gmaps.BitmapDescriptor? _destinationIcon;
   String _locationError = '';
 
   final Set<gmaps.Marker> _gmMarkers = <gmaps.Marker>{};
@@ -55,10 +58,21 @@ class _AccueilScreenState extends State<AccueilScreen>
   @override
   void initState() {
     super.initState();
+    _initializeCustomIcons();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getUserLocation();
       _listenToNotifications();
     });
+  }
+
+  Future<void> _initializeCustomIcons() async {
+    _userLocationIcon = await CustomMarkerService.createUserLocationIcon(
+      customIconPath: 'assets/icons/man-walking_1f6b6-200d-2642-fe0f.png',
+    );
+    _destinationIcon = await CustomMarkerService.createDestinationIcon(
+      backgroundColor: const Color(0xFFE53E3E), // Rouge
+      iconColor: Colors.white,
+    );
   }
 
   // Écouter les notifications en temps réel
@@ -179,7 +193,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     final marker = gmaps.Marker(
       markerId: const gmaps.MarkerId('user'),
       position: gmaps.LatLng(userLocation.latitude, userLocation.longitude),
-      icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+      icon: _userLocationIcon ?? gmaps.BitmapDescriptor.defaultMarkerWithHue(
         gmaps.BitmapDescriptor.hueAzure,
       ),
     );
@@ -200,7 +214,7 @@ class _AccueilScreenState extends State<AccueilScreen>
     final marker = gmaps.Marker(
       markerId: const gmaps.MarkerId('destination'),
       position: gmaps.LatLng(destination.latitude, destination.longitude),
-      icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
+      icon: _destinationIcon ?? gmaps.BitmapDescriptor.defaultMarkerWithHue(
         gmaps.BitmapDescriptor.hueRed,
       ),
     );

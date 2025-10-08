@@ -1288,7 +1288,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get termsOfService => 'Terms of service';
 
   @override
-  String get privacyPolicy => 'Privacy policy';
+  String get privacyPolicy => 'Politique de confidentialité';
 
   @override
   String get language => 'Langue';
@@ -1694,4 +1694,139 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get error => 'Erreur';
+
+  @override
+  String get termsConditions => 'Conditions d\'utilisation';
+
+  @override
+  String get legalMentions => 'Mentions légales';
+
+  @override
+  String get lastUpdated => 'Dernière mise à jour';
+
+  @override
+  String get dataCollection => 'Collecte de données';
+
+  @override
+  String get dataCollectionDescription =>
+      'Nous collectons uniquement les données nécessaires au fonctionnement de notre service de mobilité : nom, email, numéro de téléphone, adresses de départ/arrivée, et données de géolocalisation. Ces informations sont utilisées exclusivement pour fournir nos services de transport.';
+
+  @override
+  String get dataUsage => 'Utilisation des données';
+
+  @override
+  String get dataUsageDescription =>
+      'Vos données personnelles sont utilisées pour :\n• Faciliter la réservation et la gestion de vos trajets\n• Communiquer avec vous concernant vos réservations\n• Améliorer la qualité de nos services\n• Respecter nos obligations légales';
+
+  @override
+  String get dataSharing => 'Partage des données';
+
+  @override
+  String get dataSharingDescription =>
+      'Nous ne vendons jamais vos données personnelles. Nous pouvons partager vos informations uniquement avec :\n• Les chauffeurs assignés à vos trajets (nom et numéro de téléphone)\n• Nos prestataires de services (paiement, hébergement) sous contrat de confidentialité\n• Les autorités si requis par la loi';
+
+  @override
+  String get dataSecurity => 'Sécurité des données';
+
+  @override
+  String get dataSecurityDescription =>
+      'Nous utilisons des mesures de sécurité avancées pour protéger vos données :\n• Chiffrement SSL/TLS pour toutes les communications\n• Stockage sécurisé sur des serveurs certifiés\n• Accès restreint aux données personnelles\n• Audit de sécurité régulier';
+
+  @override
+  String get userRights => 'Vos droits';
+
+  @override
+  String get userRightsDescription =>
+      'Conformément au RGPD, vous avez le droit de :\n• Accéder à vos données personnelles\n• Rectifier des informations incorrectes\n• Supprimer votre compte et vos données\n• Limiter le traitement de vos données\n• Portabilité de vos données\n• Vous opposer au traitement';
+
+  @override
+  String get contactInfo => 'Contact';
+
+  @override
+  String get contactInfoDescription =>
+      'Pour toute question concernant vos données personnelles :\n• Email : privacy@mymobilityservices.com\n• Téléphone : +41 22 123 45 67\n• Adresse : 123 Rue de la Mobilité, 1200 Genève, Suisse';
+
+  @override
+  String get serviceDescription => 'Description du service';
+
+  @override
+  String get serviceDescriptionText =>
+      'My Mobility Services est une plateforme de réservation de services de transport privé. Nous mettons en relation des utilisateurs avec des chauffeurs professionnels pour des trajets personnalisés.';
+
+  @override
+  String get userObligations => 'Obligations de l\'utilisateur';
+
+  @override
+  String get userObligationsText =>
+      'En utilisant notre service, vous vous engagez à :\n• Fournir des informations exactes et à jour\n• Respecter les chauffeurs et le matériel\n• Payer les services utilisés dans les délais\n• Respecter les règles de sécurité et de civilité\n• Ne pas utiliser le service à des fins illégales';
+
+  @override
+  String get companyObligations => 'Nos obligations';
+
+  @override
+  String get companyObligationsText =>
+      'Nous nous engageons à :\n• Fournir un service de qualité et sécurisé\n• Respecter votre vie privée et vos données\n• Maintenir la disponibilité de la plateforme\n• Assurer la formation et la vérification des chauffeurs\n• Fournir un support client réactif';
+
+  @override
+  String get paymentTerms => 'Conditions de paiement';
+
+  @override
+  String get paymentTermsText =>
+      '• Le paiement s\'effectue avant le début du trajet\n• Nous acceptons les cartes bancaires, Apple Pay, Google Pay et le paiement en espèces\n• Les prix sont calculés selon la distance et le type de véhicule\n• Aucun frais caché, tous les coûts sont transparents';
+
+  @override
+  String get cancellationPolicy => 'Politique d\'annulation';
+
+  @override
+  String get cancellationPolicyText =>
+      '• Annulation gratuite jusqu\'à 30 minutes avant le trajet\n• Annulation entre 30 min et 5 min : 50% du montant\n• Annulation moins de 5 min avant : 100% du montant\n• En cas d\'annulation par le chauffeur : remboursement intégral';
+
+  @override
+  String get liabilityLimitation => 'Limitation de responsabilité';
+
+  @override
+  String get liabilityLimitationText =>
+      'Notre responsabilité est limitée au montant de la transaction. Nous ne sommes pas responsables des retards dus aux conditions de circulation, aux événements de force majeure, ou aux actions des chauffeurs indépendants.';
+
+  @override
+  String get disputeResolution => 'Résolution des litiges';
+
+  @override
+  String get disputeResolutionText =>
+      'En cas de litige, nous privilégions la résolution amiable. Si nécessaire, les tribunaux suisses seront compétents. Nous adhérons au service de médiation de la consommation suisse.';
+
+  @override
+  String get companyInfo => 'Informations sur l\'entreprise';
+
+  @override
+  String get companyInfoText =>
+      'My Mobility Services SA\nUID : CHE-123.456.789\nRegistre du commerce : Genève\nCapital social : 50 000 CHF\nTVA : CHE-123.456.789 MWST';
+
+  @override
+  String get publisherInfo => 'Éditeur du site';
+
+  @override
+  String get publisherInfoText =>
+      'Directeur de publication : Jean Dupont\nEmail : contact@mymobilityservices.com\nTéléphone : +41 22 123 45 67\nAdresse : 123 Rue de la Mobilité, 1200 Genève, Suisse';
+
+  @override
+  String get hostingInfo => 'Hébergement';
+
+  @override
+  String get hostingInfoText =>
+      'Le site est hébergé par :\nGoogle Cloud Platform\n1600 Amphitheatre Parkway\nMountain View, CA 94043, USA\nCertification ISO 27001';
+
+  @override
+  String get intellectualProperty => 'Propriété intellectuelle';
+
+  @override
+  String get intellectualPropertyText =>
+      'Tous les éléments de ce site (textes, images, logos, design) sont protégés par le droit d\'auteur. Toute reproduction sans autorisation est interdite. L\'application et sa base de données sont des œuvres de l\'esprit protégées par le Code de la propriété intellectuelle.';
+
+  @override
+  String get applicableLaw => 'Droit applicable';
+
+  @override
+  String get applicableLawText =>
+      'Les présentes conditions sont soumises au droit suisse. En cas de litige, les tribunaux suisses seront seuls compétents. La langue de référence est le français.';
 }

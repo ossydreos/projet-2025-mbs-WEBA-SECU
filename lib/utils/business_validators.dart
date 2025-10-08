@@ -66,9 +66,12 @@ class BusinessValidators {
     final reservationDateTime = DateTime(dateTime.year, dateTime.month, dateTime.day, 
                                          dateTime.hour, dateTime.minute);
     
-    // Pas dans le passé
-    if (reservationDateTime.isBefore(now)) {
-      return ValidationResult.failed('Impossible de réserver dans le passé');
+    // Ajouter 30 minutes de marge pour la préparation
+    final minimumDateTime = now.add(const Duration(minutes: 30));
+    
+    // Pas dans le passé (avec marge de préparation)
+    if (reservationDateTime.isBefore(minimumDateTime)) {
+      return ValidationResult.failed('Impossible de réserver moins de 30 minutes à l\'avance');
     }
     
     // Pas plus de 30 jours à l'avance

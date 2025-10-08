@@ -8,6 +8,9 @@ import 'package:my_mobility_services/widgets/authgate.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'favorite_trips_screen.dart';
+import '../legal/privacy_policy_screen.dart';
+import '../legal/terms_conditions_screen.dart';
+import '../legal/legal_mentions_screen.dart';
 
 /// Modèle utilisateur avec données Firestore
 class Utilisateur {
@@ -174,6 +177,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildLocationSection(),
             const SizedBox(height: 16),
             _buildSettingsSection(),
+            const SizedBox(height: 16),
+            _buildLegalSection(),
             const SizedBox(height: 16),
             _buildAccountActions(utilisateur),
           ],
@@ -437,7 +442,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   thickness: 1,
                   height: 1,
                 ),
-                _buildMenuItem(Icons.privacy_tip, AppLocalizations.of(context).privacy),
+                _buildMenuItem(Icons.privacy_tip, AppLocalizations.of(context).privacy, () => _navigateToPrivacyPolicy()),
                 Divider(
                   color: AppColors.glassStroke,
                   thickness: 1,
@@ -695,5 +700,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     }
+  }
+
+  /// Section légale - NOUVELLE
+  Widget _buildLegalSection() {
+    return GlassContainer(
+      margin: const EdgeInsets.symmetric(horizontal: 15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
+            child: Text(
+              AppLocalizations.of(context).legal,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ),
+          GlassContainer(
+            padding: EdgeInsets.zero,
+            borderRadius: BorderRadius.circular(20),
+            child: Column(
+              children: [
+                _buildMenuItem(Icons.privacy_tip, AppLocalizations.of(context).privacyPolicy, () => _navigateToPrivacyPolicy()),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
+                _buildMenuItem(Icons.description, AppLocalizations.of(context).termsConditions, () => _navigateToTermsConditions()),
+                Divider(
+                  color: AppColors.glassStroke,
+                  thickness: 1,
+                  height: 1,
+                ),
+                _buildMenuItem(Icons.info_outline, AppLocalizations.of(context).legalMentions, () => _navigateToLegalMentions()),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Navigation vers la politique de confidentialité
+  void _navigateToPrivacyPolicy() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+    );
+  }
+
+  /// Navigation vers les conditions d'utilisation
+  void _navigateToTermsConditions() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const TermsConditionsScreen()),
+    );
+  }
+
+  /// Navigation vers les mentions légales
+  void _navigateToLegalMentions() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const LegalMentionsScreen()),
+    );
   }
 }

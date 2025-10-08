@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/reservation.dart';
@@ -139,11 +140,94 @@ class StripeCheckoutService {
           Uri.parse(session['url']),
           mode: LaunchMode.externalApplication,
         );
+        
+        // ✅ Démarrer la vérification du paiement en arrière-plan
+        _startPaymentVerification(reservationId, session['id']);
       } else {
         throw Exception('Impossible d\'ouvrir le lien de paiement');
       }
     } catch (e) {
       throw Exception('Erreur lors de la création de la session de paiement: $e');
+    }
+  }
+
+  // ✅ Vérifier le statut du paiement en arrière-plan
+  static void _startPaymentVerification(String reservationId, String sessionId) {
+    // Vérifier plus fréquemment pour une mise à jour plus rapide
+    Timer.periodic(Duration(seconds: 2), (timer) async {
+      try {
+        final session = await _getStripeSession(sessionId);
+        final paymentStatus = session['payment_status'];
+        final sessionStatus = session['status'];
+        if (paymentStatus == 'paid' || sessionStatus == 'complete') {
+          // ✅ Paiement confirmé, mettre à jour la base de données
+          await _updateReservationAfterPaymentStatic(
+            reservationId: reservationId,
+            paymentIntentId: session['payment_intent'],
+            amount: (session['amount_total'] / 100).toDouble(),
+            currency: session['currency'],
+          );
+          // Passer en inProgress
+          final firestore = FirebaseFirestore.instance;
+          await firestore.collection('reservations').doc(reservationId).update({
+            'status': ReservationStatus.inProgress.name,
+            'lastUpdated': Timestamp.now(),
+          });
+          timer.cancel(); // Arrêter la vérification
+        } else if (session['payment_status'] == 'unpaid' && 
+                   DateTime.now().millisecondsSinceEpoch - session['created'] * 1000 > 300000) {
+          // Timeout après 5 minutes
+          timer.cancel();
+        }
+      } catch (e) {
+        print('Erreur vérification paiement: $e');
+      }
+    });
+  }
+
+  // ✅ Récupérer les détails d'une session Stripe
+  static Future<Map<String, dynamic>> _getStripeSession(String sessionId) async {
+    final url = Uri.parse('https://api.stripe.com/v1/checkout/sessions/$sessionId');
+    
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $_stripeSecretKey',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Erreur récupération session: ${response.statusCode}');
+    }
+  }
+
+  // ✅ Finaliser à partir d'un deep link (session_id et reservation_id)
+  static Future<void> finalizePaymentFromDeepLink({
+    required String sessionId,
+    required String reservationId,
+  }) async {
+    try {
+      final session = await _getStripeSession(sessionId);
+      final paymentStatus = session['payment_status'];
+      final sessionStatus = session['status'];
+      if (paymentStatus == 'paid' || sessionStatus == 'complete') {
+        await _updateReservationAfterPaymentStatic(
+          reservationId: reservationId,
+          paymentIntentId: session['payment_intent'],
+          amount: (session['amount_total'] / 100).toDouble(),
+          currency: session['currency'],
+        );
+        // Passer en inProgress immédiatement après confirmation
+        final firestore = FirebaseFirestore.instance;
+        await firestore.collection('reservations').doc(reservationId).update({
+          'status': ReservationStatus.inProgress.name,
+          'lastUpdated': Timestamp.now(),
+        });
+      }
+    } catch (e) {
+      print('Erreur finalisation deep link: $e');
     }
   }
 
@@ -168,8 +252,9 @@ class StripeCheckoutService {
       'line_items[0][price_data][unit_amount]': (amount * 100).toInt().toString(),
       'line_items[0][quantity]': '1',
       'mode': 'payment',
-      'success_url': 'https://my-mobility-services.com/success?session_id={CHECKOUT_SESSION_ID}',
-      'cancel_url': 'https://my-mobility-services.com/cancel',
+      // Redirection directe vers l'app via scheme (schéma plus standard)
+      'success_url': 'intent://payment-success?session_id={CHECKOUT_SESSION_ID}&reservation_id=' + reservationId + '#Intent;scheme=my-mobility-services;package=com.example.my_mobility_services;end',
+      'cancel_url': 'intent://payment-cancel#Intent;scheme=my-mobility-services;package=com.example.my_mobility_services;end',
       'metadata[reservation_id]': reservationId,
       // ✅ Configuration pour Apple Pay et Google Pay
       'payment_method_options[card][request_three_d_secure]': 'automatic',

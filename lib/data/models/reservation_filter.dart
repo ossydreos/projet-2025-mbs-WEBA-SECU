@@ -36,7 +36,7 @@ class ReservationFilter {
 
   const ReservationFilter({
     this.filterType = ReservationFilterType.all,
-    this.sortType = ReservationSortType.dateDescending,
+    this.sortType = ReservationSortType.dateDescending, // Plus récents en haut par défaut
     this.typeFilter = ReservationTypeFilter.all,
     this.startDate,
     this.endDate,
@@ -107,9 +107,9 @@ class ReservationFilter {
       // Descriptions pour les courses à venir
       switch (sortType) {
         case ReservationSortType.dateAscending:
-          return 'Départ (proche → lointain)';
+          return 'Création (ancienne → récente)';
         case ReservationSortType.dateDescending:
-          return 'Départ (lointain → proche)';
+          return 'Création (récente → ancienne)';
         case ReservationSortType.priceAscending:
           return 'Prix (bas → élevé)';
         case ReservationSortType.priceDescending:
@@ -119,9 +119,9 @@ class ReservationFilter {
       // Descriptions pour les courses terminées
       switch (sortType) {
         case ReservationSortType.dateAscending:
-          return 'Fin (ancienne → récente)';
+          return 'Création (ancienne → récente)';
         case ReservationSortType.dateDescending:
-          return 'Fin (récente → ancienne)';
+          return 'Création (récente → ancienne)';
         case ReservationSortType.priceAscending:
           return 'Prix (bas → élevé)';
         case ReservationSortType.priceDescending:
@@ -236,10 +236,10 @@ class ReservationFilter {
     // Appliquer le tri
     switch (sortType) {
       case ReservationSortType.dateAscending:
-        filtered.sort((a, b) => a.selectedDate.compareTo(b.selectedDate));
+        filtered.sort((a, b) => a.createdAt.compareTo(b.createdAt));
         break;
       case ReservationSortType.dateDescending:
-        filtered.sort((a, b) => b.selectedDate.compareTo(a.selectedDate));
+        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
         break;
       case ReservationSortType.priceAscending:
         filtered.sort((a, b) => a.totalPrice.compareTo(b.totalPrice));

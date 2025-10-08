@@ -6,6 +6,8 @@ import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/models/reservation_filter.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_service.dart';
+import 'package:my_mobility_services/data/services/custom_offer_service.dart';
+import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/services/pdf_export_service.dart';
 import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -29,9 +31,10 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   late TabController _tabController;
   int _selectedIndex = 1; // Index 1 pour "Trajets" (actif)
   int _currentTabIndex =
-      1; // Pour suivre l'onglet actuel (commence sur "Terminés")
+      0; // Pour suivre l'onglet actuel (commence sur "À venir")
   final ReservationService _reservationService = ReservationService();
   final AdminService _adminService = AdminService();
+  final CustomOfferService _customOfferService = CustomOfferService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Variables pour le filtrage avancé
@@ -50,7 +53,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 0);
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         setState(() {
@@ -141,6 +144,16 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     );
   }
 
+  // Méthode pour récupérer une offre personnalisée par son ID
+  Future<CustomOffer?> _getCustomOfferById(String offerId) async {
+    try {
+      return await _customOfferService.getCustomOfferById(offerId);
+    } catch (e) {
+      print('Erreur lors de la récupération de l\'offre personnalisée: $e');
+      return null;
+    }
+  }
+
   Widget _buildUpcomingTab() {
     final currentUser = _auth.currentUser;
 
@@ -217,6 +230,107 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           },
         );
       },
+    );
+  }
+
+  Widget _buildCompletedTab() {
+    final currentUser = _auth.currentUser;
+
+    if (currentUser == null) {
+      return _buildNotLoggedInView();
+    }
+
+    return StreamBuilder<List<Reservation>>(
+      stream: _reservationService.getUserCompletedReservationsStreamWithFilter(
+        currentUser.uid,
+        _completedFilter,
+      ),
+      initialData: const [],
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: AppColors.accent),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                const SizedBox(height: 16),
+                Text(
+                  'Erreur lors du chargement des courses terminées',
+                  style: TextStyle(fontSize: 16, color: Colors.red[300]),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${snapshot.error}',
+                  style: TextStyle(fontSize: 12, color: Colors.red[300]),
+                ),
+                const SizedBox(height: 24),
+                GlassButton(
+                  label: 'Réessayer',
+                  onPressed: () {
+                    setState(() {});
+                  },
+                ),
+              ],
+            ),
+          );
+        }
+
+        final reservations = snapshot.data ?? [];
+
+        if (reservations.isEmpty) {
+          return _buildEmptyCompletedView();
+        }
+
+        // Mettre à jour les réservations actuelles pour l'export
+        _currentReservations = reservations;
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: reservations.length,
+          itemBuilder: (context, index) {
+            final reservation = reservations[index];
+            return _buildReservationCard(reservation);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyCompletedView() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.check_circle_outline, size: 80, color: Colors.grey[400]),
+          const SizedBox(height: 24),
+          Text(
+            'Aucune course terminée',
+            style: TextStyle(
+              fontSize: 20,
+              color: Colors.grey[400],
+              fontFamily: 'Poppins',
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Vos courses terminées apparaîtront ici',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+              fontFamily: 'Poppins',
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -458,6 +572,27 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Badge "Demande personnalisée" tout en haut à gauche
+              if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.orange, width: 1),
+                  ),
+                  child: Text(
+                    'Demande personnalisée',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              
               Row(
                 children: [
                   // Checkbox en mode sélection
@@ -514,10 +649,13 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                             color: AppColors.textStrong,
                           ),
                         ),
-                        Text(
-                          reservation.statusInFrench,
-                          style: TextStyle(fontSize: 12, color: AppColors.text),
-                        ),
+                        // Afficher le statut seulement si ce n'est pas une offre personnalisée
+                        if (reservation.customOfferId == null || reservation.customOfferId!.isEmpty) ...[
+                          Text(
+                            reservation.statusInFrench,
+                            style: TextStyle(fontSize: 12, color: AppColors.text),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -548,16 +686,73 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 ],
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.schedule, color: AppColors.text, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
-                    style: TextStyle(fontSize: 14, color: AppColors.text),
-                  ),
-                ],
-              ),
+              // Affichage des dates selon le type de réservation
+              if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
+                // Pour les offres personnalisées, utiliser un FutureBuilder pour récupérer les dates
+                FutureBuilder<CustomOffer?>(
+                  future: _getCustomOfferById(reservation.customOfferId!),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      final offer = snapshot.data!;
+                      return Column(
+                        children: [
+                          // Date de début
+                          if (offer.startDateTime != null) ...[
+                            Row(
+                              children: [
+                                Icon(Icons.schedule, color: AppColors.text, size: 16),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Début: ${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year} à ${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}',
+                                  style: TextStyle(fontSize: 14, color: AppColors.text),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                          ],
+                          // Date de fin
+                          if (offer.endDateTime != null) ...[
+                            Row(
+                              children: [
+                                Icon(Icons.flag, color: AppColors.text, size: 16),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Fin: ${offer.endDateTime!.day}/${offer.endDateTime!.month}/${offer.endDateTime!.year} à ${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}',
+                                  style: TextStyle(fontSize: 14, color: AppColors.text),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      );
+                    } else {
+                      // Fallback si on ne peut pas récupérer l'offre
+                      return Row(
+                        children: [
+                          Icon(Icons.schedule, color: AppColors.text, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Début: ${reservation.selectedDate.day}/${reservation.selectedDate.month}/${reservation.selectedDate.year} à ${reservation.selectedTime}',
+                            style: TextStyle(fontSize: 14, color: AppColors.text),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
+              ] else ...[
+                // Pour les réservations normales, affichage simple
+                Row(
+                  children: [
+                    Icon(Icons.schedule, color: AppColors.text, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${reservation.selectedDate.day}/${reservation.selectedDate.month} à ${reservation.selectedTime}',
+                      style: TextStyle(fontSize: 14, color: AppColors.text),
+                    ),
+                  ],
+                ),
+              ],
               // Boutons de contact pour les réservations confirmées
               if (reservation.status == ReservationStatus.confirmed ||
                   reservation.status == ReservationStatus.inProgress) ...[
@@ -602,93 +797,6 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildCompletedTab() {
-    final currentUser = _auth.currentUser;
-
-    if (currentUser == null) {
-      return _buildNotLoggedInView();
-    }
-
-    return StreamBuilder<List<Reservation>>(
-      stream: _reservationService.getUserCompletedReservationsStreamWithFilter(
-        currentUser.uid,
-        _completedFilter,
-      ),
-      initialData: const [],
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: AppColors.accent),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.error_outline, size: 64, color: Colors.red),
-                SizedBox(height: 16),
-                Text(
-                  'Erreur: une erreur est survenue',
-                  style: TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          );
-        }
-
-        final reservations = snapshot.data ?? [];
-
-        // Mettre à jour les réservations actuelles pour l'export
-        _currentReservations = reservations;
-
-        if (reservations.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.history, size: 80, color: Colors.grey[400]),
-                const SizedBox(height: 24),
-                Text(
-                  _completedFilter.hasActiveFilter
-                      ? 'Aucun résultat pour les filtres sélectionnés'
-                      : 'Aucun trajet terminé',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Colors.grey[400],
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _completedFilter.hasActiveFilter
-                      ? 'Essayez de modifier vos critères de filtrage'
-                      : 'Vos trajets terminés apparaîtront ici',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[500],
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: reservations.length,
-          itemBuilder: (context, index) {
-            final reservation = reservations[index];
-            return _buildCompletedReservationCard(reservation);
-          },
-        );
-      },
     );
   }
 

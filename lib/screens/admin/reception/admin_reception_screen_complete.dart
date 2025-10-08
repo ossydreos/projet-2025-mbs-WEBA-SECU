@@ -730,25 +730,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     ),
                   ),
                 ),
-                // Afficher le badge de statut seulement si ce n'est pas en attente de paiement
-                if (offer.status != ReservationStatus.confirmed) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'En attente',
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
 
@@ -780,6 +761,34 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             ),
 
             const SizedBox(height: 8),
+
+            // Informations de date et heure (si disponibles)
+            if (offer.startDateTime != null) ...[
+              Row(
+                children: [
+                  const Icon(Icons.schedule, size: 16, color: AppColors.textWeak),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Début: ${_formatDateTime(offer.startDateTime!)}',
+                    style: TextStyle(color: AppColors.textWeak, fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+            ],
+            if (offer.endDateTime != null) ...[
+              Row(
+                children: [
+                  const Icon(Icons.flag, size: 16, color: AppColors.textWeak),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Fin: ${_formatDateTime(offer.endDateTime!)}',
+                    style: TextStyle(color: AppColors.textWeak, fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
 
             // Véhicule choisi par l'utilisateur (si présent)
             if ((offer.vehicleName ?? '').isNotEmpty) Row(
@@ -1683,6 +1692,16 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     } else {
       return 'Maintenant';
     }
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final day = dateTime.day.toString().padLeft(2, '0');
+    final month = dateTime.month.toString().padLeft(2, '0');
+    final year = dateTime.year;
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    
+    return '$day/$month/$year à $hour:$minute';
   }
 
   // Méthode pour annuler toutes les réservations en attente de paiement

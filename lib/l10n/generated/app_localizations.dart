@@ -2597,7 +2597,7 @@ abstract class AppLocalizations {
   /// No description provided for @privacyPolicy.
   ///
   /// In en, this message translates to:
-  /// **'Privacy policy'**
+  /// **'Privacy Policy'**
   String get privacyPolicy;
 
   /// No description provided for @language.
@@ -3361,6 +3361,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error'**
   String get error;
+
+  /// No description provided for @termsConditions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms & Conditions'**
+  String get termsConditions;
+
+  /// No description provided for @legalMentions.
+  ///
+  /// In en, this message translates to:
+  /// **'Legal Mentions'**
+  String get legalMentions;
+
+  /// No description provided for @lastUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated'**
+  String get lastUpdated;
+
+  /// No description provided for @dataCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Collection'**
+  String get dataCollection;
+
+  /// No description provided for @dataCollectionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'We only collect data necessary for the operation of our mobility service: name, email, phone number, departure/arrival addresses, and geolocation data. This information is used exclusively to provide our transportation services.'**
+  String get dataCollectionDescription;
+
+  /// No description provided for @dataUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Usage'**
+  String get dataUsage;
+
+  /// No description provided for @dataUsageDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your personal data is used to:\n• Facilitate booking and management of your trips\n• Communicate with you regarding your reservations\n• Improve the quality of our services\n• Comply with our legal obligations'**
+  String get dataUsageDescription;
+
+  /// No description provided for @dataSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Sharing'**
+  String get dataSharing;
+
+  /// No description provided for @dataSharingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'We never sell your personal data. We may share your information only with:\n• Drivers assigned to your trips (name and phone number)\n• Our service providers (payment, hosting) under confidentiality agreements\n• Authorities if required by law'**
+  String get dataSharingDescription;
+
+  /// No description provided for @dataSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Security'**
+  String get dataSecurity;
+
+  /// No description provided for @dataSecurityDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'We use advanced security measures to protect your data:\n• SSL/TLS encryption for all communications\n• Secure storage on certified servers\n• Restricted access to personal data\n• Regular security audits'**
+  String get dataSecurityDescription;
+
+  /// No description provided for @userRights.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Rights'**
+  String get userRights;
+
+  /// No description provided for @userRightsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'In accordance with GDPR, you have the right to:\n• Access your personal data\n• Rectify incorrect information\n• Delete your account and data\n• Limit the processing of your data\n• Data portability\n• Object to processing'**
+  String get userRightsDescription;
+
+  /// No description provided for @contactInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get contactInfo;
+
+  /// No description provided for @contactInfoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'For any questions regarding your personal data:\n• Email: privacy@mymobilityservices.com\n• Phone: +41 22 123 45 67\n• Address: 123 Rue de la Mobilité, 1200 Geneva, Switzerland'**
+  String get contactInfoDescription;
+
+  /// No description provided for @serviceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Description'**
+  String get serviceDescription;
+
+  /// No description provided for @serviceDescriptionText.
+  ///
+  /// In en, this message translates to:
+  /// **'My Mobility Services is a private transportation booking platform. We connect users with professional drivers for personalized trips.'**
+  String get serviceDescriptionText;
+
+  /// No description provided for @userObligations.
+  ///
+  /// In en, this message translates to:
+  /// **'User Obligations'**
+  String get userObligations;
+
+  /// No description provided for @userObligationsText.
+  ///
+  /// In en, this message translates to:
+  /// **'By using our service, you agree to:\n• Provide accurate and up-to-date information\n• Respect drivers and equipment\n• Pay for services used within deadlines\n• Respect safety and civility rules\n• Not use the service for illegal purposes'**
+  String get userObligationsText;
+
+  /// No description provided for @companyObligations.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Obligations'**
+  String get companyObligations;
+
+  /// No description provided for @companyObligationsText.
+  ///
+  /// In en, this message translates to:
+  /// **'We commit to:\n• Provide quality and secure service\n• Respect your privacy and data\n• Maintain platform availability\n• Ensure driver training and verification\n• Provide responsive customer support'**
+  String get companyObligationsText;
+
+  /// No description provided for @paymentTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Terms'**
+  String get paymentTerms;
+
+  /// No description provided for @paymentTermsText.
+  ///
+  /// In en, this message translates to:
+  /// **'• Payment is made before the start of the trip\n• We accept bank cards, Apple Pay, Google Pay and cash payment\n• Prices are calculated based on distance and vehicle type\n• No hidden fees, all costs are transparent'**
+  String get paymentTermsText;
+
+  /// No description provided for @cancellationPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation Policy'**
+  String get cancellationPolicy;
+
+  /// No description provided for @cancellationPolicyText.
+  ///
+  /// In en, this message translates to:
+  /// **'• Free cancellation up to 30 minutes before the trip\n• Cancellation between 30 min and 5 min: 50% of the amount\n• Cancellation less than 5 min before: 100% of the amount\n• In case of driver cancellation: full refund'**
+  String get cancellationPolicyText;
+
+  /// No description provided for @liabilityLimitation.
+  ///
+  /// In en, this message translates to:
+  /// **'Liability Limitation'**
+  String get liabilityLimitation;
+
+  /// No description provided for @liabilityLimitationText.
+  ///
+  /// In en, this message translates to:
+  /// **'Our liability is limited to the transaction amount. We are not responsible for delays due to traffic conditions, force majeure events, or actions of independent drivers.'**
+  String get liabilityLimitationText;
+
+  /// No description provided for @disputeResolution.
+  ///
+  /// In en, this message translates to:
+  /// **'Dispute Resolution'**
+  String get disputeResolution;
+
+  /// No description provided for @disputeResolutionText.
+  ///
+  /// In en, this message translates to:
+  /// **'In case of dispute, we favor amicable resolution. If necessary, Swiss courts will have jurisdiction. We adhere to Swiss consumer mediation services.'**
+  String get disputeResolutionText;
+
+  /// No description provided for @companyInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Company Information'**
+  String get companyInfo;
+
+  /// No description provided for @companyInfoText.
+  ///
+  /// In en, this message translates to:
+  /// **'My Mobility Services SA\nUID: CHE-123.456.789\nCommercial Register: Geneva\nShare capital: 50,000 CHF\nVAT: CHE-123.456.789 MWST'**
+  String get companyInfoText;
+
+  /// No description provided for @publisherInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Website Publisher'**
+  String get publisherInfo;
+
+  /// No description provided for @publisherInfoText.
+  ///
+  /// In en, this message translates to:
+  /// **'Publication director: Jean Dupont\nEmail: contact@mymobilityservices.com\nPhone: +41 22 123 45 67\nAddress: 123 Rue de la Mobilité, 1200 Geneva, Switzerland'**
+  String get publisherInfoText;
+
+  /// No description provided for @hostingInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Hosting'**
+  String get hostingInfo;
+
+  /// No description provided for @hostingInfoText.
+  ///
+  /// In en, this message translates to:
+  /// **'The site is hosted by:\nGoogle Cloud Platform\n1600 Amphitheatre Parkway\nMountain View, CA 94043, USA\nISO 27001 certified'**
+  String get hostingInfoText;
+
+  /// No description provided for @intellectualProperty.
+  ///
+  /// In en, this message translates to:
+  /// **'Intellectual Property'**
+  String get intellectualProperty;
+
+  /// No description provided for @intellectualPropertyText.
+  ///
+  /// In en, this message translates to:
+  /// **'All elements of this site (texts, images, logos, design) are protected by copyright. Any reproduction without authorization is prohibited. The application and its database are intellectual works protected by the Intellectual Property Code.'**
+  String get intellectualPropertyText;
+
+  /// No description provided for @applicableLaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Applicable Law'**
+  String get applicableLaw;
+
+  /// No description provided for @applicableLawText.
+  ///
+  /// In en, this message translates to:
+  /// **'These terms are subject to Swiss law. In case of dispute, Swiss courts will have sole jurisdiction. The reference language is French.'**
+  String get applicableLawText;
 }
 
 class _AppLocalizationsDelegate

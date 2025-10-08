@@ -779,5 +779,64 @@
   "duplicate": "Dupliquer",
   "use": "Utiliser",
   "tapToOpen": "Appuyez pour ouvrir",
-  "error": "Erreur"
+  "error": "Erreur",
+  
+  "privacyPolicy": "Politique de confidentialité",
+  "termsConditions": "Conditions d'utilisation",
+  "legalMentions": "Mentions légales",
+  "lastUpdated": "Dernière mise à jour",
+  
+  "dataCollection": "Collecte de données",
+  "dataCollectionDescription": "Nous collectons uniquement les données nécessaires au fonctionnement de notre service de mobilité : nom, email, numéro de téléphone, adresses de départ/arrivée, et données de géolocalisation. Ces informations sont utilisées exclusivement pour fournir nos services de transport.",
+  
+  "dataUsage": "Utilisation des données",
+  "dataUsageDescription": "Vos données personnelles sont utilisées pour :\n• Faciliter la réservation et la gestion de vos trajets\n• Communiquer avec vous concernant vos réservations\n• Améliorer la qualité de nos services\n• Respecter nos obligations légales",
+  
+  "dataSharing": "Partage des données",
+  "dataSharingDescription": "Nous ne vendons jamais vos données personnelles. Nous pouvons partager vos informations uniquement avec :\n• Les chauffeurs assignés à vos trajets (nom et numéro de téléphone)\n• Nos prestataires de services (paiement, hébergement) sous contrat de confidentialité\n• Les autorités si requis par la loi",
+  
+  "dataSecurity": "Sécurité des données",
+  "dataSecurityDescription": "Nous utilisons des mesures de sécurité avancées pour protéger vos données :\n• Chiffrement SSL/TLS pour toutes les communications\n• Stockage sécurisé sur des serveurs certifiés\n• Accès restreint aux données personnelles\n• Audit de sécurité régulier",
+  
+  "userRights": "Vos droits",
+  "userRightsDescription": "Conformément au RGPD, vous avez le droit de :\n• Accéder à vos données personnelles\n• Rectifier des informations incorrectes\n• Supprimer votre compte et vos données\n• Limiter le traitement de vos données\n• Portabilité de vos données\n• Vous opposer au traitement",
+  
+  "contactInfo": "Contact",
+  "contactInfoDescription": "Pour toute question concernant vos données personnelles :\n• Email : privacy@mymobilityservices.com\n• Téléphone : +41 22 123 45 67\n• Adresse : 123 Rue de la Mobilité, 1200 Genève, Suisse",
+  
+  "serviceDescription": "Description du service",
+  "serviceDescriptionText": "My Mobility Services est une plateforme de réservation de services de transport privé. Nous mettons en relation des utilisateurs avec des chauffeurs professionnels pour des trajets personnalisés.",
+  
+  "userObligations": "Obligations de l'utilisateur",
+  "userObligationsText": "En utilisant notre service, vous vous engagez à :\n• Fournir des informations exactes et à jour\n• Respecter les chauffeurs et le matériel\n• Payer les services utilisés dans les délais\n• Respecter les règles de sécurité et de civilité\n• Ne pas utiliser le service à des fins illégales",
+  
+  "companyObligations": "Nos obligations",
+  "companyObligationsText": "Nous nous engageons à :\n• Fournir un service de qualité et sécurisé\n• Respecter votre vie privée et vos données\n• Maintenir la disponibilité de la plateforme\n• Assurer la formation et la vérification des chauffeurs\n• Fournir un support client réactif",
+  
+  "paymentTerms": "Conditions de paiement",
+  "paymentTermsText": "• Le paiement s'effectue avant le début du trajet\n• Nous acceptons les cartes bancaires, Apple Pay, Google Pay et le paiement en espèces\n• Les prix sont calculés selon la distance et le type de véhicule\n• Aucun frais caché, tous les coûts sont transparents",
+  
+  "cancellationPolicy": "Politique d'annulation",
+  "cancellationPolicyText": "• Annulation gratuite jusqu'à 30 minutes avant le trajet\n• Annulation entre 30 min et 5 min : 50% du montant\n• Annulation moins de 5 min avant : 100% du montant\n• En cas d'annulation par le chauffeur : remboursement intégral",
+  
+  "liabilityLimitation": "Limitation de responsabilité",
+  "liabilityLimitationText": "Notre responsabilité est limitée au montant de la transaction. Nous ne sommes pas responsables des retards dus aux conditions de circulation, aux événements de force majeure, ou aux actions des chauffeurs indépendants.",
+  
+  "disputeResolution": "Résolution des litiges",
+  "disputeResolutionText": "En cas de litige, nous privilégions la résolution amiable. Si nécessaire, les tribunaux suisses seront compétents. Nous adhérons au service de médiation de la consommation suisse.",
+  
+  "companyInfo": "Informations sur l'entreprise",
+  "companyInfoText": "My Mobility Services SA\nUID : CHE-123.456.789\nRegistre du commerce : Genève\nCapital social : 50 000 CHF\nTVA : CHE-123.456.789 MWST",
+  
+  "publisherInfo": "Éditeur du site",
+  "publisherInfoText": "Directeur de publication : Jean Dupont\nEmail : contact@mymobilityservices.com\nTéléphone : +41 22 123 45 67\nAdresse : 123 Rue de la Mobilité, 1200 Genève, Suisse",
+  
+  "hostingInfo": "Hébergement",
+  "hostingInfoText": "Le site est hébergé par :\nGoogle Cloud Platform\n1600 Amphitheatre Parkway\nMountain View, CA 94043, USA\nCertification ISO 27001",
+  
+  "intellectualProperty": "Propriété intellectuelle",
+  "intellectualPropertyText": "Tous les éléments de ce site (textes, images, logos, design) sont protégés par le droit d'auteur. Toute reproduction sans autorisation est interdite. L'application et sa base de données sont des œuvres de l'esprit protégées par le Code de la propriété intellectuelle.",
+  
+  "applicableLaw": "Droit applicable",
+  "applicableLawText": "Les présentes conditions sont soumises au droit suisse. En cas de litige, les tribunaux suisses seront seuls compétents. La langue de référence est le français."
 }

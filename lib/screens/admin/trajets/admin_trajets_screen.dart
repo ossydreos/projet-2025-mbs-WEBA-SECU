@@ -5,6 +5,8 @@ import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/models/reservation_filter.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/pdf_export_service.dart';
+import 'package:my_mobility_services/data/services/custom_offer_service.dart';
+import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
@@ -19,6 +21,7 @@ class AdminTrajetsScreen extends StatefulWidget {
 class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     with TickerProviderStateMixin {
   final ReservationService _reservationService = ReservationService();
+  final CustomOfferService _customOfferService = CustomOfferService();
 
   int _selectedIndex = 1;
   late TabController _tabController;
@@ -95,6 +98,16 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         ),
       ),
     );
+  }
+
+  // Méthode pour récupérer une offre personnalisée par son ID
+  Future<CustomOffer?> _getCustomOfferById(String offerId) async {
+    try {
+      return await _customOfferService.getCustomOfferById(offerId);
+    } catch (e) {
+      print('Erreur lors de la récupération de l\'offre personnalisée: $e');
+      return null;
+    }
   }
 
   Widget _buildUpcomingTab() {
@@ -425,31 +438,61 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   ),
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(
-                            reservation.status,
-                          ).withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: _getStatusColor(reservation.status),
-                            width: 1,
+                      // Badge "Demande personnalisée" si applicable
+                      if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.orange,
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            'Demande personnalisée',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.orange,
+                              fontFamily: 'Poppins',
+                            ),
                           ),
                         ),
-                        child: Text(
-                          _getStatusText(reservation.status),
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: _getStatusColor(reservation.status),
-                            fontFamily: 'Poppins',
+                        const SizedBox(width: 8),
+                      ],
+                      // Afficher le badge de statut seulement si ce n'est pas une offre personnalisée
+                      if (reservation.customOfferId == null || reservation.customOfferId!.isEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getStatusColor(
+                              reservation.status,
+                            ).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: _getStatusColor(reservation.status),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            _getStatusText(reservation.status),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: _getStatusColor(reservation.status),
+                              fontFamily: 'Poppins',
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                       const SizedBox(width: 8),
                       // Icône détails à droite du statut
                       GestureDetector(
@@ -492,24 +535,95 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               ),
               const SizedBox(height: 8),
 
-              // Date et heure compactes
-              Row(
-                children: [
-                  Icon(Icons.schedule, size: 14, color: AppColors.textWeak),
-                  const SizedBox(width: 6),
-                  Text(
-                    _formatCompactDateTime(
-                      reservation.selectedDate,
-                      reservation.selectedTime,
+              // Affichage des dates selon le type de réservation
+              if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
+                // Pour les offres personnalisées, utiliser un FutureBuilder pour récupérer les dates
+                FutureBuilder<CustomOffer?>(
+                  future: _getCustomOfferById(reservation.customOfferId!),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      final offer = snapshot.data!;
+                      return Column(
+                        children: [
+                          // Date de début
+                          if (offer.startDateTime != null) ...[
+                            Row(
+                              children: [
+                                Icon(Icons.schedule, size: 14, color: AppColors.textWeak),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Début: ${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year} à ${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textWeak,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                          ],
+                          // Date de fin
+                          if (offer.endDateTime != null) ...[
+                            Row(
+                              children: [
+                                Icon(Icons.flag, size: 14, color: AppColors.textWeak),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Fin: ${offer.endDateTime!.day}/${offer.endDateTime!.month}/${offer.endDateTime!.year} à ${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textWeak,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      );
+                    } else {
+                      // Fallback si on ne peut pas récupérer l'offre
+                      return Row(
+                        children: [
+                          Icon(Icons.schedule, size: 14, color: AppColors.textWeak),
+                          const SizedBox(width: 6),
+                          Text(
+                            _formatCompactDateTime(
+                              reservation.selectedDate,
+                              reservation.selectedTime,
+                            ),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textWeak,
+                              fontFamily: 'Poppins',
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
+              ] else ...[
+                // Pour les réservations normales, affichage simple
+                Row(
+                  children: [
+                    Icon(Icons.schedule, size: 14, color: AppColors.textWeak),
+                    const SizedBox(width: 6),
+                    Text(
+                      _formatCompactDateTime(
+                        reservation.selectedDate,
+                        reservation.selectedTime,
+                      ),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textWeak,
+                        fontFamily: 'Poppins',
+                      ),
                     ),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textWeak,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
+              ],
               const SizedBox(height: 12),
 
               // Boutons d'action
@@ -665,6 +779,16 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Type de réservation (demande personnalisée ou normale)
+                if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
+                  _buildCompactDetailSection(
+                    'Type',
+                    Icons.star,
+                    'Demande personnalisée',
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
                 // Informations du client
                 _buildCompactDetailSection(
                   'Client',
@@ -1877,4 +2001,5 @@ class _SortBottomSheet extends StatelessWidget {
       ),
     );
   }
+
 }

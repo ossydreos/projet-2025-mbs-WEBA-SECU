@@ -375,6 +375,14 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           ),
           const SizedBox(height: 12),
 
+          // Type de réservation (demande personnalisée ou normale)
+          if (widget.reservation.customOfferId != null && widget.reservation.customOfferId!.isNotEmpty) ...[
+            _buildInfoRow(
+              'Type',
+              'Demande personnalisée',
+            ),
+          ],
+
           _buildInfoRow(
             AppLocalizations.of(context).vehicle,
             widget.reservation.vehicleName,

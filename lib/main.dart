@@ -43,6 +43,11 @@ import 'data/services/admin_token_service.dart';
 import 'data/services/reservation_fcm_service.dart';
 import 'data/services/stripe_checkout_service.dart';
 import 'firebase_messaging_background.dart';
+import 'package:app_links/app_links.dart';
+import 'widgets/payment_success_animation.dart';
+
+// Clé globale pour le navigator (pour afficher l'animation depuis n'importe où)
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +69,17 @@ void main() async {
       debugPrint('⚠️ Erreur handler FCM: $e');
     }
     
+    // Initialiser la gestion des deep links
+    try {
+      final appLinks = AppLinks();
+      appLinks.uriLinkStream.listen((uri) {
+        _handleDeepLink(uri);
+      });
+      debugPrint('✅ Deep links initialisés');
+    } catch (e) {
+      debugPrint('⚠️ Erreur deep links: $e');
+    }
+    
     
   } catch (e) {
     debugPrint('❌ Erreur lors de l\'initialisation Firebase: $e');
@@ -73,6 +89,58 @@ void main() async {
   runApp(const MyApp());
 }
 
+// ✅ Gérer les deep links de paiement
+void _handleDeepLink(Uri uri) {
+  debugPrint('🔗 Deep link reçu: $uri');
+  
+  if (uri.scheme == 'my-mobility-services') {
+    if (uri.host == 'payment-success') {
+      // Paiement réussi
+      final sessionId = uri.queryParameters['session_id'];
+      final reservationId = uri.queryParameters['reservation_id'];
+      debugPrint('✅ Paiement réussi! Session ID: $sessionId, reservation: $reservationId');
+
+      if (sessionId != null && reservationId != null) {
+        // Finaliser côté app: maj Firestore + passer en inProgress
+        StripeCheckoutService.finalizePaymentFromDeepLink(
+          sessionId: sessionId,
+          reservationId: reservationId,
+        );
+        
+        // Afficher l'animation de succès
+        _showPaymentSuccessAnimation();
+      }
+    } else if (uri.host == 'payment-cancel') {
+      // Paiement annulé
+      debugPrint('❌ Paiement annulé');
+      _showPaymentCancelMessage();
+    }
+  }
+}
+
+// ✅ Afficher l'animation de succès de paiement
+void _showPaymentSuccessAnimation() {
+  debugPrint('🎉 PAIEMENT CONFIRMÉ - La réservation est maintenant en cours !');
+  
+  // Attendre un peu pour que l'app soit complètement chargée
+  Future.delayed(const Duration(milliseconds: 500), () {
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      // Afficher l'animation directement sans forcer la navigation
+      showPaymentSuccessAnimation(
+        context,
+        message: 'Paiement confirmé !',
+      );
+    }
+  });
+}
+
+// ✅ Afficher un message d'annulation de paiement
+void _showPaymentCancelMessage() {
+  debugPrint('❌ Paiement annulé par l\'utilisateur');
+}
+
+
 // Les services seront initialisés plus tard dans l'app pour éviter les crashes
 
 class MyApp extends StatelessWidget {
@@ -81,6 +149,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey, // Ajouter la clé globale
       debugShowCheckedModeBanner: false,
       title: 'My Mobility Services',
       theme: AppTheme.glassDark,

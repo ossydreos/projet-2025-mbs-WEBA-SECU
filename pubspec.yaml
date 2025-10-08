@@ -37,6 +37,7 @@ dependencies:
   pdf: ^3.10.7
   printing: ^5.14.2
   path_provider: ^2.1.2
+  app_links: ^3.5.1
 
 dev_dependencies:
   flutter_test:
@@ -65,3 +66,4 @@ flutter:
     - assets/images/Google__G__logo.svg
     - assets/images/MBG-LogoJauneLime.png
     - assets/sounds/
+    - assets/icons/

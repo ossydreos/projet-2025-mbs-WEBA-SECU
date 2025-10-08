@@ -591,7 +591,9 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         _startTime!.hour,
         _startTime!.minute,
       );
-      return startDateTime.isAfter(zurichTime);
+      // Ajouter 30 minutes de marge pour la préparation
+      final minimumDateTime = zurichTime.add(const Duration(minutes: 30));
+      return startDateTime.isAfter(minimumDateTime);
     } catch (e) {
       // Fallback vers l'heure locale
       final now = DateTime.now();
@@ -602,7 +604,9 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         _startTime!.hour,
         _startTime!.minute,
       );
-      return startDateTime.isAfter(now);
+      // Ajouter 30 minutes de marge pour la préparation
+      final minimumDateTime = now.add(const Duration(minutes: 30));
+      return startDateTime.isAfter(minimumDateTime);
     }
   }
 
