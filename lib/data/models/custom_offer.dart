@@ -1,58 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../l10n/generated/app_localizations.dart';
+import 'reservation.dart'; // Import pour utiliser ReservationStatus
 
-enum CustomOfferStatus {
-  pending, // En attente de réponse du chauffeur
-  accepted, // Acceptée par le chauffeur avec prix fixé
-  rejected, // Rejetée par le chauffeur
-  confirmed, // Confirmée et payée par le client
-  inProgress, // En cours
-  completed, // Terminée
-  cancelled, // Annulée
-}
-
-// Extension pour obtenir le statut localisé
-extension CustomOfferStatusExtension on CustomOfferStatus {
-  String getLocalizedStatus(context) {
-    final localizations = AppLocalizations.of(context);
-    switch (this) {
-      case CustomOfferStatus.pending:
-        return localizations.customOfferStatusPending;
-      case CustomOfferStatus.accepted:
-        return localizations.customOfferStatusAccepted;
-      case CustomOfferStatus.rejected:
-        return localizations.customOfferStatusRejected;
-      case CustomOfferStatus.confirmed:
-        return localizations.customOfferStatusConfirmed;
-      case CustomOfferStatus.inProgress:
-        return localizations.customOfferStatusInProgress;
-      case CustomOfferStatus.completed:
-        return localizations.customOfferStatusCompleted;
-      case CustomOfferStatus.cancelled:
-        return localizations.customOfferStatusCancelled;
-    }
-  }
-
-  // Version legacy pour compatibilité
-  String get statusInFrench {
-    switch (this) {
-      case CustomOfferStatus.pending:
-        return 'En attente';
-      case CustomOfferStatus.accepted:
-        return 'Acceptée';
-      case CustomOfferStatus.rejected:
-        return 'Rejetée';
-      case CustomOfferStatus.confirmed:
-        return 'Confirmée';
-      case CustomOfferStatus.inProgress:
-        return 'En cours';
-      case CustomOfferStatus.completed:
-        return 'Terminée';
-      case CustomOfferStatus.cancelled:
-        return 'Annulée';
-    }
-  }
-}
+// Les offres personnalisées utilisent maintenant le même système de statut que les réservations
+// Cela simplifie la logique et évite les incohérences
 
 class CustomOffer {
   final String id;
@@ -65,7 +15,7 @@ class CustomOffer {
   final int durationHours; // Durée en heures
   final int durationMinutes; // Durée en minutes (0-59)
   final String? clientNote; // Note du client pour le chauffeur
-  final CustomOfferStatus status;
+  final ReservationStatus status;
   final DateTime createdAt;
   final DateTime? updatedAt;
   
@@ -160,9 +110,9 @@ class CustomOffer {
       durationHours: map['durationHours'] ?? 0,
       durationMinutes: map['durationMinutes'] ?? 0,
       clientNote: map['clientNote'],
-      status: CustomOfferStatus.values.firstWhere(
+      status: ReservationStatus.values.firstWhere(
         (e) => e.name == map['status'],
-        orElse: () => CustomOfferStatus.pending,
+        orElse: () => ReservationStatus.pending,
       ),
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       updatedAt: map['updatedAt'] != null
@@ -205,7 +155,7 @@ class CustomOffer {
     int? durationHours,
     int? durationMinutes,
     String? clientNote,
-    CustomOfferStatus? status,
+    ReservationStatus? status,
     DateTime? createdAt,
     DateTime? updatedAt,
     DateTime? startDateTime,
@@ -250,24 +200,14 @@ class CustomOffer {
     );
   }
 
-  // Obtenir le statut en français
+  // Obtenir le statut en français (utilise l'extension de ReservationStatus)
   String get statusInFrench {
-    switch (status) {
-      case CustomOfferStatus.pending:
-        return 'En attente';
-      case CustomOfferStatus.accepted:
-        return 'Acceptée';
-      case CustomOfferStatus.rejected:
-        return 'Rejetée';
-      case CustomOfferStatus.confirmed:
-        return 'Confirmée';
-      case CustomOfferStatus.inProgress:
-        return 'En cours';
-      case CustomOfferStatus.completed:
-        return 'Terminée';
-      case CustomOfferStatus.cancelled:
-        return 'Annulée';
-    }
+    return status.statusInFrench;
+  }
+
+  // Obtenir le statut localisé (utilise l'extension de ReservationStatus)
+  String getLocalizedStatus(context) {
+    return status.getLocalizedStatus(context);
   }
 
   // Obtenir la durée formatée

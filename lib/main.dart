@@ -41,6 +41,7 @@ import 'data/services/admin_global_notification_service.dart';
 import 'data/services/fcm_notification_service.dart';
 import 'data/services/admin_token_service.dart';
 import 'data/services/reservation_fcm_service.dart';
+import 'data/services/stripe_checkout_service.dart';
 import 'firebase_messaging_background.dart';
 
 void main() async {
@@ -62,6 +63,7 @@ void main() async {
     } catch (e) {
       debugPrint('⚠️ Erreur handler FCM: $e');
     }
+    
     
   } catch (e) {
     debugPrint('❌ Erreur lors de l\'initialisation Firebase: $e');

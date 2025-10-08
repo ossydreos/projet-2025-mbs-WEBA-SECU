@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/custom_offer_creation_screen.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
+import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
-import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -470,7 +470,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
 
         // Au retour, si le paiement est confirmé, l'offre doit disparaître
         final refreshed = await _customOfferService.getCustomOfferById(offer.id);
-        if (refreshed != null && refreshed.status == CustomOfferStatus.confirmed) {
+        if (refreshed != null && refreshed.status == ReservationStatus.confirmed) {
           if (mounted) setState(() {});
         }
       }
@@ -490,7 +490,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
     try {
       await _customOfferService.updateOfferStatus(
         offerId: offer.id,
-        status: CustomOfferStatus.rejected,
+        status: ReservationStatus.cancelled,
       );
       
       if (mounted) {
@@ -524,7 +524,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
           .collection('custom_offers')
           .doc(offer.id)
           .update({
-        'status': 'rejected',
+        'status': 'cancelled',
         'updatedAt': Timestamp.now(),
         'cancelledAt': Timestamp.now(),
         'cancelledBy': 'client',
@@ -542,6 +542,9 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
       }
       
       if (mounted) {
+        // Forcer le rafraîchissement de l'interface
+        setState(() {});
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ Offre annulée avec succès !'),
@@ -592,12 +595,12 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
             final offers = snapshot.data ?? [];
             
             // Vérifier s'il y a une offre en attente ou acceptée
-            final pendingOffer = offers.where((o) => o.status == CustomOfferStatus.pending).isNotEmpty
-                ? offers.where((o) => o.status == CustomOfferStatus.pending).first
+            final pendingOffer = offers.where((o) => o.status == ReservationStatus.pending).isNotEmpty
+                ? offers.where((o) => o.status == ReservationStatus.pending).first
                 : null;
             
-            final acceptedOffer = offers.where((o) => o.status == CustomOfferStatus.accepted).isNotEmpty
-                ? offers.where((o) => o.status == CustomOfferStatus.accepted).first
+            final acceptedOffer = offers.where((o) => o.status == ReservationStatus.confirmed).isNotEmpty
+                ? offers.where((o) => o.status == ReservationStatus.confirmed).first
                 : null;
 
             return Padding(

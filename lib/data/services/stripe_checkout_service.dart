@@ -1,17 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
-import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/reservation.dart';
 
 class StripeCheckoutService {
   static const String _stripePublishableKey = 'pk_test_51SA4Pk0xP2bV4rW1o0e3BSzzRNOICsoXLfA2hexPWAaRvNYxYGpM9EXZeOibyR0NMhAeMJoDR9XsM8NVBCbqWxpt00Vr2CovbL';
   static const String _stripeSecretKey = 'sk_test_51SA4Pk0xP2bV4rW12MnpPYIjYeNTOJCYIES1TramydQGjEtqw0uUnYYJBwWjAIyVAOjK2VKsLEzva0kTIWIg9svj00j2ERKneZ';
+  
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // ✅ NOUVELLE MÉTHODE : Stripe Elements avec Twint forcé
-  static Future<void> createPaymentIntent({
+  // ✅ Initialiser Stripe
+  static Future<void> initializeStripe() async {
+    try {
+      Stripe.publishableKey = _stripePublishableKey;
+      await Stripe.instance.applySettings();
+    } catch (e) {
+      print('Erreur initialisation Stripe: $e');
+      rethrow;
+    }
+  }
+
+  // ✅ NOUVELLE MÉTHODE : Paiement intégré sans redirection
+  static Future<Map<String, dynamic>> processPayment({
     required double amount,
     required String currency,
     required String reservationId,
@@ -20,7 +34,7 @@ class StripeCheckoutService {
     required String destination,
   }) async {
     try {
-      // 1. Créer un PaymentIntent avec Twint
+      // 1. Créer un PaymentIntent
       final paymentIntent = await _createPaymentIntent(
         amount: amount,
         currency: currency,
@@ -30,14 +44,31 @@ class StripeCheckoutService {
         destination: destination,
       );
 
-      // 2. Confirmer le paiement avec Stripe Elements
-      await Stripe.instance.confirmPayment(
+      // 2. Confirmer le paiement avec Stripe Elements (intégré)
+      final paymentResult = await Stripe.instance.confirmPayment(
         paymentIntentClientSecret: paymentIntent['client_secret'],
-        data: null, // Pas de données spécifiques pour l'instant
+        data: null,
       );
 
+      // ✅ Mettre à jour la base de données après paiement réussi
+      await _updateReservationAfterPaymentStatic(
+        reservationId: reservationId,
+        paymentIntentId: paymentResult.id,
+        amount: amount,
+        currency: currency,
+      );
+
+      return {
+        'success': true,
+        'paymentIntentId': paymentResult.id,
+        'status': paymentResult.status,
+      };
+
     } catch (e) {
-      throw Exception('Erreur lors du paiement: $e');
+      return {
+        'success': false,
+        'error': 'Erreur lors du paiement: $e',
+      };
     }
   }
 
@@ -55,15 +86,14 @@ class StripeCheckoutService {
     final body = {
       'amount': (amount * 100).toInt().toString(), // Stripe utilise les centimes
       'currency': currency.toLowerCase(),
-      'payment_method_types[0]': 'card',
-      'payment_method_types[1]': 'twint', // Twint forcé
       'metadata[reservation_id]': reservationId,
       'metadata[vehicle_name]': vehicleName,
       'metadata[departure]': departure,
       'metadata[destination]': destination,
+      // ✅ Utiliser automatic_payment_methods (plus simple et moderne)
       'automatic_payment_methods[enabled]': 'true',
       'automatic_payment_methods[allow_redirects]': 'never',
-      // ✅ Forcer Google Pay et Apple Pay
+      // ✅ Configuration pour la sécurité
       'payment_method_options[card][request_three_d_secure]': 'automatic',
     };
 
@@ -83,7 +113,7 @@ class StripeCheckoutService {
     }
   }
 
-  // Créer un lien de paiement Stripe Checkout
+  // ✅ Créer un lien de paiement Stripe Checkout (qui ouvrait Chrome)
   static Future<void> createCheckoutSession({
     required double amount,
     required String currency,
@@ -117,7 +147,7 @@ class StripeCheckoutService {
     }
   }
 
-  // ✅ Créer une session Stripe via l'API
+  // ✅ Créer une session Stripe via l'API (pour référence, non utilisée)
   static Future<Map<String, dynamic>> _createStripeSession({
     required double amount,
     required String currency,
@@ -138,8 +168,8 @@ class StripeCheckoutService {
       'line_items[0][price_data][unit_amount]': (amount * 100).toInt().toString(),
       'line_items[0][quantity]': '1',
       'mode': 'payment',
-      'success_url': 'https://your-app.com/success?session_id={CHECKOUT_SESSION_ID}',
-      'cancel_url': 'https://your-app.com/cancel',
+      'success_url': 'https://my-mobility-services.com/success?session_id={CHECKOUT_SESSION_ID}',
+      'cancel_url': 'https://my-mobility-services.com/cancel',
       'metadata[reservation_id]': reservationId,
       // ✅ Configuration pour Apple Pay et Google Pay
       'payment_method_options[card][request_three_d_secure]': 'automatic',
@@ -162,62 +192,158 @@ class StripeCheckoutService {
     }
   }
 
-  // Afficher un dialog de paiement
-  static void showPaymentDialog({
-    required BuildContext context,
+  // ✅ Mettre à jour la réservation dans Firestore après paiement réussi (méthode statique)
+  static Future<void> _updateReservationAfterPaymentStatic({
+    required String reservationId,
+    required String paymentIntentId,
     required double amount,
     required String currency,
+  }) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      await firestore.collection('reservations').doc(reservationId).update({
+        'paymentStatus': 'paid',
+        'paymentIntentId': paymentIntentId,
+        'paymentCompletedAt': Timestamp.now(),
+        'status': ReservationStatus.confirmed.name,
+        'isPaid': true,
+        'waitingForPayment': false, // Plus en attente de paiement
+        'lastUpdated': Timestamp.now(),
+        'paymentAmount': amount,
+        'paymentCurrency': currency,
+      });
+    } catch (e) {
+      print('Erreur lors de la mise à jour de la réservation: $e');
+      // Ne pas faire échouer le paiement pour une erreur de BDD
+    }
+  }
+
+  // ✅ Mettre à jour la réservation dans Firestore après paiement réussi (méthode d'instance)
+  Future<void> _updateReservationAfterPayment({
     required String reservationId,
-    required String vehicleName,
-    required String departure,
-    required String destination,
-  }) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: GlassContainer(
-          borderRadius: BorderRadius.circular(24),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.payment,
+    required String paymentIntentId,
+    required double amount,
+    required String currency,
+  }) async {
+    try {
+      await _firestore.collection('reservations').doc(reservationId).update({
+        'paymentStatus': 'paid',
+        'paymentIntentId': paymentIntentId,
+        'paymentCompletedAt': Timestamp.now(),
+        'status': ReservationStatus.confirmed.name,
+        'isPaid': true,
+        'waitingForPayment': false, // Plus en attente de paiement
+        'lastUpdated': Timestamp.now(),
+        'paymentAmount': amount,
+        'paymentCurrency': currency,
+      });
+    } catch (e) {
+      print('Erreur lors de la mise à jour de la réservation: $e');
+      // Ne pas faire échouer le paiement pour une erreur de BDD
+    }
+  }
+}
+
+// ✅ Widget de dialog de paiement intégré
+class PaymentDialog extends StatefulWidget {
+  final double amount;
+  final String currency;
+  final String reservationId;
+  final String vehicleName;
+  final String departure;
+  final String destination;
+
+  const PaymentDialog({
+    Key? key,
+    required this.amount,
+    required this.currency,
+    required this.reservationId,
+    required this.vehicleName,
+    required this.departure,
+    required this.destination,
+  }) : super(key: key);
+
+  @override
+  State<PaymentDialog> createState() => _PaymentDialogState();
+}
+
+class _PaymentDialogState extends State<PaymentDialog> {
+  bool _isProcessing = false;
+  String? _errorMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.payment,
+                color: AppColors.accent,
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Paiement sécurisé',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textStrong,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Véhicule: ${widget.vehicleName}',
+                style: TextStyle(color: AppColors.textWeak),
+              ),
+              Text(
+                '${widget.departure} → ${widget.destination}',
+                style: TextStyle(color: AppColors.textWeak),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Total: ${widget.amount.toStringAsFixed(2)} ${widget.currency}',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                   color: AppColors.accent,
-                  size: 64,
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  AppLocalizations.of(context).securePayment,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textStrong,
+              ),
+              const SizedBox(height: 24),
+              
+              if (_errorMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    _errorMessage!,
+                    style: TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '${AppLocalizations.of(context).vehicle}: $vehicleName',
-                  style: TextStyle(color: AppColors.textWeak),
-                ),
-                Text(
-                  '$departure → $destination',
-                  style: TextStyle(color: AppColors.textWeak),
-                ),
+                const SizedBox(height: 16),
+              ],
+              
+              if (_isProcessing) ...[
+                CircularProgressIndicator(color: AppColors.accent),
                 const SizedBox(height: 16),
                 Text(
-                  '${AppLocalizations.of(context).total}: ${amount.toStringAsFixed(2)} $currency',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.accent,
-                  ),
+                  'Traitement du paiement...',
+                  style: TextStyle(color: AppColors.textWeak),
                 ),
                 const SizedBox(height: 24),
+              ] else ...[
                 Text(
-                  'Vous allez être redirigé vers Stripe pour effectuer le paiement sécurisé.',
+                  'Utilisez une carte de test Stripe pour effectuer le paiement.',
                   style: TextStyle(
                     color: AppColors.textWeak,
                     fontSize: 14,
@@ -230,7 +356,7 @@ class StripeCheckoutService {
                     Expanded(
                       child: GlassButton(
                         label: 'Annuler',
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => Navigator.pop(context, {'success': false, 'error': 'Paiement annulé'}),
                         primary: false,
                       ),
                     ),
@@ -238,27 +364,49 @@ class StripeCheckoutService {
                     Expanded(
                       child: GlassButton(
                         label: 'Payer maintenant',
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          await createCheckoutSession(
-                            amount: amount,
-                            currency: currency,
-                            reservationId: reservationId,
-                            vehicleName: vehicleName,
-                            departure: departure,
-                            destination: destination,
-                          );
-                        },
+                        onPressed: _processPayment,
                         primary: true,
                       ),
                     ),
                   ],
                 ),
               ],
-            ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _processPayment() async {
+    setState(() {
+      _isProcessing = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await StripeCheckoutService.processPayment(
+        amount: widget.amount,
+        currency: widget.currency,
+        reservationId: widget.reservationId,
+        vehicleName: widget.vehicleName,
+        departure: widget.departure,
+        destination: widget.destination,
+      );
+
+      if (result['success']) {
+        Navigator.pop(context, result);
+      } else {
+        setState(() {
+          _errorMessage = result['error'] ?? 'Erreur inconnue';
+          _isProcessing = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erreur: $e';
+        _isProcessing = false;
+      });
+    }
   }
 }

@@ -9,6 +9,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/constants.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
+import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/models/vehicule_type.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
@@ -171,7 +172,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     try {
       final offers = await _customOfferService.getUserCustomOffers().first;
       final pendingOffers = offers
-          .where((o) => o.status == CustomOfferStatus.pending)
+          .where((o) => o.status == ReservationStatus.pending)
           .toList();
 
       if (pendingOffers.isNotEmpty && mounted) {

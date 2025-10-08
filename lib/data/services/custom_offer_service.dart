@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/custom_offer.dart';
+import '../models/reservation.dart'; // Import pour utiliser ReservationStatus
 
 class CustomOfferService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -43,7 +44,7 @@ class CustomOfferService {
         durationHours: durationHours,
         durationMinutes: durationMinutes,
         clientNote: clientNote,
-        status: CustomOfferStatus.pending,
+        status: ReservationStatus.pending,
         createdAt: DateTime.now(),
         startDateTime: startDateTime,
         endDateTime: endDateTime,
@@ -112,7 +113,7 @@ class CustomOfferService {
     // Pas d'ordre pour éviter l'index composite requis; tri côté client
     return _firestore
         .collection(_collection)
-        .where('status', isEqualTo: CustomOfferStatus.pending.name)
+        .where('status', isEqualTo: ReservationStatus.pending.name)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
@@ -122,7 +123,23 @@ class CustomOfferService {
     });
   }
 
-  // Accepter une offre (chauffeur)
+  // Récupérer les offres en attente d'action admin (pending + confirmed)
+  Stream<List<CustomOffer>> getCustomOffersForAdmin() {
+    return _firestore
+        .collection(_collection)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs
+          .map((doc) => CustomOffer.fromMap(doc.data()))
+          .where((offer) => 
+              offer.status == ReservationStatus.pending ||
+              offer.status == ReservationStatus.confirmed)
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    });
+  }
+
+  // Accepter une offre (chauffeur) - passe à "confirmed" comme les réservations
   Future<void> acceptCustomOffer({
     required String offerId,
     required double proposedPrice,
@@ -132,7 +149,7 @@ class CustomOfferService {
   }) async {
     try {
       await _firestore.collection(_collection).doc(offerId).update({
-        'status': CustomOfferStatus.accepted.name,
+        'status': ReservationStatus.confirmed.name, // Passe à confirmed
         'proposedPrice': proposedPrice,
         'driverMessage': driverMessage,
         'driverId': driverId,
@@ -145,7 +162,7 @@ class CustomOfferService {
     }
   }
 
-  // Rejeter une offre (chauffeur)
+  // Rejeter une offre (chauffeur) - passe à "cancelled"
   Future<void> rejectCustomOffer({
     required String offerId,
     String? driverMessage,
@@ -154,7 +171,7 @@ class CustomOfferService {
   }) async {
     try {
       await _firestore.collection(_collection).doc(offerId).update({
-        'status': CustomOfferStatus.rejected.name,
+        'status': ReservationStatus.cancelled.name,
         'driverMessage': driverMessage,
         'driverId': driverId,
         'driverName': driverName,
@@ -165,20 +182,28 @@ class CustomOfferService {
     }
   }
 
-  // Confirmer une offre (client après acceptation)
-  Future<void> confirmCustomOffer({
-    required String offerId,
-    required String paymentMethod,
-  }) async {
+
+  // Marquer une offre comme en cours (après paiement)
+  Future<void> startCustomOffer(String offerId) async {
     try {
       await _firestore.collection(_collection).doc(offerId).update({
-        'status': CustomOfferStatus.confirmed.name,
-        'paymentMethod': paymentMethod,
-        'confirmedAt': Timestamp.fromDate(DateTime.now()),
+        'status': ReservationStatus.inProgress.name,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
     } catch (e) {
-      throw Exception('Erreur lors de la confirmation de l\'offre: $e');
+      throw Exception('Erreur lors du démarrage de l\'offre: $e');
+    }
+  }
+
+  // Marquer une offre comme terminée
+  Future<void> completeCustomOffer(String offerId) async {
+    try {
+      await _firestore.collection(_collection).doc(offerId).update({
+        'status': ReservationStatus.completed.name,
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      });
+    } catch (e) {
+      throw Exception('Erreur lors de la finalisation de l\'offre: $e');
     }
   }
 
@@ -186,7 +211,7 @@ class CustomOfferService {
   Future<void> cancelCustomOffer(String offerId) async {
     try {
       await _firestore.collection(_collection).doc(offerId).update({
-        'status': CustomOfferStatus.cancelled.name,
+        'status': ReservationStatus.cancelled.name,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
     } catch (e) {
@@ -212,7 +237,7 @@ class CustomOfferService {
   // Mettre à jour le statut d'une offre
   Future<void> updateOfferStatus({
     required String offerId,
-    required CustomOfferStatus status,
+    required ReservationStatus status,
   }) async {
     try {
       await _firestore.collection(_collection).doc(offerId).update({

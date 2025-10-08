@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
+import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
@@ -95,9 +96,9 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
               const SizedBox(height: 16),
               
               // Informations temporelles (modifiables si en attente)
-              if (widget.offer.status == CustomOfferStatus.pending)
+              if (widget.offer.status == ReservationStatus.pending)
                 _buildEditableTimeInfoCard(),
-              if (widget.offer.status != CustomOfferStatus.pending)
+              if (widget.offer.status != ReservationStatus.pending)
                 _buildTimeInfoCard(),
               const SizedBox(height: 16),
               
@@ -120,13 +121,13 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
                 const SizedBox(height: 16),
               
               // Prix proposé (si en attente)
-              if (widget.offer.status == CustomOfferStatus.pending)
+              if (widget.offer.status == ReservationStatus.pending)
                 _buildPriceCard(),
-              if (widget.offer.status == CustomOfferStatus.pending)
+              if (widget.offer.status == ReservationStatus.pending)
                 const SizedBox(height: 16),
               
               // Actions (si en attente)
-              if (widget.offer.status == CustomOfferStatus.pending)
+              if (widget.offer.status == ReservationStatus.pending)
                 _buildActionCard(),
               
               const SizedBox(height: 100), // Espace pour éviter que le contenu soit caché
@@ -870,7 +871,7 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
 
       await _customOfferService.updateCustomOffer(
         widget.offer.id,
-        status: 'accepted',
+        status: 'confirmed',
         proposedPrice: price,
         driverMessage: _messageController.text.isNotEmpty ? _messageController.text : null,
         durationHours: newDurationHours,
@@ -912,7 +913,7 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
     try {
       await _customOfferService.updateCustomOffer(
         widget.offer.id,
-        status: 'rejected',
+        status: 'cancelled',
         driverMessage: _messageController.text.isNotEmpty ? _messageController.text : null,
       );
 

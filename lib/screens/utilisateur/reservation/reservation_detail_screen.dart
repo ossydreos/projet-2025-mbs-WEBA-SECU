@@ -48,6 +48,9 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           offerId: widget.customOfferId!,
           reservationId: reservationId,
         );
+        
+        // Passer l'offre personnalisée en "inProgress" après paiement
+        await _customOfferService.startCustomOffer(widget.customOfferId!);
       }
       
       await _notificationService.confirmPayment(reservationId);
@@ -96,8 +99,12 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           offerId: widget.customOfferId!,
           reservationId: reservationId,
         );
+        
+        // Passer l'offre personnalisée en "inProgress" après paiement
+        await _customOfferService.startCustomOffer(widget.customOfferId!);
       }
       
+      // ✅ Utiliser l'ancien système qui ouvrait Chrome (qui fonctionnait)
       await StripeCheckoutService.createCheckoutSession(
         amount: widget.reservation.totalPrice,
         currency: _getCurrencyForRegion(), // ✅ Devise adaptée à la région

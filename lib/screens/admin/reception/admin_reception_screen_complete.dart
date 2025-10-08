@@ -329,44 +329,319 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         ),
         const SizedBox(height: 16),
 
-        // Widget des réservations en attente
-        _buildPendingReservations(),
-
-        const SizedBox(height: 24),
-
-        // Widget des offres personnalisées en attente
-        _buildPendingCustomOffers(),
+        // Widget unifié pour toutes les demandes (réservations + offres)
+        _buildUnifiedPendingRequests(),
       ],
     );
   }
 
-  Widget _buildPendingReservations() {
+  Widget _buildUnifiedPendingRequests() {
     return StreamBuilder<QuerySnapshot>(
       stream: _reservationService.getReservationsStream(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+      builder: (context, reservationSnapshot) {
+        return StreamBuilder<List<CustomOffer>>(
+          stream: _customOfferService.getCustomOffersForAdmin(),
+          builder: (context, offerSnapshot) {
+            if (reservationSnapshot.connectionState == ConnectionState.waiting && 
+                offerSnapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-        final reservations = snapshot.data!.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          return Reservation.fromMap({...data, 'id': doc.id});
-        }).toList();
+            final List<dynamic> allRequests = [];
 
-        // Filtrer les réservations en attente d'action admin
-        final pendingReservations = reservations.where((reservation) {
-          return reservation.status == ReservationStatus.pending ||
-              reservation.status == ReservationStatus.confirmed;
-        }).toList();
+            // Ajouter les réservations en attente
+            if (reservationSnapshot.hasData) {
+              final reservations = reservationSnapshot.data!.docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                return Reservation.fromMap({...data, 'id': doc.id});
+              }).where((reservation) {
+                return reservation.status == ReservationStatus.pending ||
+                    reservation.status == ReservationStatus.confirmed;
+              }).map((reservation) => {
+                'type': 'reservation',
+                'data': reservation,
+              }).toList();
+              allRequests.addAll(reservations);
+            }
 
-        if (pendingReservations.isEmpty) {
-          return _buildEmptyState();
-        }
+            // Ajouter les offres personnalisées en attente
+            if (offerSnapshot.hasData) {
+              final offers = offerSnapshot.data!.map((offer) => {
+                'type': 'custom_offer',
+                'data': offer,
+              }).toList();
+              allRequests.addAll(offers);
+            }
 
-        return Column(
-          children: pendingReservations
-              .map((reservation) => _buildReservationCard(reservation))
-              .toList(),
+            if (allRequests.isEmpty) {
+              return _buildEmptyState();
+            }
+
+            // Trier par date de création (plus récent en premier)
+            allRequests.sort((a, b) {
+              DateTime dateA, dateB;
+              
+              if (a['type'] == 'reservation') {
+                dateA = (a['data'] as Reservation).createdAt;
+              } else {
+                dateA = (a['data'] as CustomOffer).createdAt;
+              }
+              
+              if (b['type'] == 'reservation') {
+                dateB = (b['data'] as Reservation).createdAt;
+              } else {
+                dateB = (b['data'] as CustomOffer).createdAt;
+              }
+              
+              return dateB.compareTo(dateA);
+            });
+
+            return Column(
+              children: allRequests
+                  .map((request) => _buildUnifiedRequestCard(request))
+                  .toList(),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildUnifiedRequestCard(Map<String, dynamic> request) {
+    final type = request['type'] as String;
+    final data = request['data'];
+
+    if (type == 'reservation') {
+      return _buildReservationCard(data as Reservation);
+    } else {
+      return _buildCustomOfferCard(data as CustomOffer);
+    }
+  }
+
+
+  // Boîte de dialogue de confirmation pour annuler une réservation
+  void _showCancelReservationDialog(Reservation reservation) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GlassContainer(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icône d'avertissement
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Titre
+                Text(
+                  'Annuler la réservation',
+                  style: TextStyle(
+                    color: AppColors.textStrong,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                
+                // Message
+                Text(
+                  'Êtes-vous sûr de vouloir annuler cette réservation ?\n\nCette action est irréversible.',
+                  style: TextStyle(
+                    color: AppColors.text,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                
+                // Boutons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: AppColors.accent),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          'Non',
+                          style: TextStyle(color: AppColors.accent),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          try {
+                            await _reservationService.updateReservationStatus(
+                              reservation.id,
+                              ReservationStatus.cancelled,
+                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Réservation annulée avec succès'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Erreur lors de l\'annulation: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text('Oui, annuler'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Boîte de dialogue de confirmation pour annuler une offre personnalisée
+  void _showCancelOfferDialog(CustomOffer offer) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: GlassContainer(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icône d'avertissement
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Titre
+                Text(
+                  'Annuler l\'offre',
+                  style: TextStyle(
+                    color: AppColors.textStrong,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                
+                // Message
+                Text(
+                  'Êtes-vous sûr de vouloir annuler cette offre personnalisée ?\n\nCette action est irréversible.',
+                  style: TextStyle(
+                    color: AppColors.text,
+                    fontSize: 16,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                
+                // Boutons
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: AppColors.accent),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: Text(
+                          'Non',
+                          style: TextStyle(color: AppColors.accent),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          Navigator.of(context).pop();
+                          try {
+                            await _customOfferService.updateOfferStatus(
+                              offerId: offer.id,
+                              status: ReservationStatus.cancelled,
+                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Offre annulée avec succès'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Erreur lors de l\'annulation: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                        ),
+                        child: const Text('Oui, annuler'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
@@ -398,43 +673,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     );
   }
 
-  Widget _buildPendingCustomOffers() {
-    return StreamBuilder<List<CustomOffer>>(
-      stream: _customOfferService.getPendingCustomOffers(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final offers = snapshot.data ?? <CustomOffer>[];
-        if (offers.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.star_outline, color: AppColors.accent, size: 24),
-                const SizedBox(width: 8),
-                Text(
-                  'Offres personnalisées en attente',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textStrong,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...offers.map(_buildCustomOfferCard).toList(),
-          ],
-        );
-      },
-    );
-  }
 
   Widget _buildCustomOfferCard(CustomOffer offer) {
     return Container(
@@ -476,14 +714,41 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
+                // Bouton d'annulation
+                GestureDetector(
+                  onTap: () => _showCancelOfferDialog(offer),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.red,
+                      size: 16,
+                    ),
                   ),
-                  child: const Text('En attente', style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
+                // Afficher le badge de statut seulement si ce n'est pas en attente de paiement
+                if (offer.status != ReservationStatus.confirmed) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'En attente',
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
 
@@ -556,51 +821,118 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
             const SizedBox(height: 12),
 
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AdminCustomOfferDetailScreen(offer: offer),
+            offer.status == ReservationStatus.confirmed
+                ? Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 24,
+                      horizontal: 24,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.accent.withOpacity(0.1),
+                          AppColors.accent.withOpacity(0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: AppColors.accent.withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.accent.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-                      );
-                    },
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Gérer'),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Indicateur de chargement à gauche
+                        SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: AppColors.accent,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Message parfaitement centré sur une seule ligne
+                        Expanded(
+                          child: Text(
+                            'Paiement en attente du client',
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
+                            style: TextStyle(
+                              color: AppColors.textStrong,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Icône de carte à droite
+                        Icon(
+                          Icons.credit_card,
+                          color: AppColors.accent,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  )
+                : Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => AdminCustomOfferDetailScreen(offer: offer),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Gérer'),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            try {
+                              await _customOfferService.updateOfferStatus(
+                                offerId: offer.id,
+                                status: ReservationStatus.cancelled,
+                              );
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Offre refusée'), backgroundColor: Colors.red),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.close),
+                          label: const Text('Refuser'),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      try {
-                        await _customOfferService.updateOfferStatus(
-                          offerId: offer.id,
-                          status: CustomOfferStatus.rejected,
-                        );
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Offre refusée'), backgroundColor: Colors.red),
-                          );
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
-                          );
-                        }
-                      }
-                    },
-                    icon: const Icon(Icons.close),
-                    label: const Text('Refuser'),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -652,6 +984,22 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                         ),
                       ),
                     ],
+                  ),
+                ),
+                // Bouton d'annulation
+                GestureDetector(
+                  onTap: () => _showCancelReservationDialog(reservation),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.red,
+                      size: 16,
+                    ),
                   ),
                 ),
               ],
@@ -815,7 +1163,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                       // Message parfaitement centré sur une seule ligne
                       Expanded(
                         child: Text(
-                          'paiement client en attente',
+                          'Paiement client en attente',
                           textAlign: TextAlign.center,
                           maxLines: 1,
                           overflow: TextOverflow.visible,
