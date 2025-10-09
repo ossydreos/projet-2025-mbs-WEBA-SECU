@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 
 /// Palette — glass sur fond sombre (couleurs explicites)
 class AppColors {
-  // Base (dark)
-  static const Color bg = Color(0xFF0B0E13); // near-black blue
-  static const Color bgElev = Color(0xFF0F141B);
+  // Base (dark) - Plus sombre pour cohérence avec welcome screen
+  static const Color bg = Color(0xFF05070A); // near-black blue plus sombre
+  static const Color bgElev = Color(0xFF080B0F);
 
   // Accents
   static const Color accent = Color(0xFF7C9CFF); // periwinkle
@@ -60,7 +60,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
-      scaffoldBackgroundColor: scheme.surface,
+      scaffoldBackgroundColor: Colors.transparent, // Transparent pour permettre GlassBackground
       textTheme: _textTheme(Colors.white),
       inputDecorationTheme: _inputTheme(scheme),
       elevatedButtonTheme: _buttonTheme(scheme),
@@ -200,7 +200,7 @@ class GlassBackground extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0B0E13), Color(0xFF121826), Color(0xFF0B0E13)],
+          colors: [Color(0xFF05070A), Color(0xFF0A0D12), Color(0xFF05070A)],
         ),
       ),
       child: Stack(
@@ -209,7 +209,7 @@ class GlassBackground extends StatelessWidget {
             top: -120,
             right: -60,
             child: _RadialGlow(
-              color: AppColors.accent.withOpacity(0.18),
+              color: AppColors.accent.withOpacity(0.08),
               size: 320,
             ),
           ),
@@ -217,7 +217,7 @@ class GlassBackground extends StatelessWidget {
             left: -80,
             bottom: -100,
             child: _RadialGlow(
-              color: AppColors.accent2.withOpacity(0.16),
+              color: AppColors.accent2.withOpacity(0.06),
               size: 380,
             ),
           ),

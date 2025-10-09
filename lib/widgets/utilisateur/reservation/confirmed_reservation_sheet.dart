@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
-import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 /// Widget pour afficher le sheet de réservation confirmée (en attente de paiement)
 class ConfirmedReservationSheet extends StatelessWidget {
   final Reservation reservation;
   final VoidCallback? onCancel;
-  final VoidCallback? onCall;
   final VoidCallback? onMessage;
   final VoidCallback? onPay;
 
@@ -17,7 +14,6 @@ class ConfirmedReservationSheet extends StatelessWidget {
     super.key,
     required this.reservation,
     this.onCancel,
-    this.onCall,
     this.onMessage,
     this.onPay,
   });
@@ -342,43 +338,23 @@ class ConfirmedReservationSheet extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         
-        // Boutons Call et Message
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: onCall,
-                icon: const Icon(Icons.phone, size: 18),
-                label: Text('Appeler'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  side: BorderSide(color: Colors.grey.withOpacity(0.5), width: 1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
+        // Bouton Chat
+        Align(
+          alignment: Alignment.centerRight,
+          child: ElevatedButton.icon(
+            onPressed: onMessage,
+            icon: const Icon(Icons.chat_bubble, size: 18),
+            label: const Text('Chat'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              foregroundColor: Colors.white,
+              side: BorderSide(color: Colors.grey.withOpacity(0.5), width: 1),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
               ),
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: onMessage,
-                icon: const Icon(Icons.message, size: 18),
-                label: Text('Message'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  side: BorderSide(color: Colors.grey.withOpacity(0.5), width: 1),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ],
     );

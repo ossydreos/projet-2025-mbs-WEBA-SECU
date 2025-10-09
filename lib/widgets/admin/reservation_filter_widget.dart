@@ -386,9 +386,8 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     // Types de courses identiques pour les deux onglets
     final typeOptions = [
       (ReservationTypeFilter.all, 'Toutes les courses', Icons.all_inclusive),
-      (ReservationTypeFilter.simple, 'Demande simple', Icons.receipt),
-      (ReservationTypeFilter.customOffer, 'Offre personnalisée', Icons.star),
-      (ReservationTypeFilter.counterOffer, 'Contre offre', Icons.handshake),
+      (ReservationTypeFilter.reservation, 'Réservation normale', Icons.receipt),
+      (ReservationTypeFilter.offer, 'Offre personnalisée', Icons.star),
     ];
 
     return Column(

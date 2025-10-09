@@ -163,11 +163,19 @@ class _ProfileScreenState extends State<ProfileScreen>
   void _navigateToFavoriteTrips() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const FavoriteTripsScreen(),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const FavoriteTripsScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 200),
       ),
     );
   }
+
 
   /// Contenu principal avec padding pour éviter le chevauchement
   Widget _buildContent(Utilisateur utilisateur) {
@@ -180,11 +188,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             const SizedBox(height: 20),
             _buildUserInfoSection(utilisateur),
             const SizedBox(height: 16),
-            _buildMenuSection(),
-            const SizedBox(height: 16),
-            _buildLocationSection(),
-            const SizedBox(height: 16),
-            _buildSettingsSection(),
+            _buildFavoriteTripsSection(),
             const SizedBox(height: 16),
             _buildLegalSection(),
             const SizedBox(height: 16),
@@ -345,8 +349,11 @@ class _ProfileScreenState extends State<ProfileScreen>
   }
 
 
-  /// Section menu - THÉMATISÉE
-  Widget _buildMenuSection() {
+
+
+
+  /// Section trajets favoris - THÉMATISÉE
+  Widget _buildFavoriteTripsSection() {
     return GlassContainer(
       margin: const EdgeInsets.symmetric(horizontal: 15),
       child: Column(
@@ -355,8 +362,8 @@ class _ProfileScreenState extends State<ProfileScreen>
           Padding(
             padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
             child: Text(
-              AppLocalizations.of(context).menu,
-              style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
+              AppLocalizations.of(context).favoriteTrips,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
           GlassContainer(
@@ -364,99 +371,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
-                _buildMenuItem(Icons.directions_car, AppLocalizations.of(context).myReservations),
-                Divider(
-                  color: AppColors.glassStroke,
-                  thickness: 1,
-                  height: 1,
-                ),
-                _buildMenuItem(Icons.history, AppLocalizations.of(context).history),
-                Divider(
-                  color: AppColors.glassStroke,
-                  thickness: 1,
-                  height: 1,
-                ),
-                _buildMenuItem(Icons.payment, AppLocalizations.of(context).payments),
-                Divider(
-                  color: AppColors.glassStroke,
-                  thickness: 1,
-                  height: 1,
-                ),
-                _buildMenuItem(Icons.help_outline, AppLocalizations.of(context).help),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Section localisation - THÉMATISÉE
-  Widget _buildLocationSection() {
-    return GlassContainer(
-      margin: const EdgeInsets.all(15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
-            child: Text(
-              AppLocalizations.of(context).location,
-              style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
-            ),
-          ),
-          GlassContainer(
-            padding: EdgeInsets.zero,
-            borderRadius: BorderRadius.circular(20),
-            child: Column(
-              children: [
-                _buildMenuItem(Icons.location_on, AppLocalizations.of(context).savedAddresses),
-                Divider(
-                  color: AppColors.glassStroke,
-                  thickness: 1,
-                  height: 1,
-                ),
                 _buildMenuItem(Icons.favorite, AppLocalizations.of(context).favoriteTrips, () => _navigateToFavoriteTrips()),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Section paramètres - THÉMATISÉE
-  Widget _buildSettingsSection() {
-    return GlassContainer(
-      margin: const EdgeInsets.symmetric(horizontal: 15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(15, 15, 15, 8),
-            child: Text(
-              AppLocalizations.of(context).settings,
-              style: Theme.of(context).textTheme.titleLarge, // ✅ Titre blanc
-            ),
-          ),
-          GlassContainer(
-            padding: EdgeInsets.zero,
-            borderRadius: BorderRadius.circular(20),
-            child: Column(
-              children: [
-                _buildMenuItem(Icons.notifications, AppLocalizations.of(context).notifications),
-                Divider(
-                  color: AppColors.glassStroke,
-                  thickness: 1,
-                  height: 1,
-                ),
-                _buildMenuItem(Icons.privacy_tip, AppLocalizations.of(context).privacy, () => _navigateToPrivacyPolicy()),
-                Divider(
-                  color: AppColors.glassStroke,
-                  thickness: 1,
-                  height: 1,
-                ),
-                _buildMenuItem(Icons.language, AppLocalizations.of(context).language),
               ],
             ),
           ),

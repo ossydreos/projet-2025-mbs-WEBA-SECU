@@ -9,6 +9,7 @@ import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
 
 class AdminTrajetsScreen extends StatefulWidget {
@@ -439,7 +440,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   Row(
                     children: [
                       // Badge "Demande personnalisée" si applicable
-                      if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
+                      if (reservation.type == ReservationType.offer) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -465,56 +466,87 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                         ),
                         const SizedBox(width: 8),
                       ],
-                      // Afficher le badge de statut seulement si ce n'est pas une offre personnalisée
-                      if (reservation.customOfferId == null || reservation.customOfferId!.isEmpty) ...[
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(
-                              reservation.status,
-                            ).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: _getStatusColor(reservation.status),
-                              width: 1,
+                      // Pour les trajets à venir: afficher uniquement la bulle Chat (remplace statut + i)
+                      if (isUpcoming) ...[
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => RideChatScreen(
+                                  reservationId: reservation.id,
+                                  isAdmin: true,
+                                  userIdForAdmin: reservation.userId,
+                                  clientName: reservation.userName,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.chat_bubble, size: 18),
+                          label: const Text('Chat'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.accent,
+                            side: BorderSide(color: AppColors.accent),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          child: Text(
-                            _getStatusText(reservation.status),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: _getStatusColor(reservation.status),
-                              fontFamily: 'Poppins',
+                        ),
+                      ] else ...[
+                        // Pour les terminées: conserver le statut et ajouter la bulle Chat à droite, sans l'icône i
+                        if (reservation.type == ReservationType.reservation) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(
+                                reservation.status,
+                              ).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _getStatusColor(reservation.status),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              _getStatusText(reservation.status),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: _getStatusColor(reservation.status),
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => RideChatScreen(
+                                  reservationId: reservation.id,
+                                  isAdmin: true,
+                                  userIdForAdmin: reservation.userId,
+                                  clientName: reservation.userName,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.chat_bubble, size: 18),
+                          label: const Text('Chat'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.accent,
+                            side: BorderSide(color: AppColors.accent),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
                       ],
-                      const SizedBox(width: 8),
-                      // Icône détails à droite du statut
-                      GestureDetector(
-                        onTap: () => _showDetailsDialog(reservation),
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: AppColors.accent.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.accent.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.info_outline,
-                            color: AppColors.accent,
-                            size: 16,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ],
@@ -555,10 +587,10 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               const SizedBox(height: 8),
 
               // Affichage des dates selon le type de réservation
-              if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
+              if (reservation.type == ReservationType.offer) ...[
                 // Pour les offres personnalisées, utiliser un FutureBuilder pour récupérer les dates
                 FutureBuilder<CustomOffer?>(
-                  future: _getCustomOfferById(reservation.customOfferId!),
+                  future: _getCustomOfferById(reservation.id),
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data != null) {
                       final offer = snapshot.data!;
@@ -799,7 +831,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 // Type de réservation (demande personnalisée ou normale)
-                if (reservation.customOfferId != null && reservation.customOfferId!.isNotEmpty) ...[
+                if (reservation.type == ReservationType.offer) ...[
                   _buildCompactDetailSection(
                     'Type',
                     Icons.star,

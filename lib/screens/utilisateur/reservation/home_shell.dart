@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/acceuil_res_screen.dart';
 import 'package:my_mobility_services/screens/utilisateur/offres/offres_personnalisees_screen.dart';
-import 'package:my_mobility_services/screens/utilisateur/trajets/trajets_screen.dart';
-import 'package:my_mobility_services/screens/utilisateur/profile/profile_screen.dart';
+import 'package:my_mobility_services/screens/utilisateur/trips/trips_screen_refined.dart';
+import 'package:my_mobility_services/screens/utilisateur/profile/profile_screen_refined.dart';
 import 'package:my_mobility_services/widgets/utilisateur/widget_navBar.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
@@ -63,12 +63,12 @@ class _HomeShellState extends State<HomeShell> {
                     onNavigate: (index) => _onTap(index),
                     showBottomBar: false,
                   ),
-                  TrajetsScreen(
+                  TripsScreenRefined(
                     key: const PageStorageKey('tab-trips'),
                     onNavigate: (index) => _onTap(index),
                     showBottomBar: false,
                   ),
-                  ProfileScreen(
+                  ProfileScreenRefined(
                     key: const PageStorageKey('tab-profile'),
                     onNavigate: (index) => _onTap(index),
                     showBottomBar: false,

@@ -24,6 +24,7 @@ import 'package:my_mobility_services/widgets/authgate.dart';
 import 'package:my_mobility_services/widgets/admin/admin_screen_wrapper.dart';
 import 'firebase/firebase_options.dart';
 import 'theme/glassmorphism_theme.dart';
+import 'design/theme/app_theme.dart';
 import 'l10n/generated/app_localizations.dart';
 // Import des écrans pour les routes
 // Import des écrans admin
@@ -170,7 +171,7 @@ class MyApp extends StatelessWidget {
       // Si langue non supportée → fallback vers l'anglais
       home: const Authgate(),
       builder: (context, child) {
-        return child!;
+        return GlassBackground(child: child!);
       },
       onGenerateRoute: (settings) {
         Widget page;

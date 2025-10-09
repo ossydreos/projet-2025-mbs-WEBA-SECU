@@ -17,6 +17,7 @@ import 'package:my_mobility_services/data/services/notification_service.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
+import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:my_mobility_services/services/contact_launcher_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -313,8 +314,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       return ConfirmedReservationSheet(
         reservation: reservation,
         onCancel: () => _cancelReservation(reservation),
-        onCall: _makePhoneCall,
-        onMessage: _sendSMS,
+        onMessage: () => _sendSMS(reservation),
         onPay: () {
           Navigator.push(
             context,
@@ -331,8 +331,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       return PendingReservationSheet(
         reservation: reservation,
         onCancel: () => _cancelReservation(reservation),
-        onCall: _makePhoneCall,
-        onMessage: _sendSMS,
+        onMessage: () => _sendSMS(reservation),
       );
     }
   }
@@ -901,23 +900,21 @@ class _AccueilScreenState extends State<AccueilScreen>
     return widget.showBottomBar ? GlassBackground(child: scaffold) : scaffold;
   }
 
-  // Appeler: utilise le système natif
-  Future<void> _makePhoneCall() async {
-    try {
-      final contactService = ContactLauncherService(context);
-      await contactService.launchPhoneCall();
-    } catch (e) {
-      _showErrorSnackBar('Erreur lors de l\'appel: $e');
-    }
-  }
 
-  // Envoyer un message: utilise le système natif
-  Future<void> _sendSMS() async {
+  // Ouvrir le chat de la réservation
+  Future<void> _sendSMS(Reservation reservation) async {
     try {
-      final contactService = ContactLauncherService(context);
-      await contactService.launchMessage();
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RideChatScreen(
+            reservationId: reservation.id,
+            isAdmin: false,
+          ),
+        ),
+      );
     } catch (e) {
-      _showErrorSnackBar('Erreur lors de l\'envoi du message: $e');
+      _showErrorSnackBar('Erreur lors de l\'ouverture du chat: $e');
     }
   }
 

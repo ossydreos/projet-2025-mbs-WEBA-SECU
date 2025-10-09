@@ -3,14 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/reservation.dart';
 import '../models/reservation_filter.dart';
 import 'client_notification_service.dart';
-import 'ride_chat_service.dart';
 
 class ReservationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ClientNotificationService _notificationService =
       ClientNotificationService();
-  final RideChatService _chatService = RideChatService();
 
   // Collection Firestore
   static const String _collection = 'reservations';
@@ -76,16 +74,6 @@ class ReservationService {
         newStatus: newStatus,
         reason: reason,
       );
-
-      // Supprimer le thread de chat si la réservation est terminée ou annulée
-      if (newStatus == ReservationStatus.completed || newStatus == ReservationStatus.cancelled) {
-        try {
-          await _chatService.deleteThreadForReservation(reservationId);
-        } catch (e) {
-          // Log l'erreur mais ne pas faire échouer la mise à jour du statut
-          print('Erreur lors de la suppression du thread de chat: $e');
-        }
-      }
     } catch (e) {
       throw Exception('Erreur lors de la mise à jour du statut: $e');
     }

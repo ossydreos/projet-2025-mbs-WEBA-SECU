@@ -85,11 +85,23 @@ class CustomBottomNavigationBar extends StatelessWidget {
           ],
         );
 
-        if (noWrapper) return bar;
-
-        return GlassContainer(
-          padding: EdgeInsets.zero,
+        // Disable ripple/highlight for smoother interactions over blurred backgrounds
+        final barThemed = Theme(
+          data: Theme.of(context).copyWith(
+            splashFactory: NoSplash.splashFactory,
+            highlightColor: Colors.transparent,
+            splashColor: Colors.transparent,
+          ),
           child: bar,
+        );
+
+        if (noWrapper) return RepaintBoundary(child: barThemed);
+
+        return RepaintBoundary(
+          child: GlassContainer(
+            padding: EdgeInsets.zero,
+            child: barThemed,
+          ),
         );
       },
     );

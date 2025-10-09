@@ -13,6 +13,7 @@ import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dar
 import 'package:url_launcher/url_launcher.dart';
 import 'package:my_mobility_services/services/contact_launcher_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 
 // 👇 importe la barre réutilisable
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
@@ -768,44 +769,42 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   ],
                 ),
               ],
-              // Boutons de contact pour les réservations confirmées
+              // Bulle de chat par course (remplace Appeler/Message)
               if (reservation.status == ReservationStatus.confirmed ||
-                  reservation.status == ReservationStatus.inProgress) ...[
+                  reservation.status == ReservationStatus.inProgress ||
+                  reservation.status == ReservationStatus.completed) ...[
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _makePhoneCall,
-                        icon: const Icon(Icons.phone, size: 18),
-                        label: Text(AppLocalizations.of(context).call),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accent,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RideChatScreen(
+                            reservationId: reservation.id,
+                            isAdmin: false,
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.accent),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Icon(Icons.chat_bubble, color: AppColors.accent, size: 18),
+                          SizedBox(width: 8),
+                          Text('Chat', style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: _sendSMS,
-                        icon: const Icon(Icons.message, size: 18),
-                        label: Text(AppLocalizations.of(context).message),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.accent,
-                          side: BorderSide(color: AppColors.accent),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ],
@@ -973,25 +972,6 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     );
   }
 
-  // Appeler: utilise le système natif
-  Future<void> _makePhoneCall() async {
-    try {
-      final contactService = ContactLauncherService(context);
-      await contactService.launchPhoneCall();
-    } catch (e) {
-      _showErrorSnackBar('Erreur lors de l\'appel: $e');
-    }
-  }
-
-  // Envoyer un message: utilise le système natif
-  Future<void> _sendSMS() async {
-    try {
-      final contactService = ContactLauncherService(context);
-      await contactService.launchMessage();
-    } catch (e) {
-      _showErrorSnackBar('Erreur lors de l\'envoi du message: $e');
-    }
-  }
 
   // Afficher un message d'erreur
   void _showErrorSnackBar(String message) {

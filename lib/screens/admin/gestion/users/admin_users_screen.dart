@@ -321,6 +321,37 @@ class AdminUserDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
+              // Historique des modifications
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Historique des modifications',
+                    style: TextStyle(
+                      color: AppColors.textStrong,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => _showHistoryDialog(context, userId),
+                    icon: const Icon(Icons.history, size: 16),
+                    label: const Text('Voir l\'historique'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accent2.withOpacity(0.2),
+                      foregroundColor: AppColors.accent2,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(color: AppColors.accent2),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
               // Réservations
               Text(
                 'Réservations',
@@ -738,5 +769,170 @@ class AdminUserDetailScreen extends StatelessWidget {
     }
 
     return '$dateText à $time';
+  }
+
+  // Méthode pour afficher l'historique des modifications
+  void _showHistoryDialog(BuildContext context, String userId) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassContainer(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.history,
+                  color: AppColors.accent2,
+                  size: 48,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Historique des modifications',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textStrong,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                
+                // Liste de l'historique
+                SizedBox(
+                  height: 400,
+                  width: double.maxFinite,
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(userId)
+                        .collection('profile_history')
+                        .orderBy('changedAt', descending: true)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Aucun historique disponible',
+                            style: TextStyle(color: AppColors.textWeak),
+                          ),
+                        );
+                      }
+                      
+                      return ListView.builder(
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (context, index) {
+                          final doc = snapshot.data!.docs[index];
+                          final data = doc.data() as Map<String, dynamic>;
+                          final changedAt = (data['changedAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+                          
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.glass.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.glassStroke),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Modifié le ${changedAt.day}/${changedAt.month}/${changedAt.year} à ${changedAt.hour}:${changedAt.minute.toString().padLeft(2, '0')}',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textWeak,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: data['changedBy'] == 'admin' 
+                                            ? AppColors.hot.withOpacity(0.2)
+                                            : AppColors.accent.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        data['changedBy'] == 'admin' ? 'Admin' : 'Utilisateur',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: data['changedBy'] == 'admin' 
+                                              ? AppColors.hot
+                                              : AppColors.accent,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                if (data['name'] != null && data['name'].isNotEmpty)
+                                  _buildHistoryField('Nom', data['name']),
+                                if (data['email'] != null && data['email'].isNotEmpty)
+                                  _buildHistoryField('Email', data['email']),
+                                if (data['phone'] != null && data['phone'].isNotEmpty)
+                                  _buildHistoryField('Téléphone', data['phone']),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Bouton fermer
+                GlassButton(
+                  label: 'Fermer',
+                  onPressed: () => Navigator.pop(context),
+                  primary: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHistoryField(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textWeak,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textStrong,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

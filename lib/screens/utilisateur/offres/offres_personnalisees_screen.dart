@@ -38,352 +38,166 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
     );
   }
 
+  // ======================
+  // UI HELPERS (PRIVATE)
+  // ======================
+
   Widget _buildPendingOfferCard(CustomOffer offer) {
-    // Nouveau style aéré pleine largeur pour l'attente d'acceptation
-    return GlassContainer(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Bandeau de statut
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.schedule, color: Colors.orange, size: 18),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'En attente d\'acceptation du chauffeur',
-                    style: const TextStyle(
-                      color: Colors.orange,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.2,
-                      height: 1.2,
-                    ),
-                  ),
-                ),
-                Text(
-                  _formatDate(offer.createdAt),
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+    final dateText = offer.startDateTime != null
+        ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
+        : 'Date non définie';
 
-            // Bloc trajet + heures (même gabarit que carte acceptée)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  children: [
-                    Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)),
-                    Container(width: 1, height: 22, color: AppColors.textWeak.withOpacity(0.5)),
-                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFF6B6B), shape: BoxShape.circle)),
-                  ],
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(offer.departure, style: TextStyle(color: AppColors.text, fontSize: 14, height: 1.25)),
-                      const SizedBox(height: 8),
-                      Text(offer.destination, style: TextStyle(color: AppColors.text, fontSize: 14, height: 1.25)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('Début', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
-                    Text(
-                      offer.startDateTime != null
-                          ? '${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}'
-                          : '--:--',
-                      style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    Text('Fin', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
-                    Text(
-                      offer.endDateTime != null
-                          ? '${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}'
-                          : '--:--',
-                      style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 14),
-
-            // Ligne infos date + à définir
-            Row(
-              children: [
-                Icon(Icons.calendar_today, size: 16, color: AppColors.textWeak),
-                const SizedBox(width: 8),
-                Text(
-                  offer.startDateTime != null
-                      ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
-                      : 'Date non définie',
-                  style: TextStyle(color: AppColors.textWeak, fontSize: 14),
-                ),
-                const Spacer(),
-                Icon(Icons.account_balance_wallet, size: 16, color: AppColors.textWeak),
-                const SizedBox(width: 8),
-                Text('À définir', style: TextStyle(color: AppColors.textWeak, fontSize: 14)),
-              ],
-            ),
-
-            if (offer.clientNote != null && offer.clientNote!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.accent.withOpacity(0.18)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.note, color: AppColors.accent, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        offer.clientNote!,
-                        style: TextStyle(color: AppColors.text, fontSize: 14, height: 1.25),
-                      ),
-                    ),
-                  ],
-                ),
+    return _GlassPanel(
+      borderRadius: const BorderRadius.all(Fx.radiusM),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: status chip + relative date
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _StatusChip(
+                label: 'En attente d\'acceptation',
+                icon: Icons.schedule,
+                color: AppColors.accent,
+              ),
+              const Spacer(),
+              Text(
+                _formatDate(offer.createdAt),
+                style: TextStyle(color: AppColors.textWeak, fontSize: 12),
               ),
             ],
+          ),
+          const SizedBox(height: 16),
+
+          // Addresses + times
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _AddressBlock(
+                  from: offer.departure,
+                  to: offer.destination,
+                ),
+              ),
+              const SizedBox(width: 12),
+              _TimesBlock(
+                start: offer.startDateTime,
+                end: offer.endDateTime,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Info line: date + wallet
+          _InfoLine(
+            leftIcon: Icons.calendar_today,
+            leftText: dateText,
+            rightIcon: Icons.account_balance_wallet,
+            rightText: 'À définir',
+          ),
+
+          if (offer.clientNote != null && offer.clientNote!.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _SubGlassNote(
+              icon: Icons.note,
+              accent: AppColors.accent,
+              text: offer.clientNote!,
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
 
   Widget _buildAcceptedOfferCard(CustomOffer offer) {
-    // Nouveau style: carte premium, hiérarchie claire, alignements propres
-    return GlassContainer(
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.check_circle, color: Colors.white, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Offre personnalisée',
-                        style: TextStyle(
-                          color: AppColors.textStrong,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Chauffeur: ${offer.driverName ?? 'Non spécifié'}',
-                        style: TextStyle(color: AppColors.textWeak, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-                // Price badge
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withOpacity(0.25),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${offer.proposedPrice?.toStringAsFixed(2) ?? '0.00'} CHF',
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
-                      ),
-                      Text(
-                        'Prix proposé',
-                        style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    final dateText = offer.startDateTime != null
+        ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
+        : 'Date non définie';
 
-            const SizedBox(height: 16),
-
-            // Trip block (départ -> arrivée) avec points et ligne
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Timeline
-                Column(
-                  children: [
-                    Container(width: 8, height: 8, decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle)),
-                    Container(width: 1, height: 22, color: AppColors.textWeak.withOpacity(0.5)),
-                    Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFFF6B6B), shape: BoxShape.circle)),
-                  ],
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        offer.departure,
-                        style: TextStyle(color: AppColors.text, fontSize: 14),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        offer.destination,
-                        style: TextStyle(color: AppColors.text, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Heures
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('Début', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
-                    Text(
-                      offer.startDateTime != null
-                          ? '${offer.startDateTime!.hour.toString().padLeft(2, '0')}:${offer.startDateTime!.minute.toString().padLeft(2, '0')}'
-                          : '--:--',
-                      style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    Text('Fin', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
-                    Text(
-                      offer.endDateTime != null
-                          ? '${offer.endDateTime!.hour.toString().padLeft(2, '0')}:${offer.endDateTime!.minute.toString().padLeft(2, '0')}'
-                          : '--:--',
-                      style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 14),
-
-            // Date + note chauffeur
-            Row(
-              children: [
-                Icon(Icons.calendar_today, size: 16, color: AppColors.textWeak),
-                const SizedBox(width: 8),
-                Text(
-                  offer.startDateTime != null
-                      ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
-                      : 'Date non définie',
-                  style: TextStyle(color: AppColors.textWeak, fontSize: 14),
-                ),
-                const Spacer(),
-                Icon(Icons.account_balance_wallet, size: 16, color: AppColors.textWeak),
-                const SizedBox(width: 8),
-                Text('À définir', style: TextStyle(color: AppColors.textWeak, fontSize: 14)),
-              ],
-            ),
-
-            if (offer.driverMessage != null && offer.driverMessage!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.accent.withOpacity(0.2)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(Icons.message, color: AppColors.accent, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        offer.driverMessage!,
-                        style: TextStyle(color: AppColors.text, fontSize: 14),
-                      ),
-                    ),
-                  ],
+    return _GlassPanel(
+      borderRadius: const BorderRadius.all(Fx.radiusM),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header + Price badge
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _RoundedGlyph(
+                icon: Icons.check_circle,
+                bg: AppColors.accent.withOpacity(0.18),
+                size: 42,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _HeaderTitleSubtitle(
+                  title: 'Offre personnalisée',
+                  subtitle: 'Chauffeur: ${offer.driverName ?? 'Non spécifié'}',
                 ),
               ),
+              const SizedBox(width: 8),
+              _PriceBadge(
+                amountLabel: '${offer.proposedPrice?.toStringAsFixed(2) ?? '0.00'} CHF',
+                caption: 'Prix proposé',
+              ),
             ],
+          ),
 
+          const SizedBox(height: 16),
+
+          // Addresses + times
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: _AddressBlock(
+                  from: offer.departure,
+                  to: offer.destination,
+                ),
+              ),
+              const SizedBox(width: 12),
+              _TimesBlock(
+                start: offer.startDateTime,
+                end: offer.endDateTime,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Info line
+          _InfoLine(
+            leftIcon: Icons.calendar_today,
+            leftText: dateText,
+            rightIcon: Icons.account_balance_wallet,
+            rightText: 'À définir',
+          ),
+
+          if (offer.driverMessage != null && offer.driverMessage!.isNotEmpty) ...[
             const SizedBox(height: 16),
-
-            // Actions
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _confirmAndPayOffer(offer),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('Valider et payer', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _rejectOffer(offer),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: const Text('Refuser', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
+            _SubGlassNote(
+              icon: Icons.message,
+              accent: AppColors.accent,
+              text: offer.driverMessage!,
             ),
           ],
-        ),
+
+          const SizedBox(height: 16),
+
+          // Actions
+          _ActionsRow(
+            primaryLabel: 'Valider et payer',
+            primaryOnPressed: () => _confirmAndPayOffer(offer),
+            primaryColor: AppColors.accent2,
+            secondaryLabel: 'Refuser',
+            secondaryOnPressed: () => _rejectOffer(offer),
+            secondaryColor: AppColors.hot,
+          ),
+        ],
       ),
     );
   }
@@ -453,7 +267,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
         departureCoordinates: offer.departureCoordinates,
         destinationCoordinates: offer.destinationCoordinates,
         clientNote: offer.clientNote,
-        customOfferId: offer.id, // Lier à l'offre personnalisée
+        type: ReservationType.offer, // Marquer comme offre personnalisée
       );
 
       // Ouvrir l'écran de paiement IDENTIQUE aux réservations normales
@@ -611,143 +425,120 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
 
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Column(
-                children: [
-                  if (pendingOffer == null && acceptedOffer == null) ...[
-                    // En-tête seulement si pas d'offre en attente ou acceptée
-                    GlassContainer(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.star_outline,
-                            size: 60,
-                            color: AppColors.accent,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            AppLocalizations.of(context).customOffer,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    if (pendingOffer == null && acceptedOffer == null) ...[
+                      _GlassPanel(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.star_outline,
+                              size: 60,
+                              color: AppColors.accent,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Créez une demande personnalisée pour un chauffeur privé',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
+                            const SizedBox(height: 16),
+                            Text(
+                              AppLocalizations.of(context).customOffer,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                  
-                  const SizedBox(height: 12),
-                  
-                  if (pendingOffer != null) ...[
-                    // Afficher l'offre en attente avec style amélioré
-                    // Carte pleine largeur
-                    SizedBox(width: double.infinity, child: _buildPendingOfferCard(pendingOffer)),
-                    const SizedBox(height: 20),
-                    // Bouton pour annuler l'offre
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _cancelPendingOffer(pendingOffer),
-                        icon: const Icon(Icons.cancel, color: Colors.white),
-                        label: const Text(
-                          'Annuler cette offre',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ] else if (acceptedOffer != null) ...[
-                    // Afficher l'offre acceptée avec prix et boutons d'action
-                    SizedBox(width: double.infinity, child: _buildAcceptedOfferCard(acceptedOffer)),
-                  ] else ...[
-                    // Bouton de création (seulement si pas d'offre en attente)
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _openCustomOfferCreation(context),
-                        icon: const Icon(Icons.add, color: Colors.white),
-                        label: Text(
-                          AppLocalizations.of(context).createCustomOffer,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // Informations seulement si pas d'offre en attente
-                    GlassContainer(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: AppColors.accent,
-                                size: 20,
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Créez une demande personnalisée pour un chauffeur privé',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 16,
+                                height: 1.35,
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Comment ça marche ?',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            '1. Définissez votre trajet et la durée souhaitée\n'
-                            '2. Ajoutez une note pour le chauffeur\n'
-                            '3. Les chauffeurs verront votre demande\n'
-                            '4. Un chauffeur acceptera et proposera un prix\n'
-                            '5. Vous confirmez et payez',
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 12),
+
+                    if (pendingOffer != null) ...[
+                      // Pending Card
+                      _buildPendingOfferCard(pendingOffer),
+                      const SizedBox(height: 20),
+                      // Cancel button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _cancelPendingOffer(pendingOffer),
+                          icon: const Icon(Icons.cancel, color: Colors.white, size: 20),
+                          label: const Text(
+                            'Annuler cette offre',
                             style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                              height: 1.5,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                        ],
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.hot,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                    ] else if (acceptedOffer != null) ...[
+                      // Accepted Card
+                      _buildAcceptedOfferCard(acceptedOffer),
+                    ] else ...[
+                      // Create CTA
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _openCustomOfferCreation(context),
+                          icon: const Icon(Icons.add, color: Colors.white, size: 20),
+                          label: Text(
+                            AppLocalizations.of(context).createCustomOffer,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.accent,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // How it works
+                      _GlassPanel(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            _SectionTitle(
+                              icon: Icons.info_outline,
+                              title: 'Comment ça marche ?',
+                            ),
+                            SizedBox(height: 12),
+                            _HowItWorksList(),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             );
           },
@@ -755,5 +546,462 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
       );
 
     return widget.showBottomBar ? GlassBackground(child: scaffold) : scaffold;
+  }
+}
+
+// ======================
+// SUB-WIDGETS (PRIVATE)
+// ======================
+
+class _GlassPanel extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry? margin;
+  final BorderRadiusGeometry borderRadius;
+
+  const _GlassPanel({
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.margin,
+    this.borderRadius = const BorderRadius.all(Fx.radiusM),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: GlassContainer(
+        padding: padding,
+        margin: margin,
+        borderRadius: borderRadius,
+        child: child,
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  const _StatusChip({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 28,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.16),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.28)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.20),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddressBlock extends StatelessWidget {
+  final String from;
+  final String to;
+
+  const _AddressBlock({
+    required this.from,
+    required this.to,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final secondary = AppColors.textWeak.withOpacity(0.75);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Timeline
+        Column(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle),
+            ),
+            Container(width: 1, height: 24, color: secondary),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(color: Color(0xFFFF6B6B), shape: BoxShape.circle),
+            ),
+          ],
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _AddressLine(
+                icon: Icons.place,
+                text: from,
+                color: AppColors.accent,
+              ),
+              const SizedBox(height: 8),
+              _AddressLine(
+                icon: Icons.flag,
+                text: to,
+                color: const Color(0xFFFF6B6B),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AddressLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final Color color;
+
+  const _AddressLine({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final style = TextStyle(color: AppColors.text, fontSize: 14, height: 1.25);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: color.withOpacity(0.9)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TimesBlock extends StatelessWidget {
+  final DateTime? start;
+  final DateTime? end;
+
+  const _TimesBlock({
+    required this.start,
+    required this.end,
+  });
+
+  String _hhmm(DateTime? dt) {
+    if (dt == null) return '--:--';
+    return '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text('Début', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
+        Text(
+          _hhmm(start),
+          style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Text('Fin', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
+        Text(
+          _hhmm(end),
+          style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
+        ),
+      ],
+    );
+  }
+}
+
+class _InfoLine extends StatelessWidget {
+  final IconData leftIcon;
+  final String leftText;
+  final IconData rightIcon;
+  final String rightText;
+
+  const _InfoLine({
+    required this.leftIcon,
+    required this.leftText,
+    required this.rightIcon,
+    required this.rightText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final weak = AppColors.textWeak;
+    return Row(
+      children: [
+        Icon(leftIcon, size: 16, color: weak),
+        const SizedBox(width: 8),
+        Text(leftText, style: TextStyle(color: weak, fontSize: 14)),
+        const Spacer(),
+        Icon(rightIcon, size: 16, color: weak),
+        const SizedBox(width: 8),
+        Text(rightText, style: TextStyle(color: weak, fontSize: 14)),
+      ],
+    );
+  }
+}
+
+class _SubGlassNote extends StatelessWidget {
+  final IconData icon;
+  final Color accent;
+  final String text;
+
+  const _SubGlassNote({
+    required this.icon,
+    required this.accent,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _GlassPanel(
+      borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: accent, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: AppColors.text, fontSize: 14, height: 1.25),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RoundedGlyph extends StatelessWidget {
+  final IconData icon;
+  final Color bg;
+  final double size;
+
+  const _RoundedGlyph({
+    required this.icon,
+    required this.bg,
+    this.size = 42,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+      child: Icon(icon, color: Colors.white, size: 22),
+    );
+  }
+}
+
+class _HeaderTitleSubtitle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _HeaderTitleSubtitle({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            color: AppColors.textStrong,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          subtitle,
+          style: TextStyle(color: AppColors.textWeak, fontSize: 12),
+        ),
+      ],
+    );
+  }
+}
+
+class _PriceBadge extends StatelessWidget {
+  final String amountLabel;
+  final String caption;
+
+  const _PriceBadge({
+    required this.amountLabel,
+    required this.caption,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+      decoration: BoxDecoration(
+        color: AppColors.accent,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.25),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            amountLabel,
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          Text(
+            caption,
+            style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 10),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActionsRow extends StatelessWidget {
+  final String primaryLabel;
+  final VoidCallback primaryOnPressed;
+  final Color primaryColor;
+  final String secondaryLabel;
+  final VoidCallback secondaryOnPressed;
+  final Color secondaryColor;
+
+  const _ActionsRow({
+    required this.primaryLabel,
+    required this.primaryOnPressed,
+    required this.primaryColor,
+    required this.secondaryLabel,
+    required this.secondaryOnPressed,
+    required this.secondaryColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: primaryOnPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            child: Text(primaryLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: secondaryOnPressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: secondaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+            child: Text(secondaryLabel, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  final IconData icon;
+  final String title;
+
+  const _SectionTitle({
+    required this.icon,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.accent, size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HowItWorksList extends StatelessWidget {
+  const _HowItWorksList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '1. Définissez votre trajet et la durée souhaitée\n'
+      '2. Ajoutez une note pour le chauffeur\n'
+      '3. Les chauffeurs verront votre demande\n'
+      '4. Un chauffeur acceptera et proposera un prix\n'
+      '5. Vous confirmez et payez',
+      style: TextStyle(
+        color: AppColors.text,
+        fontSize: 14,
+        height: 1.5,
+      ),
+    );
   }
 }

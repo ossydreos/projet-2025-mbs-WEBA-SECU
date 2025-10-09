@@ -12,6 +12,7 @@ import 'package:my_mobility_services/data/services/admin_global_notification_ser
 import 'package:my_mobility_services/data/services/support_chat_service.dart';
 import 'package:my_mobility_services/data/models/support_thread.dart';
 import 'package:my_mobility_services/screens/support/support_chat_screen.dart';
+import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 import 'package:my_mobility_services/data/services/payment_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -1832,16 +1833,14 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   // Méthode pour contacter le client
   Future<void> _contactClient(Reservation reservation) async {
     try {
-      // Créer ou récupérer le thread de support pour ce client
-      final thread = await _createOrGetClientThread(reservation.userId);
-      
-      // Naviguer vers le chat avec ce client
+      // Utiliser le système de chat de réservation (RideChatScreen)
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => SupportChatScreen(
+          builder: (_) => RideChatScreen(
+            reservationId: reservation.id,
             isAdmin: true,
-            threadId: thread.id,
+            userIdForAdmin: reservation.userId,
             clientName: reservation.userName,
           ),
         ),
@@ -1858,35 +1857,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     }
   }
 
-  // Créer ou récupérer le thread de support pour un client spécifique
-  Future<SupportThread> _createOrGetClientThread(String userId) async {
-    // Chercher un thread existant pour ce client
-    final existing = await FirebaseFirestore.instance
-        .collection(SupportChatService.threadsCollection)
-        .where('userId', isEqualTo: userId)
-        .limit(1)
-        .get();
-
-    if (existing.docs.isNotEmpty) {
-      final d = existing.docs.first;
-      return SupportThread.fromMap(d.data(), d.id);
-    }
-
-    // Créer un nouveau thread pour ce client
-    final ref = FirebaseFirestore.instance.collection(SupportChatService.threadsCollection).doc();
-    final now = DateTime.now();
-    final thread = SupportThread(
-      id: ref.id,
-      userId: userId,
-      createdAt: now,
-      updatedAt: now,
-      unreadForUser: 0,
-      unreadForAdmin: 0,
-      isClosed: false,
-    );
-    await ref.set(thread.toMap());
-    return thread;
-  }
 }
 
 class _AdminSupportUnreadBubble extends StatelessWidget {

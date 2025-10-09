@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -777,105 +778,30 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     required List<Suggestion> suggestions,
     required bool isDeparture,
   }) {
+    final hasError = _hasTriedToSubmit && (isDeparture ? !_isDepartureValid() : !_isDestinationValid());
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
+        _SectionLabel(text: label),
+        const SizedBox(height: 12),
+        _GlassInputField(
           controller: controller,
           focusNode: focusNode,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: label,
-            hintStyle: const TextStyle(color: Colors.white70),
-            prefixIcon: Icon(
-              isDeparture ? Icons.location_on : Icons.location_on_outlined,
-              color: Colors.white70,
-              size: 22,
-            ),
-            suffixIcon: isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : null,
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color:
-                    (_hasTriedToSubmit &&
-                        (isDeparture
-                            ? !_isDepartureValid()
-                            : !_isDestinationValid()))
-                    ? Colors.red.withOpacity(0.6)
-                    : Colors.white.withOpacity(0.2),
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color:
-                    (_hasTriedToSubmit &&
-                        (isDeparture
-                            ? !_isDepartureValid()
-                            : !_isDestinationValid()))
-                    ? Colors.red.withOpacity(0.6)
-                    : Colors.white.withOpacity(0.2),
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color:
-                    (_hasTriedToSubmit &&
-                        (isDeparture
-                            ? !_isDepartureValid()
-                            : !_isDestinationValid()))
-                    ? Colors.red.withOpacity(0.8)
-                    : Colors.white.withOpacity(0.4),
-              ),
-            ),
-          ),
+          hintText: label,
+          prefixIcon: isDeparture ? Icons.location_on : Icons.location_on_outlined,
+          isLoading: isLoading,
+          hasError: hasError,
         ),
-        if (suggestions.isNotEmpty) ...[
+        if (hasError) ...[
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
-            ),
-            child: Column(
-              children: suggestions.take(5).map((suggestion) {
-                return ListTile(
-                  leading: Icon(suggestion.icon, color: Colors.white70),
-                  title: Text(
-                    suggestion.shortName,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  subtitle: Text(
-                    suggestion.address,
-                    style: const TextStyle(color: Colors.white70),
-                  ),
-                  onTap: () => _onSuggestionTap(suggestion, isDeparture),
-                );
-              }).toList(),
-            ),
+          const _FieldCaption(text: 'Sélectionnez une adresse valide'),
+        ],
+        if (suggestions.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _SuggestionsPanel(
+            suggestions: suggestions.take(5).toList(),
+            onSuggestionTap: (suggestion) => _onSuggestionTap(suggestion, isDeparture),
           ),
         ],
       ],
@@ -889,87 +815,38 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     required VoidCallback onDateTap,
     required VoidCallback onTimeTap,
   }) {
+    final hasError = _hasTriedToSubmit && !_isDateTimeValid();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 8),
+        _SectionLabel(text: label),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
-              child: GestureDetector(
+              child: _GlassDateTimeField(
+                icon: Icons.calendar_today,
+                text: '${date.day}/${date.month}/${date.year}',
                 onTap: onDateTap,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: (_hasTriedToSubmit && !_isDateTimeValid())
-                          ? Colors.red.withOpacity(0.6)
-                          : Colors.white.withOpacity(0.2),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        color: Colors.white70,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${date.day}/${date.month}/${date.year}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
+                hasError: hasError,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: GestureDetector(
+              child: _GlassDateTimeField(
+                icon: Icons.access_time,
+                text: '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
                 onTap: onTimeTap,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: (_hasTriedToSubmit && !_isDateTimeValid())
-                          ? Colors.red.withOpacity(0.6)
-                          : Colors.white.withOpacity(0.2),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.access_time, color: Colors.white70, size: 20),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
+                hasError: hasError,
               ),
             ),
           ],
         ),
+        if (hasError) ...[
+          const SizedBox(height: 8),
+          const _FieldCaption(text: 'La date/heure doit être ≥ 30 min'),
+        ],
       ],
     );
   }
@@ -978,38 +855,13 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          AppLocalizations.of(context).noteForDriver,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextField(
+        _SectionLabel(text: AppLocalizations.of(context).noteForDriver),
+        const SizedBox(height: 12),
+        _GlassInputField(
           controller: _noteController,
           focusNode: _noteFocusNode,
-          style: const TextStyle(color: Colors.white),
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: AppLocalizations.of(context).noteForDriverHint,
-            hintStyle: const TextStyle(color: Colors.white70),
-            filled: true,
-            fillColor: Colors.white.withOpacity(0.1),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withOpacity(0.4)),
-            ),
-          ),
+          hintText: AppLocalizations.of(context).noteForDriverHint,
+          maxLines: 4,
         ),
       ],
     );
@@ -1017,212 +869,668 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final viewInsets = MediaQuery.of(context).viewInsets;
+    final viewPadding = MediaQuery.of(context).viewPadding;
+
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
           title: AppLocalizations.of(context).createCustomOffer,
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Point de départ
-              _buildLocationField(
-                label: AppLocalizations.of(context).departure,
-                controller: _departureController,
-                focusNode: _departureFocusNode,
-                isLoading: _isLoadingDeparture,
-                suggestions: _departureSuggestions,
-                isDeparture: true,
+        body: Stack(
+          children: [
+            const _HeaderGlow(),
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                16 + math.max(16, viewPadding.bottom) + (viewInsets.bottom > 0 ? viewInsets.bottom : 0),
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Point de départ
+                  _buildLocationField(
+                    label: AppLocalizations.of(context).departure,
+                    controller: _departureController,
+                    focusNode: _departureFocusNode,
+                    isLoading: _isLoadingDeparture,
+                    suggestions: _departureSuggestions,
+                    isDeparture: true,
+                  ),
 
-              const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-              // Sélecteur de véhicule (liste en temps réel)
-              const Text(
-                'Véhicule',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.06),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withOpacity(0.12)),
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 260),
-                  child: StreamBuilder<List<VehiculeType>>(
-                    stream: _vehicleService.getVehiclesStream(),
-                    initialData: const <VehiculeType>[],
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting && snapshot.data == null) {
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(child: CircularProgressIndicator(color: Colors.white)),
-                        );
-                      }
+                  // Point de destination
+                  _buildLocationField(
+                    label: AppLocalizations.of(context).destination,
+                    controller: _destinationController,
+                    focusNode: _destinationFocusNode,
+                    isLoading: _isLoadingDestination,
+                    suggestions: _destinationSuggestions,
+                    isDeparture: false,
+                  ),
 
-                      if (snapshot.hasError) {
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text('Erreur de chargement des véhicules', style: TextStyle(color: Colors.red)),
-                        );
-                      }
+                  const SizedBox(height: 20),
 
-                      final vehicles = snapshot.data ?? <VehiculeType>[];
-                      final sortedVehicles = List<VehiculeType>.from(vehicles)
-                        ..sort((a, b) {
-                          if (a.isActive && !b.isActive) return -1;
-                          if (!a.isActive && b.isActive) return 1;
-                          return 0;
-                        });
+                  // Date et heure de début
+                  _buildDateTimeSelector(
+                    label: 'Date et heure de début',
+                    date: _startDate,
+                    time: _startTime ?? TimeOfDay.now(),
+                    onDateTap: _selectStartDate,
+                    onTimeTap: _selectStartTime,
+                  ),
 
-                      if (sortedVehicles.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Text('Aucun véhicule disponible pour le moment', style: TextStyle(color: Colors.white70)),
-                        );
-                      }
+                  const SizedBox(height: 20),
 
-                      return ListView.separated(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: sortedVehicles.length,
-                        separatorBuilder: (_, __) => Divider(color: Colors.white.withOpacity(0.08), height: 1),
-                        itemBuilder: (context, index) {
-                          final vehicle = sortedVehicles[index];
-                          final isSelected = _selectedVehicle?.id == vehicle.id;
-                          final isActive = vehicle.isActive;
+                  // Date et heure de fin
+                  _buildDateTimeSelector(
+                    label: 'Date et heure de fin',
+                    date: _endDate,
+                    time: _endTime ?? TimeOfDay.now(),
+                    onDateTap: _selectEndDate,
+                    onTimeTap: _selectEndTime,
+                  ),
 
-                          return Opacity(
-                            opacity: isActive ? 1.0 : 0.5,
-                            child: ListTile(
-                              onTap: isActive
-                                  ? () {
-                                      setState(() {
-                                        _selectedVehicle = vehicle;
-                                      });
-                                    }
-                                  : null,
-                              leading: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: _getVehicleColor(vehicle.category).withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  vehicle.icon,
-                                  color: _getVehicleColor(vehicle.category),
-                                  size: 20,
-                                ),
-                              ),
-                              title: Text(
-                                vehicle.name,
-                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                              ),
-                              subtitle: Text(
-                                '${vehicle.category.categoryInFrench} • ${vehicle.capacityDisplay}',
-                                style: const TextStyle(color: Colors.white70),
-                              ),
-                              trailing: isSelected
-                                  ? const Icon(Icons.radio_button_checked, color: Colors.white)
-                                  : const Icon(Icons.radio_button_off, color: Colors.white54),
-                            ),
-                          );
-                        },
-                      );
+                  const SizedBox(height: 20),
+
+                  // Sélecteur de véhicule (liste en temps réel)
+                  _SectionLabel(text: 'Véhicule'),
+                  const SizedBox(height: 12),
+                  _GlassVehicleSelector(
+                    selectedVehicle: _selectedVehicle,
+                    onVehicleSelected: (vehicle) {
+                      setState(() {
+                        _selectedVehicle = vehicle;
+                      });
                     },
+                    vehicleService: _vehicleService,
+                    getVehicleColor: _getVehicleColor,
                   ),
-                ),
+
+                  // Champ de note
+                  const SizedBox(height: 20),
+                  _buildNoteField(),
+
+                  // Espace pour respirer au-dessus de la barre CTA collante
+                  SizedBox(height: math.max(16, viewPadding.bottom)),
+                ],
               ),
-              
+            ),
+          ],
+        ),
+        bottomNavigationBar: Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: (viewInsets.bottom > 0)
+                ? (viewInsets.bottom + 20)
+                : math.max(20, viewPadding.bottom + 8),
+            top: 10,
+          ),
+          child: _GlassCreateButton(
+            onPressed: _isFormValid() && !_isCreatingOffer && _selectedVehicle != null
+                ? _createCustomOffer
+                : null,
+            isLoading: _isCreatingOffer,
+            text: AppLocalizations.of(context).createOffer,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-              // Point de destination
-              _buildLocationField(
-                label: AppLocalizations.of(context).destination,
-                controller: _destinationController,
-                focusNode: _destinationFocusNode,
-                isLoading: _isLoadingDestination,
-                suggestions: _destinationSuggestions,
-                isDeparture: false,
-              ),
+// ======================
+// SUB-WIDGETS (PRIVATE)
+// ======================
 
-              const SizedBox(height: 24),
+class _SectionLabel extends StatelessWidget {
+  final String text;
 
-              // Date et heure de début
-              _buildDateTimeSelector(
-                label: 'Date et heure de début',
-                date: _startDate,
-                time: _startTime ?? TimeOfDay.now(),
-                onDateTap: _selectStartDate,
-                onTimeTap: _selectStartTime,
-              ),
+  const _SectionLabel({required this.text});
 
-              const SizedBox(height: 24),
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textStrong,
+        letterSpacing: 0.1,
+      ),
+    );
+  }
+}
 
-              // Date et heure de fin
-              _buildDateTimeSelector(
-                label: 'Date et heure de fin',
-                date: _endDate,
-                time: _endTime ?? TimeOfDay.now(),
-                onDateTap: _selectEndDate,
-                onTimeTap: _selectEndTime,
-              ),
+class _GlassInputField extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String hintText;
+  final IconData? prefixIcon;
+  final bool isLoading;
+  final bool hasError;
+  final int? maxLines;
 
-              const SizedBox(height: 24),
+  const _GlassInputField({
+    required this.controller,
+    required this.focusNode,
+    required this.hintText,
+    this.prefixIcon,
+    this.isLoading = false,
+    this.hasError = false,
+    this.maxLines = 1,
+  });
 
-              // Champ de note
-              _buildNoteField(),
-
-              const SizedBox(height: 32),
-
-              // Bouton de création
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isFormValid() && !_isCreatingOffer && _selectedVehicle != null
-                      ? _createCustomOffer
-                      : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _isFormValid() && !_isCreatingOffer && _selectedVehicle != null
-                        ? AppColors.accent
-                        : Colors.grey,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: GlassContainer(
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.circular(16),
+        child: TextField(
+          controller: controller,
+          focusNode: focusNode,
+          style: TextStyle(color: AppColors.text),
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: TextStyle(color: AppColors.textWeak),
+            prefixIcon: prefixIcon != null
+                ? Icon(prefixIcon, color: AppColors.textWeak, size: 20)
+                : null,
+            suffixIcon: isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
                     ),
+                  )
+                : null,
+            filled: true,
+            fillColor: Colors.transparent,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: hasError ? AppColors.hot : Colors.transparent,
+                width: hasError ? 2 : 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: hasError ? AppColors.hot : Colors.transparent,
+                width: hasError ? 2 : 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: hasError ? AppColors.hot : AppColors.accent,
+                width: 2,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassDateTimeField extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final VoidCallback onTap;
+  final bool hasError;
+
+  const _GlassDateTimeField({
+    required this.icon,
+    required this.text,
+    required this.onTap,
+    this.hasError = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: _PressableScale(
+        onTap: onTap,
+        child: GlassContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          borderRadius: BorderRadius.circular(16),
+          child: Row(
+            children: [
+              Icon(icon, color: AppColors.textWeak, size: 20),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    color: hasError ? AppColors.hot : AppColors.text,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
                   ),
-                  child: _isCreatingOffer
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          AppLocalizations.of(context).createOffer,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SuggestionsPanel extends StatelessWidget {
+  final List<Suggestion> suggestions;
+  final Function(Suggestion) onSuggestionTap;
+
+  const _SuggestionsPanel({
+    required this.suggestions,
+    required this.onSuggestionTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        transitionBuilder: (child, animation) {
+          final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+          final scale = Tween<double>(begin: 0.96, end: 1.0).animate(fade);
+          return FadeTransition(
+            opacity: fade,
+            child: ScaleTransition(scale: scale, child: child),
+          );
+        },
+        child: GlassContainer(
+          key: ValueKey<int>(suggestions.length),
+          padding: const EdgeInsets.all(8),
+          borderRadius: BorderRadius.circular(16),
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: suggestions.length,
+            separatorBuilder: (_, __) => const Padding(
+              padding: EdgeInsets.only(left: 48),
+              child: Divider(color: AppColors.glassStroke, height: 1),
+            ),
+            itemBuilder: (context, index) {
+              final suggestion = suggestions[index];
+              return _PressableScale(
+                onTap: () => onSuggestionTap(suggestion),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  leading: Icon(suggestion.icon, color: AppColors.textWeak, size: 18),
+                  title: Text(
+                    suggestion.shortName,
+                    style: TextStyle(color: AppColors.text, fontSize: 14),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: Text(
+                    suggestion.address,
+                    style: TextStyle(color: AppColors.textWeak, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  dense: true,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassVehicleSelector extends StatelessWidget {
+  final VehiculeType? selectedVehicle;
+  final Function(VehiculeType) onVehicleSelected;
+  final VehicleService vehicleService;
+  final Color Function(VehicleCategory) getVehicleColor;
+
+  const _GlassVehicleSelector({
+    required this.selectedVehicle,
+    required this.onVehicleSelected,
+    required this.vehicleService,
+    required this.getVehicleColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: GlassContainer(
+        padding: EdgeInsets.zero,
+        borderRadius: BorderRadius.circular(16),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 260),
+          child: StreamBuilder<List<VehiculeType>>(
+            stream: vehicleService.getVehiclesStream(),
+            initialData: const <VehiculeType>[],
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting && snapshot.data == null) {
+                return const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator(color: AppColors.accent)),
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Erreur de chargement des véhicules',
+                    style: TextStyle(color: AppColors.hot),
+                  ),
+                );
+              }
+
+              final vehicles = snapshot.data ?? <VehiculeType>[];
+              final sortedVehicles = List<VehiculeType>.from(vehicles)
+                ..sort((a, b) {
+                  if (a.isActive && !b.isActive) return -1;
+                  if (!a.isActive && b.isActive) return 1;
+                  return 0;
+                });
+
+              if (sortedVehicles.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Aucun véhicule disponible pour le moment',
+                    style: TextStyle(color: AppColors.textWeak),
+                  ),
+                );
+              }
+
+              return ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: sortedVehicles.length,
+                separatorBuilder: (_, __) => Divider(
+                  color: AppColors.glassStroke,
+                  height: 1,
+                ),
+                itemBuilder: (context, index) {
+                  final vehicle = sortedVehicles[index];
+                  final isSelected = selectedVehicle?.id == vehicle.id;
+                  final isActive = vehicle.isActive;
+
+                  return Opacity(
+                    opacity: isActive ? 1.0 : 0.5,
+                    child: _VehicleCard(
+                      vehicle: vehicle,
+                      isSelected: isSelected,
+                      isActive: isActive,
+                      onTap: isActive ? () => onVehicleSelected(vehicle) : null,
+                      getVehicleColor: getVehicleColor,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VehicleCard extends StatelessWidget {
+  final VehiculeType vehicle;
+  final bool isSelected;
+  final bool isActive;
+  final VoidCallback? onTap;
+  final Color Function(VehicleCategory) getVehicleColor;
+
+  const _VehicleCard({
+    required this.vehicle,
+    required this.isSelected,
+    required this.isActive,
+    this.onTap,
+    required this.getVehicleColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = getVehicleColor(vehicle.category);
+    
+    return _PressableScale(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.accent.withOpacity(0.24) : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.16),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: color.withOpacity(0.28)),
+              ),
+              child: Icon(
+                vehicle.icon,
+                color: color,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    vehicle.name,
+                    style: TextStyle(
+                      color: AppColors.textStrong,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${vehicle.category.categoryInFrench} • ${vehicle.capacityDisplay}',
+                    style: TextStyle(
+                      color: AppColors.textWeak,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? AppColors.accent : AppColors.textWeak,
+              size: 24,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassCreateButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final String text;
+
+  const _GlassCreateButton({
+    required this.onPressed,
+    required this.isLoading,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isEnabled = onPressed != null && !isLoading;
+    
+    return SizedBox(
+      width: double.infinity,
+      child: RepaintBoundary(
+        child: GlassContainer(
+          padding: EdgeInsets.zero,
+          borderRadius: BorderRadius.circular(16),
+          child: _PressableScale(
+            onTap: isEnabled ? onPressed : null,
+            child: ElevatedButton(
+              onPressed: onPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isEnabled ? AppColors.accent : AppColors.textWeak,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: isEnabled ? 6 : 0,
+                shadowColor: AppColors.accent.withOpacity(0.25),
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      text,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Subtle header glow under the app bar
+class _HeaderGlow extends StatelessWidget {
+  const _HeaderGlow();
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Container(
+          height: 140,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppColors.accent.withOpacity(0.06),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Section wrapper for big panels
+class _SectionCard extends StatelessWidget {
+  final Widget child;
+  const _SectionCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        child: child,
+      ),
+    );
+  }
+}
+
+// Petites légendes/captions sous champs
+class _FieldCaption extends StatelessWidget {
+  final String text;
+  const _FieldCaption({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: AppColors.textWeak,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+}
+
+// Press feedback scale 0.98
+class _PressableScale extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  const _PressableScale({required this.child, this.onTap});
+
+  @override
+  State<_PressableScale> createState() => _PressableScaleState();
+}
+
+class _PressableScaleState extends State<_PressableScale> {
+  double _scale = 1.0;
+
+  void _down(TapDownDetails _) {
+    if (widget.onTap == null) return;
+    setState(() => _scale = 0.98);
+  }
+
+  void _up([dynamic _]) {
+    if (widget.onTap == null) return;
+    setState(() => _scale = 1.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      onTapDown: _down,
+      onTapUp: (_) => _up(),
+      onTapCancel: _up,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: widget.child,
       ),
     );
   }

@@ -93,9 +93,20 @@ class AdminBottomNavigationBar extends StatelessWidget {
       ],
     );
 
-    return GlassContainer(
-      padding: EdgeInsets.zero,
+    final barThemed = Theme(
+      data: Theme.of(context).copyWith(
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+        splashColor: Colors.transparent,
+      ),
       child: bar,
+    );
+
+    return RepaintBoundary(
+      child: GlassContainer(
+        padding: EdgeInsets.zero,
+        child: barThemed,
+      ),
     );
   }
 

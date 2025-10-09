@@ -19,9 +19,8 @@ enum ReservationSortType {
 /// Enum pour les types de réservation (pour le filtrage)
 enum ReservationTypeFilter {
   all, // Tous les types
-  simple, // Demande simple
-  customOffer, // Offre personnalisée
-  counterOffer, // Contre offre
+  reservation, // Réservation normale
+  offer, // Offre personnalisée
 }
 
 /// Classe pour gérer les filtres de réservation
@@ -134,12 +133,10 @@ class ReservationFilter {
     switch (type) {
       case ReservationTypeFilter.all:
         return 'Tous';
-      case ReservationTypeFilter.simple:
-        return 'Demande simple';
-      case ReservationTypeFilter.customOffer:
+      case ReservationTypeFilter.reservation:
+        return 'Réservation normale';
+      case ReservationTypeFilter.offer:
         return 'Offre personnalisée';
-      case ReservationTypeFilter.counterOffer:
-        return 'Contre offre';
     }
   }
 
@@ -163,69 +160,71 @@ class ReservationFilter {
         '🔍 Statuts des courses filtrées: ${filtered.map((r) => r.status.name).toList()}',
       );
     } else {
-      // Pour les courses terminées : SEULEMENT les courses terminées (pas les annulées)
+      // Pour les courses terminées : courses terminées ou complétées
+      print('🔍 Filtrage des courses terminées - Total avant filtre: ${filtered.length}');
       filtered = filtered
           .where(
-            (r) => r.isCompleted || r.status == ReservationStatus.completed,
+            (r) => r.isCompleted || 
+                   r.status == ReservationStatus.completed ||
+                   (r.type == ReservationType.offer && r.status == ReservationStatus.completed),
+          )
+          .toList();
+      print('🔍 Courses terminées après filtre: ${filtered.length}');
+      print('🔍 Statuts des courses terminées: ${filtered.map((r) => r.status.name).toList()}');
+      print('🔍 Offres personnalisées terminées: ${filtered.where((r) => r.type == ReservationType.offer).length}');
+    }
+
+    // Filtrer par type de réservation
+    switch (typeFilter) {
+      case ReservationTypeFilter.all:
+        break;
+      case ReservationTypeFilter.reservation:
+        filtered = filtered
+            .where((r) => r.type == ReservationType.reservation)
+            .toList();
+        break;
+      case ReservationTypeFilter.offer:
+        filtered = filtered
+            .where((r) => r.type == ReservationType.offer)
+            .toList();
+        break;
+    }
+
+    // Filtrer par plage de dates (toujours appliqué si startDate ou endDate est défini)
+    if (startDate != null) {
+      // Normaliser startDate au début de la journée
+      final startOfDay = DateTime(startDate!.year, startDate!.month, startDate!.day);
+      filtered = filtered
+          .where(
+            (r) => r.selectedDate.isAfter(startOfDay) ||
+                   r.selectedDate.isAtSameMomentAs(startOfDay),
+          )
+          .toList();
+    }
+    if (endDate != null) {
+      // Normaliser endDate à la fin de la journée (23:59:59)
+      final endOfDay = DateTime(endDate!.year, endDate!.month, endDate!.day, 23, 59, 59);
+      filtered = filtered
+          .where(
+            (r) => r.selectedDate.isBefore(endOfDay) ||
+                   r.selectedDate.isAtSameMomentAs(endOfDay),
           )
           .toList();
     }
 
     // Filtrer par type de réservation
-    switch (filterType) {
-      case ReservationFilterType.all:
-        break;
-      case ReservationFilterType.demand:
-        filtered = filtered
-            .where((r) => r.status == ReservationStatus.pending)
-            .toList();
-        break;
-      case ReservationFilterType.counterOffer:
-        filtered = filtered.where((r) => r.hasCounterOffer).toList();
-        break;
-      case ReservationFilterType.dateRange:
-        if (startDate != null) {
-          filtered = filtered
-              .where(
-                (r) =>
-                    r.selectedDate.isAfter(startDate!) ||
-                    r.selectedDate.isAtSameMomentAs(startDate!),
-              )
-              .toList();
-        }
-        if (endDate != null) {
-          filtered = filtered
-              .where(
-                (r) =>
-                    r.selectedDate.isBefore(endDate!) ||
-                    r.selectedDate.isAtSameMomentAs(endDate!),
-              )
-              .toList();
-        }
-        break;
-    }
-
-    // Filtrer par type de réservation
     if (typeFilter != ReservationTypeFilter.all) {
       switch (typeFilter) {
-        case ReservationTypeFilter.simple:
+        case ReservationTypeFilter.reservation:
+          // Réservation normale
           filtered = filtered
-              .where(
-                (r) =>
-                    !r.hasCounterOffer && r.status == ReservationStatus.pending,
-              )
+              .where((r) => r.type == ReservationType.reservation)
               .toList();
           break;
-        case ReservationTypeFilter.customOffer:
-          filtered = filtered.where((r) => r.hasCounterOffer).toList();
-          break;
-        case ReservationTypeFilter.counterOffer:
+        case ReservationTypeFilter.offer:
+          // Offre personnalisée
           filtered = filtered
-              .where(
-                (r) =>
-                    r.hasCounterOffer &&
-                    r.status == ReservationStatus.confirmed,
-              )
+              .where((r) => r.type == ReservationType.offer)
               .toList();
           break;
         case ReservationTypeFilter.all:

@@ -9,6 +9,11 @@ enum ReservationStatus {
   cancelled, // Annulée
 }
 
+enum ReservationType {
+  reservation, // Réservation normale
+  offer, // Offre personnalisée
+}
+
 // Extension pour obtenir le statut localisé
 extension ReservationStatusExtension on ReservationStatus {
   String getLocalizedStatus(context) {
@@ -69,7 +74,7 @@ class Reservation {
   // Promo
   final String? promoCode; // code appliqué
   final double? discountAmount; // montant de la remise en devise
-  final String? customOfferId; // ID de l'offre personnalisée liée
+  final ReservationType type; // Type de réservation (reservation ou offer)
   final bool? waitingForPayment; // en attente de paiement
   final bool isPaid; // Course payée par le client
   final bool isCompleted; // Course terminée (bouton terminer appuyé)
@@ -98,7 +103,7 @@ class Reservation {
     this.adminMessage,
     this.promoCode,
     this.discountAmount,
-    this.customOfferId,
+    this.type = ReservationType.reservation, // Valeur par défaut : réservation normale
     this.waitingForPayment,
     this.isPaid = false, // Valeur par défaut : false
     this.isCompleted = false, // Valeur par défaut : false
@@ -132,7 +137,7 @@ class Reservation {
       'adminMessage': adminMessage,
       'promoCode': promoCode,
       'discountAmount': discountAmount,
-      'customOfferId': customOfferId,
+      'type': type.name,
       'waitingForPayment': waitingForPayment,
       'isPaid': isPaid,
       'isCompleted': isCompleted,
@@ -182,7 +187,10 @@ class Reservation {
       discountAmount: (map['discountAmount'] ?? 0.0) == 0.0
           ? null
           : (map['discountAmount'] as num).toDouble(),
-      customOfferId: map['customOfferId'],
+      type: ReservationType.values.firstWhere(
+        (e) => e.name == map['type'],
+        orElse: () => ReservationType.reservation,
+      ),
       waitingForPayment: map['waitingForPayment'],
       isPaid: map['isPaid'] ?? false,
       isCompleted: map['isCompleted'] ?? false,
@@ -214,7 +222,7 @@ class Reservation {
     String? adminMessage,
     String? promoCode,
     double? discountAmount,
-    String? customOfferId,
+    ReservationType? type,
     bool? waitingForPayment,
     bool? isPaid,
     bool? isCompleted,
@@ -244,7 +252,7 @@ class Reservation {
       adminMessage: adminMessage ?? this.adminMessage,
       promoCode: promoCode ?? this.promoCode,
       discountAmount: discountAmount ?? this.discountAmount,
-      customOfferId: customOfferId ?? this.customOfferId,
+      type: type ?? this.type,
       waitingForPayment: waitingForPayment ?? this.waitingForPayment,
       isPaid: isPaid ?? this.isPaid,
       isCompleted: isCompleted ?? this.isCompleted,

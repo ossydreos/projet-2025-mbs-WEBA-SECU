@@ -30,8 +30,11 @@ class AdminGlobalNotificationService {
   bool _isInitialized = false;
   bool _isPlaying = false;
   Timer? _soundTimer;
+  Timer? _soundTimeoutTimer;
+  Timer? _backgroundPollingTimer;
   int _soundCount = 0;
   static const Duration _soundInterval = Duration(seconds: 3);
+  static const Duration _maxSoundDuration = Duration(minutes: 2); // Timeout après 2 minutes
   Map<String, dynamic>? _pendingNotification;
   Set<String> _processedReservations = <String>{};
 
@@ -43,23 +46,17 @@ class AdminGlobalNotificationService {
       '🔔 AdminGlobalNotificationService: Contexte monté: ${context.mounted}',
     );
 
-    if (!_isInitialized) {
-      _isInitialized = true;
-      print(
-        '🔔 AdminGlobalNotificationService: Démarrage de l\'écoute des réservations',
-      );
-      _startListeningToReservations();
-    } else {
-      print(
-        '🔔 AdminGlobalNotificationService: Service déjà initialisé, mise à jour du contexte uniquement',
-      );
-    }
+    // Toujours mettre à jour le contexte, même si déjà initialisé
+    print(
+      '🔔 AdminGlobalNotificationService: Mise à jour du contexte',
+    );
 
     // Vérifier immédiatement les réservations en attente
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkPendingReservations();
     });
   }
+
 
   // Initialiser le service sans contexte (pour le démarrage global)
   Future<void> initializeGlobal() async {
@@ -88,8 +85,11 @@ class AdminGlobalNotificationService {
   void _startBackgroundPolling() {
     print('🔔 AdminGlobalNotificationService: Démarrage du polling en arrière-plan...');
     
+    // Annuler le timer existant s'il y en a un
+    _backgroundPollingTimer?.cancel();
+    
     // Vérifier toutes les 5 secondes pour les nouvelles réservations
-    Timer.periodic(const Duration(seconds: 5), (timer) {
+    _backgroundPollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _checkForNewReservationsBackground();
     });
   }
@@ -97,10 +97,23 @@ class AdminGlobalNotificationService {
   // Vérifier les nouvelles réservations en arrière-plan
   Future<void> _checkForNewReservationsBackground() async {
     try {
+      print('🔔 AdminGlobalNotificationService: Vérification polling en arrière-plan...');
+      
       final snapshot = await FirebaseFirestore.instance
           .collection('reservations')
           .where('status', isEqualTo: ReservationStatus.pending.name)
           .get();
+
+      print('🔔 AdminGlobalNotificationService: ${snapshot.docs.length} réservations en attente trouvées');
+
+      // Si aucune réservation en attente, arrêter les sons
+      if (snapshot.docs.isEmpty) {
+        if (_isPlaying) {
+          print('🔔 AdminGlobalNotificationService: Aucune réservation en attente, arrêt des sons');
+          _stopLocalNotifications();
+        }
+        return;
+      }
 
       for (var doc in snapshot.docs) {
         if (!_processedReservations.contains(doc.id)) {
@@ -193,6 +206,12 @@ class AdminGlobalNotificationService {
       const Duration(minutes: 10),
     );
     _processedReservations.clear();
+  }
+
+  // Forcer l'arrêt des sons (pour le débogage)
+  void forceStopSounds() {
+    print('🔔 AdminGlobalNotificationService: Arrêt forcé des sons');
+    _stopLocalNotifications();
   }
 
   // Vérifier et afficher toutes les réservations en attente manquées
@@ -451,11 +470,17 @@ class AdminGlobalNotificationService {
     final destination = data['destination'] as String? ?? 'Destination inconnue';
     final price = data['totalPrice']?.toString() ?? '0.00';
     final reservationId = data['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+    final status = data['status'] as String?;
 
-    print('🔔 AdminGlobalNotificationService: Notification locale pour $userName');
+    print('🔔 AdminGlobalNotificationService: Notification locale pour $userName (status: $status)');
 
-    // Démarrer la musique répétitive
-    await _startSoundLoop();
+    // Vérifier que c'est bien une réservation en attente avant de jouer le son
+    if (status == ReservationStatus.pending.name) {
+      // Démarrer la musique répétitive seulement pour les réservations en attente
+      await _startSoundLoop();
+    } else {
+      print('🔔 AdminGlobalNotificationService: Réservation avec status $status, son ignoré');
+    }
 
     final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
       'new_reservation_channel',
@@ -571,7 +596,10 @@ class AdminGlobalNotificationService {
 
   // Démarrer la boucle de son répétitive
   Future<void> _startSoundLoop() async {
-    if (_isPlaying) return;
+    if (_isPlaying) {
+      print('🔔 AdminGlobalNotificationService: Son déjà en cours, arrêt de la boucle précédente');
+      _stopLocalNotifications();
+    }
 
     _isPlaying = true;
     _soundCount = 0;
@@ -589,10 +617,22 @@ class AdminGlobalNotificationService {
       }
       await _playNotificationSound();
     });
+
+    // Programmer l'arrêt automatique après le timeout
+    _soundTimeoutTimer = Timer(_maxSoundDuration, () {
+      print('🔔 AdminGlobalNotificationService: Timeout atteint, arrêt automatique des sons');
+      _stopLocalNotifications();
+    });
   }
 
   // Jouer le son de notification
   Future<void> _playNotificationSound() async {
+    // Vérifier si on doit encore jouer le son
+    if (!_isPlaying) {
+      print('🔔 AdminGlobalNotificationService: Son ignoré - _isPlaying = false');
+      return;
+    }
+
     try {
       print('🔔 AdminGlobalNotificationService: Lecture son ${_soundCount + 1}');
 
@@ -603,12 +643,11 @@ class AdminGlobalNotificationService {
       print('🔔 AdminGlobalNotificationService: Son joué avec succès');
     } catch (e) {
       print('🔔 AdminGlobalNotificationService: Erreur lecture son: $e');
-
-      // Fallback vers le son système
+      // Fallback vers le même son Uber (présent dans les assets)
       try {
-        await _audioPlayer.play(AssetSource('sounds/system_alert.mp3'));
+        await _audioPlayer.play(AssetSource('sounds/uber_classic_retro.mp3'));
       } catch (e2) {
-        print('🔔 AdminGlobalNotificationService: Erreur son système: $e2');
+        print('🔔 AdminGlobalNotificationService: Erreur fallback Uber: $e2');
       }
     }
   }
@@ -617,9 +656,13 @@ class AdminGlobalNotificationService {
   void _stopLocalNotifications() {
     print('🔔 AdminGlobalNotificationService: Arrêt des notifications locales');
     _isPlaying = false;
+    _soundCount = 0;
     _soundTimer?.cancel();
     _soundTimer = null;
+    _soundTimeoutTimer?.cancel();
+    _soundTimeoutTimer = null;
     _audioPlayer.stop();
+    print('🔔 AdminGlobalNotificationService: Notifications locales arrêtées (playing: $_isPlaying, timer: ${_soundTimer != null})');
   }
 
   // Accepter une réservation (délègue à l'écran de réception pour la même logique)
@@ -1081,13 +1124,29 @@ class AdminGlobalNotificationService {
   }
 
 
+  // Arrêter le polling en arrière-plan
+  void stopBackgroundPolling() {
+    print('🔔 AdminGlobalNotificationService: Arrêt du polling en arrière-plan');
+    _backgroundPollingTimer?.cancel();
+    _backgroundPollingTimer = null;
+  }
+
+  // Redémarrer le polling en arrière-plan
+  void restartBackgroundPolling() {
+    print('🔔 AdminGlobalNotificationService: Redémarrage du polling en arrière-plan');
+    _startBackgroundPolling();
+  }
+
   // Nettoyer les ressources
   void dispose() {
     _reservationSubscription?.cancel();
     _soundTimer?.cancel();
+    _soundTimeoutTimer?.cancel();
+    _backgroundPollingTimer?.cancel();
     _audioPlayer.dispose();
     _globalContext = null;
     _isInitialized = false;
     _processedReservations.clear();
+    _isPlaying = false;
   }
 }

@@ -80,8 +80,9 @@ class _MigrationScreenState extends State<MigrationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.bg,
+    return GlassBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -263,6 +264,7 @@ class _MigrationScreenState extends State<MigrationScreen> {
             const SizedBox(height: 20),
           ],
         ),
+      ),
       ),
     );
   }
