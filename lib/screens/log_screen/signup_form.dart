@@ -225,12 +225,13 @@ class SignupFormState extends State<SignupForm> {
   Widget build(BuildContext context) {
     final txt = GoogleFonts.poppins();
 
-    return Form(
-      key: _formKey,
-      autovalidateMode: AutovalidateMode.disabled,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return SingleChildScrollView(
+      child: Form(
+        key: _formKey,
+        autovalidateMode: AutovalidateMode.disabled,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           const SheetHandle(),
           Center(
             child: Text(
@@ -440,6 +441,7 @@ class SignupFormState extends State<SignupForm> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

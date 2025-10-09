@@ -171,9 +171,10 @@ class LoginFormState extends State<LoginForm> {
   Widget build(BuildContext context) {
     final txt = GoogleFonts.poppins();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
         const SheetHandle(),
         Center(
           child: Text(
@@ -324,6 +325,7 @@ class LoginFormState extends State<LoginForm> {
           ),
         ),
       ],
+      ),
     );
   }
 }

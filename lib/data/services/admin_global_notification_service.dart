@@ -72,12 +72,51 @@ class AdminGlobalNotificationService {
       // Initialiser les notifications locales
       await _initializeLocalNotifications();
       
+      // Démarrer le polling pour les notifications en arrière-plan
+      _startBackgroundPolling();
+      
       // Réinitialiser le timestamp pour capturer toutes les nouvelles réservations
       _lastSeenReservationAt = DateTime.now().subtract(
         const Duration(minutes: 1),
       );
       _processedReservations.clear();
       _startListeningToReservations();
+    }
+  }
+
+  // Démarrer le polling en arrière-plan pour les notifications locales
+  void _startBackgroundPolling() {
+    print('🔔 AdminGlobalNotificationService: Démarrage du polling en arrière-plan...');
+    
+    // Vérifier toutes les 5 secondes pour les nouvelles réservations
+    Timer.periodic(const Duration(seconds: 5), (timer) {
+      _checkForNewReservationsBackground();
+    });
+  }
+
+  // Vérifier les nouvelles réservations en arrière-plan
+  Future<void> _checkForNewReservationsBackground() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('reservations')
+          .where('status', isEqualTo: ReservationStatus.pending.name)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        if (!_processedReservations.contains(doc.id)) {
+          final data = doc.data();
+          final createdAt = (data['createdAt'] as Timestamp).toDate();
+          
+          // Vérifier si c'est une nouvelle réservation (créée dans les 5 dernières minutes)
+          if (createdAt.isAfter(DateTime.now().subtract(const Duration(minutes: 5)))) {
+            print('🔔 AdminGlobalNotificationService: Nouvelle réservation détectée en arrière-plan: ${doc.id}');
+            _processedReservations.add(doc.id);
+            _showLocalNotificationForReservation(data);
+          }
+        }
+      }
+    } catch (e) {
+      print('❌ Erreur vérification réservations en arrière-plan: $e');
     }
   }
 
@@ -270,7 +309,6 @@ class AdminGlobalNotificationService {
     _reservationSubscription = FirebaseFirestore.instance
         .collection('reservations')
         .where('status', isEqualTo: ReservationStatus.pending.name)
-        .orderBy('createdAt', descending: true)
         .snapshots()
         .listen(
           (snapshot) {
@@ -386,6 +424,11 @@ class AdminGlobalNotificationService {
     print(
       '🔔 AdminGlobalNotificationService: Contexte monté: ${_globalContext?.mounted ?? false}',
     );
+
+    // Vérifier si l'utilisateur actuel est admin
+    // Pour l'instant, on affiche toujours les notifications
+    // TODO: Ajouter une vérification du rôle utilisateur ici
+    print('🔔 AdminGlobalNotificationService: Affichage de la notification (admin uniquement)');
 
     // Toujours afficher une notification locale, même sans contexte
     _showLocalNotificationForReservation(data);

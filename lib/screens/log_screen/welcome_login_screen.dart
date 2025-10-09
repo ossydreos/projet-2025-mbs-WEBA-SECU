@@ -97,6 +97,7 @@ class _WelcomeLoginSignupState extends State<WelcomeLoginSignup>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
           SafeArea(

@@ -39,7 +39,7 @@ import 'widgets/admin/test_notification_demo.dart';
 import 'data/services/reservation_timeout_service.dart';
 import 'data/services/admin_global_notification_service.dart';
 import 'data/services/stripe_checkout_service.dart';
-import 'firebase_messaging_background.dart';
+// FCM désactivé - notifications locales uniquement
 import 'package:app_links/app_links.dart';
 import 'widgets/payment_success_animation.dart';
 
@@ -58,16 +58,16 @@ void main() async {
     tz.initializeTimeZones();
     debugPrint('✅ Fuseaux horaires initialisés');
     
-    // Enregistrer le handler FCM background de manière sécurisée
-    try {
-      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-      debugPrint('✅ Handler FCM background enregistré');
-    } catch (e) {
-      debugPrint('⚠️ Erreur handler FCM: $e');
-    }
+    // FCM désactivé - utilisation des notifications locales uniquement
     
-    // Les notifications admin sont gérées par AdminGlobalNotificationService
-    // qui s'initialise automatiquement dans AdminScreenWrapper pour les admins uniquement
+    // Initialiser le service de notifications admin global
+    // (pour les notifications en arrière-plan)
+    try {
+      AdminGlobalNotificationService().initializeGlobal();
+      debugPrint('✅ Service notifications admin global initialisé');
+    } catch (e) {
+      debugPrint('⚠️ Erreur service notifications admin: $e');
+    }
     
     // Initialiser la gestion des deep links
     try {
