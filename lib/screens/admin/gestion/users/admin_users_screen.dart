@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
+import 'package:my_mobility_services/screens/admin/offres/admin_custom_offer_detail_screen.dart';
+import 'package:my_mobility_services/design/widgets/primitives/custom_badge.dart';
 
 class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
@@ -73,8 +76,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     : (fullName.isNotEmpty
                           ? fullName
                           : (displayName.isNotEmpty ? displayName : ''));
+                
+                // Recherche dans tous les champs de nom possibles
                 return nameToShow.toLowerCase().contains(q) ||
-                    email.toLowerCase().contains(q);
+                    email.toLowerCase().contains(q) ||
+                    displayName.toLowerCase().contains(q) ||
+                    firstName.toLowerCase().contains(q) ||
+                    lastName.toLowerCase().contains(q) ||
+                    nameField.toLowerCase().contains(q);
               }).toList();
             }
             if (docs.isEmpty) {
@@ -95,11 +104,16 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                 final photoUrl = (data['photoURL'] ?? data['photoUrl'] ?? '')
                     .toString();
                 final fullName = ('$firstName $lastName').trim();
+                // Priorité: nameField > fullName > displayName > email
                 final nameToShow = nameField.isNotEmpty
                     ? nameField
                     : (fullName.isNotEmpty
                           ? fullName
-                          : (displayName.isNotEmpty ? displayName : ''));
+                          : (displayName.isNotEmpty 
+                              ? displayName 
+                              : (email.isNotEmpty 
+                                  ? email.split('@').first 
+                                  : 'Utilisateur')));
                 final firstChar =
                     (nameToShow.isNotEmpty
                             ? nameToShow[0]
@@ -227,6 +241,11 @@ class AdminUserDetailScreen extends StatelessWidget {
         .where('userId', isEqualTo: userId)
         .orderBy('createdAt', descending: true)
         .snapshots();
+    final customOffers = FirebaseFirestore.instance
+        .collection('custom_offers')
+        .where('userId', isEqualTo: userId)
+        .orderBy('createdAt', descending: true)
+        .snapshots();
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -252,7 +271,7 @@ class AdminUserDetailScreen extends StatelessWidget {
                   final lastName = (data['lastName'] ?? '').toString();
                   final nameField = (data['name'] ?? '').toString();
                   final email = (data['email'] ?? '').toString();
-                  final phone = (data['phoneNumber'] ?? data['number'] ?? '')
+                  final phone = (data['phoneNumber'] ?? data['number'] ?? data['phone'] ?? '')
                       .toString();
                   final photoUrl = (data['photoURL'] ?? data['photoUrl'] ?? '')
                       .toString();
@@ -293,7 +312,9 @@ class AdminUserDetailScreen extends StatelessWidget {
                                           ? '$firstName $lastName'
                                           : (displayName.isNotEmpty
                                                 ? displayName
-                                                : 'Nom du client')),
+                                                : (email.isNotEmpty
+                                                    ? email.split('@').first
+                                                    : 'Utilisateur'))),
                                 style: TextStyle(
                                   color: AppColors.textStrong,
                                   fontWeight: FontWeight.w600,
@@ -306,11 +327,37 @@ class AdminUserDetailScreen extends StatelessWidget {
                                   style: TextStyle(color: AppColors.textWeak),
                                 ),
                               if (phone.isNotEmpty)
-                                Text(
-                                  phone,
-                                  style: TextStyle(color: AppColors.textWeak),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.phone,
+                                      size: 14,
+                                      color: AppColors.textWeak,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      phone,
+                                      style: TextStyle(color: AppColors.textWeak),
+                                    ),
+                                  ],
                                 ),
                             ],
+                          ),
+                        ),
+                        // Bouton historique avec icône seulement
+                        IconButton(
+                          onPressed: () => _showHistoryDialog(context, userId),
+                          icon: Icon(
+                            Icons.history,
+                            color: AppColors.accent2,
+                            size: 24,
+                          ),
+                          tooltip: 'Voir l\'historique des modifications',
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppColors.accent2.withOpacity(0.1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
                       ],
@@ -321,40 +368,9 @@ class AdminUserDetailScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Historique des modifications
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Historique des modifications',
-                    style: TextStyle(
-                      color: AppColors.textStrong,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => _showHistoryDialog(context, userId),
-                    icon: const Icon(Icons.history, size: 16),
-                    label: const Text('Voir l\'historique'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accent2.withOpacity(0.2),
-                      foregroundColor: AppColors.accent2,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: AppColors.accent2),
-                      ),
-                      elevation: 0,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Réservations
+              // Réservations et offres personnalisées
               Text(
-                'Réservations',
+                'Réservations et offres',
                 style: TextStyle(
                   color: AppColors.textStrong,
                   fontWeight: FontWeight.bold,
@@ -364,198 +380,87 @@ class AdminUserDetailScreen extends StatelessWidget {
               const SizedBox(height: 8),
               StreamBuilder<QuerySnapshot>(
                 stream: reservations,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  final docs = snapshot.data!.docs;
-                  if (docs.isEmpty) {
-                    return const Text('Aucune réservation');
-                  }
-                  return Column(
-                    children: docs.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final d = entry.value;
-                      final data = d.data() as Map<String, dynamic>;
-                      // Construire l'objet Reservation pour l'écran détail
-                      final reservation = Reservation.fromMap({
-                        ...data,
-                        'id': d.id,
+                builder: (context, reservationsSnapshot) {
+                  return StreamBuilder<QuerySnapshot>(
+                    stream: customOffers,
+                    builder: (context, offersSnapshot) {
+                      if (!reservationsSnapshot.hasData || !offersSnapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      
+                      final reservationDocs = reservationsSnapshot.data!.docs;
+                      final offerDocs = offersSnapshot.data!.docs;
+                      
+                      // Combiner les deux listes
+                      final List<Map<String, dynamic>> allItems = [];
+                      
+                      // Ajouter les réservations
+                      for (final doc in reservationDocs) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        allItems.add({
+                          'type': 'reservation',
+                          'data': data,
+                          'id': doc.id,
+                        });
+                      }
+                      
+                      // Ajouter les offres personnalisées
+                      for (final doc in offerDocs) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        allItems.add({
+                          'type': 'offer',
+                          'data': data,
+                          'id': doc.id,
+                        });
+                      }
+                      
+                      // Trier par date de création (plus récent en premier)
+                      allItems.sort((a, b) {
+                        DateTime dateA, dateB;
+                        if (a['type'] == 'reservation') {
+                          dateA = (a['data']['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+                        } else {
+                          dateA = (a['data']['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+                        }
+                        if (b['type'] == 'reservation') {
+                          dateB = (b['data']['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+                        } else {
+                          dateB = (b['data']['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now();
+                        }
+                        return dateB.compareTo(dateA);
                       });
-                      return Container(
-                        margin: EdgeInsets.only(
-                          bottom: index < docs.length - 1 ? 16 : 0,
-                        ),
-                        child: InkWell(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ReservationDetailScreen(
-                                reservation: reservation,
-                              ),
-                            ),
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          child: GlassContainer(
-                            padding: const EdgeInsets.all(16),
-                            borderRadius: BorderRadius.circular(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // En-tête avec véhicule et bouton info
-                                Row(
-                                  children: [
-                                    // Icône véhicule
-                                    Container(
-                                      width: 40,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.accent.withOpacity(
-                                          0.1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: AppColors.accent.withOpacity(
-                                            0.3,
-                                          ),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.directions_car,
-                                        color: AppColors.accent,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-
-                                    // Informations du véhicule
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            reservation.vehicleName,
-                                            style: TextStyle(
-                                              color: AppColors.textStrong,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            '${reservation.departure} → ${reservation.destination}',
-                                            style: TextStyle(
-                                              color: AppColors.textWeak,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    // Bouton d'informations détaillées
-                                    _buildInfoButton(context, reservation),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 12),
-
-                                // Informations supplémentaires
-                                Row(
-                                  children: [
-                                    // Statut
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: _getStatusColor(
-                                          reservation.status,
-                                        ).withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: _getStatusColor(
-                                            reservation.status,
-                                          ).withOpacity(0.3),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        _getStatusText(reservation.status),
-                                        style: TextStyle(
-                                          color: _getStatusColor(
-                                            reservation.status,
-                                          ),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-
-                                    const Spacer(),
-
-                                    // Prix
-                                    Text(
-                                      '${reservation.totalPrice.toStringAsFixed(2)} CHF',
-                                      style: TextStyle(
-                                        color: AppColors.accent,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                const SizedBox(height: 8),
-
-                                // Date et heure
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.schedule,
-                                      size: 14,
-                                      color: AppColors.textWeak,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      _formatDateTime(
-                                        reservation.selectedDate,
-                                        reservation.selectedTime,
-                                      ),
-                                      style: TextStyle(
-                                        color: AppColors.textWeak,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                      
+                      if (allItems.isEmpty) {
+                        return const Text('Aucune réservation ou offre');
+                      }
+                      
+                      return Column(
+                        children: allItems.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final item = entry.value;
+                          final type = item['type'] as String;
+                          final data = item['data'] as Map<String, dynamic>;
+                          final id = item['id'] as String;
+                          
+                          if (type == 'reservation') {
+                            // Afficher comme réservation normale
+                            final reservation = Reservation.fromMap({
+                              ...data,
+                              'id': id,
+                            });
+                            return _buildReservationCard(context, reservation, index, allItems.length);
+                          } else {
+                            // Afficher comme offre personnalisée
+                            final offer = CustomOffer.fromMap(data);
+                            return _buildCustomOfferCard(context, offer, index, allItems.length);
+                          }
+                        }).toList(),
                       );
-                    }).toList(),
+                    },
                   );
                 },
               ),
 
-              const SizedBox(height: 24),
-
-              // Contre-offres (si vous avez une collection dédiée ou un champ)
-              // Placeholder: à brancher si une collection `counter_offers` existe
-              Text(
-                'Offres personnalisées',
-                style: TextStyle(
-                  color: AppColors.textStrong,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text('Aucune donnée (à brancher selon votre modèle)'),
             ],
           ),
         ),
@@ -615,6 +520,14 @@ class AdminUserDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                // ID de la réservation
+                _buildDetailSection(
+                  'ID Réservation',
+                  Icons.fingerprint,
+                  reservation.id,
+                ),
+                const SizedBox(height: 12),
+
                 // Informations du véhicule
                 _buildDetailSection(
                   'Véhicule',
@@ -842,37 +755,13 @@ class AdminUserDetailScreen extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Modifié le ${changedAt.day}/${changedAt.month}/${changedAt.year} à ${changedAt.hour}:${changedAt.minute.toString().padLeft(2, '0')}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppColors.textWeak,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: data['changedBy'] == 'admin' 
-                                            ? AppColors.hot.withOpacity(0.2)
-                                            : AppColors.accent.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Text(
-                                        data['changedBy'] == 'admin' ? 'Admin' : 'Utilisateur',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: data['changedBy'] == 'admin' 
-                                              ? AppColors.hot
-                                              : AppColors.accent,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  'Modifié le ${changedAt.day}/${changedAt.month}/${changedAt.year} à ${changedAt.hour}:${changedAt.minute.toString().padLeft(2, '0')}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textWeak,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 if (data['name'] != null && data['name'].isNotEmpty)
@@ -935,4 +824,345 @@ class AdminUserDetailScreen extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildReservationCard(BuildContext context, Reservation reservation, int index, int totalLength) {
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: index < totalLength - 1 ? 16 : 0,
+      ),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ReservationDetailScreen(
+              reservation: reservation,
+            ),
+          ),
+        ),
+        borderRadius: BorderRadius.circular(16),
+        child: GlassContainer(
+          padding: const EdgeInsets.all(16),
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Badge "Demande personnalisée" si applicable
+              if (reservation.type == ReservationType.offer) ...[
+                Row(
+                  children: [
+                    CustomBadge.personalisee(),
+                    const Spacer(),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+              
+              // En-tête avec véhicule et bouton info
+              Row(
+                children: [
+                  // Icône véhicule
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.accent.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.directions_car,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Informations du véhicule
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          reservation.vehicleName,
+                          style: TextStyle(
+                            color: AppColors.textStrong,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${reservation.departure} → ${reservation.destination}',
+                          style: TextStyle(
+                            color: AppColors.textWeak,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Bouton d'informations détaillées
+                  _buildInfoButton(context, reservation),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Informations supplémentaires
+              Row(
+                children: [
+                  // Statut
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(reservation.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: _getStatusColor(reservation.status).withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      _getStatusText(reservation.status),
+                      style: TextStyle(
+                        color: _getStatusColor(reservation.status),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  // Prix
+                  Text(
+                    '${reservation.totalPrice.toStringAsFixed(2)} CHF',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Date et heure
+              Row(
+                children: [
+                  Icon(
+                    Icons.schedule,
+                    size: 14,
+                    color: AppColors.textWeak,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _formatDateTime(reservation.selectedDate, reservation.selectedTime),
+                    style: TextStyle(
+                      color: AppColors.textWeak,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCustomOfferCard(BuildContext context, CustomOffer offer, int index, int totalLength) {
+    return Container(
+      margin: EdgeInsets.only(
+        bottom: index < totalLength - 1 ? 16 : 0,
+      ),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AdminCustomOfferDetailScreen(
+              offer: offer,
+            ),
+          ),
+        ),
+        borderRadius: BorderRadius.circular(16),
+        child: GlassContainer(
+          padding: const EdgeInsets.all(16),
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Badge "Demande personnalisée"
+              Row(
+                children: [
+                  CustomBadge.personalisee(),
+                  const Spacer(),
+                ],
+              ),
+              const SizedBox(height: 12),
+              
+              // En-tête avec véhicule et statut
+              Row(
+                children: [
+                  // Icône offre personnalisée
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.accent.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.accent.withOpacity(0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.directions_car,
+                      color: AppColors.accent,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+
+                  // Informations de l'offre
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          offer.vehicleName ?? 'Offre personnalisée',
+                          style: TextStyle(
+                            color: AppColors.textStrong,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${offer.departure} → ${offer.destination}',
+                          style: TextStyle(
+                            color: AppColors.textWeak,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Statut
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(offer.status).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _getStatusColor(offer.status).withOpacity(0.3),
+                      ),
+                    ),
+                    child: Text(
+                      _getStatusText(offer.status),
+                      style: TextStyle(
+                        color: _getStatusColor(offer.status),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Détails de l'offre avec dates/heures
+              Column(
+                children: [
+                  // Date et heure de début
+                  if (offer.startDateTime != null) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule,
+                          size: 14,
+                          color: AppColors.textWeak,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Départ: ${_formatOfferDateTime(offer.startDateTime!)}',
+                          style: TextStyle(
+                            color: AppColors.textWeak,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                  
+                  // Date et heure de fin
+                  if (offer.endDateTime != null) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.flag,
+                          size: 14,
+                          color: AppColors.textWeak,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Arrivée: ${_formatOfferDateTime(offer.endDateTime!)}',
+                          style: TextStyle(
+                            color: AppColors.textWeak,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  
+                  // Prix et durée
+                  Row(
+                    children: [
+                      if (offer.proposedPrice != null) ...[
+                        Text(
+                          'Prix: ${offer.proposedPrice!.toStringAsFixed(2)} CHF',
+                          style: TextStyle(
+                            color: AppColors.accent,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                      ],
+                      Text(
+                        'Durée: ${offer.durationHours}h ${offer.durationMinutes}min',
+                        style: TextStyle(
+                          color: AppColors.textWeak,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatOfferDateTime(DateTime dateTime) {
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} à ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
 }

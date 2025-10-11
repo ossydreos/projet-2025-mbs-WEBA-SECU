@@ -6,9 +6,45 @@ import '../../widgets/admin/uber_style_notification.dart';
 class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Confirmer le paiement et passer en "confirmed"
-  Future<void> confirmPayment(String reservationId) async {
+  // Confirmer le paiement et passer en "inProgress" (paiement en espèces)
+  Future<void> confirmPayment(String reservationId, {String? customOfferId}) async {
     try {
+      // Si c'est une offre personnalisée, vérifier le statut de l'offre
+      if (customOfferId != null) {
+        print('🔍 NotificationService: Vérification de l\'offre $customOfferId...');
+        final offerDoc = await _firestore.collection('custom_offers').doc(customOfferId).get();
+        if (!offerDoc.exists) {
+          print('❌ NotificationService: Offre $customOfferId non trouvée');
+          throw Exception('Offre non trouvée');
+        }
+        
+        final offerData = offerDoc.data()!;
+        final currentStatus = offerData['status'] as String?;
+        print('🔍 NotificationService: Statut actuel de l\'offre $customOfferId: $currentStatus');
+        
+        if (currentStatus != ReservationStatus.confirmed.name) {
+          print('❌ NotificationService: Offre $customOfferId n\'est plus confirmée (statut: $currentStatus)');
+          throw Exception('Cette offre a déjà été traitée ou annulée');
+        }
+        print('✅ NotificationService: Offre $customOfferId validée, procédure au paiement');
+      } else {
+        // Vérifier le statut actuel de la réservation avant de confirmer le paiement
+        final reservationDoc = await _firestore.collection('reservations').doc(reservationId).get();
+        if (!reservationDoc.exists) {
+          print('❌ NotificationService: Réservation $reservationId non trouvée');
+          throw Exception('Réservation non trouvée');
+        }
+
+        final reservationData = reservationDoc.data()!;
+        final currentStatus = reservationData['status'] as String?;
+
+        // Vérifier que la réservation est toujours confirmée (en attente de paiement)
+        if (currentStatus != ReservationStatus.confirmed.name) {
+          print('❌ NotificationService: Réservation $reservationId n\'est plus confirmée (statut: $currentStatus)');
+          throw Exception('Cette réservation a déjà été traitée ou annulée');
+        }
+      }
+      
       await _firestore.collection('reservations').doc(reservationId).update({
         'status': ReservationStatus
             .inProgress
@@ -18,7 +54,10 @@ class NotificationService {
         'isPaid': true, // Marquer comme payé
         'paymentMethod': 'Espèces',
       });
+      
+      print('✅ NotificationService: Paiement en espèces confirmé pour la réservation $reservationId');
     } catch (e) {
+      print('❌ NotificationService: Erreur lors de la confirmation du paiement: $e');
       throw Exception('Erreur lors de la confirmation du paiement: $e');
     }
   }

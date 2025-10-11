@@ -39,8 +39,17 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
     try {
       String reservationId = widget.reservation.id;
       
-      // Si c'est une offre personnalisée, créer la réservation maintenant
+      // Si c'est une offre personnalisée, vérifier le statut avant de créer la réservation
       if (widget.customOfferId != null && widget.reservation.id.isEmpty) {
+        // Vérifier que l'offre est toujours confirmée avant de créer la réservation
+        final offer = await _customOfferService.getCustomOfferById(widget.customOfferId!);
+        if (offer == null) {
+          throw Exception('Offre non trouvée');
+        }
+        if (offer.status != ReservationStatus.confirmed) {
+          throw Exception('Cette offre a déjà été traitée ou annulée');
+        }
+        
         reservationId = await _reservationService.createReservation(widget.reservation);
         
         // Mettre à jour l'offre personnalisée avec l'ID de la réservation
@@ -48,12 +57,14 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           offerId: widget.customOfferId!,
           reservationId: reservationId,
         );
-        
-        // Passer l'offre personnalisée en "inProgress" après paiement
-        await _customOfferService.startCustomOffer(widget.customOfferId!);
       }
       
-      await _notificationService.confirmPayment(reservationId);
+      await _notificationService.confirmPayment(reservationId, customOfferId: widget.customOfferId);
+      
+      // Passer l'offre personnalisée en "inProgress" APRÈS paiement confirmé
+      if (widget.customOfferId != null) {
+        await _customOfferService.startCustomOffer(widget.customOfferId!);
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -99,9 +110,6 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           offerId: widget.customOfferId!,
           reservationId: reservationId,
         );
-        
-        // Passer l'offre personnalisée en "inProgress" après paiement
-        await _customOfferService.startCustomOffer(widget.customOfferId!);
       }
       
       // ✅ Utiliser l'ancien système qui ouvrait Chrome (qui fonctionnait)

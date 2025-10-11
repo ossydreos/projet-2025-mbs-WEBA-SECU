@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
-import '../migration/migration_screen.dart';
 
 class AdminGestionScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -84,12 +83,6 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
                   title: 'Gestion des utilisateurs',
                   subtitle: 'Voir les profils et réservations',
                   onTap: () => _navigateToUsers(),
-                ),
-                _buildMenuItem(
-                  icon: Icons.update,
-                  title: 'Migration des données',
-                  subtitle: 'Mettre à jour les réservations',
-                  onTap: () => _navigateToMigration(),
                 ),
               ],
             ),
@@ -239,12 +232,6 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     Navigator.pushNamed(context, '/admin/users');
   }
 
-  void _navigateToMigration() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const MigrationScreen()),
-    );
-  }
 
   void _handleNavigation(int index) {
     if (index == _selectedIndex) return;

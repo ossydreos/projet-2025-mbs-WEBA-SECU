@@ -40,9 +40,11 @@ import 'widgets/admin/test_notification_demo.dart';
 import 'data/services/reservation_timeout_service.dart';
 import 'data/services/admin_global_notification_service.dart';
 import 'data/services/stripe_checkout_service.dart';
-// FCM désactivé - notifications locales uniquement
 import 'package:app_links/app_links.dart';
 import 'widgets/payment_success_animation.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Clé globale pour le navigator (pour afficher l'animation depuis n'importe où)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -55,20 +57,32 @@ void main() async {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
     debugPrint('✅ Firebase initialisé avec succès');
     
+    // OneSignal init
+    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+    OneSignal.initialize("031e7630-e928-42fe-98a3-767668b2bedb");
+    await OneSignal.Notifications.requestPermission(true); // iOS/Android 13+
+    
+    // ❌ SUPPRIMÉ - Connexion automatique anonyme qui causait le bug de déconnexion
+    // L'authentification sera gérée par AuthGate selon les besoins de l'utilisateur
+    
+    debugPrint('✅ OneSignal configuré - Authentification gérée par AuthGate');
+    
     // Initialiser les données de fuseau horaire
     tz.initializeTimeZones();
     debugPrint('✅ Fuseaux horaires initialisés');
     
     // FCM désactivé - utilisation des notifications locales uniquement
     
+    // ❌ DÉSACTIVÉ TEMPORAIREMENT - Test OneSignal uniquement
     // Initialiser le service de notifications admin global
     // (pour les notifications en arrière-plan)
-    try {
-      AdminGlobalNotificationService().initializeGlobal();
-      debugPrint('✅ Service notifications admin global initialisé');
-    } catch (e) {
-      debugPrint('⚠️ Erreur service notifications admin: $e');
-    }
+    // try {
+    //   AdminGlobalNotificationService().initializeGlobal();
+    //   debugPrint('✅ Service notifications admin global initialisé');
+    // } catch (e) {
+    //   debugPrint('⚠️ Erreur service notifications admin: $e');
+    // }
+    debugPrint('🔔 Ancien système de notifications désactivé - Test OneSignal uniquement');
     
     // Initialiser la gestion des deep links
     try {

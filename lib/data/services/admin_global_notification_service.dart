@@ -37,6 +37,8 @@ class AdminGlobalNotificationService {
   static const Duration _maxSoundDuration = Duration(minutes: 2); // Timeout après 2 minutes
   Map<String, dynamic>? _pendingNotification;
   Set<String> _processedReservations = <String>{};
+  // ✅ Protection contre les doublons de traitement
+  Set<String> _processingReservations = <String>{};
 
   // Initialiser le service global pour l'admin
   void initialize(BuildContext context) {
@@ -444,23 +446,36 @@ class AdminGlobalNotificationService {
       '🔔 AdminGlobalNotificationService: Contexte monté: ${_globalContext?.mounted ?? false}',
     );
 
-    // Vérifier si l'utilisateur actuel est admin
-    // Pour l'instant, on affiche toujours les notifications
-    // TODO: Ajouter une vérification du rôle utilisateur ici
-    print('🔔 AdminGlobalNotificationService: Affichage de la notification (admin uniquement)');
+    // ✅ Protection contre les doublons de traitement
+    final reservationId = data['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
+    if (_processingReservations.contains(reservationId)) {
+      print('⚠️ AdminGlobalNotificationService: Réservation $reservationId déjà en cours de traitement');
+      return;
+    }
 
-    // Toujours afficher une notification locale, même sans contexte
-    _showLocalNotificationForReservation(data);
+    _processingReservations.add(reservationId);
+    try {
+      // Vérifier si l'utilisateur actuel est admin
+      // Pour l'instant, on affiche toujours les notifications
+      // TODO: Ajouter une vérification du rôle utilisateur ici
+      print('🔔 AdminGlobalNotificationService: Affichage de la notification (admin uniquement)');
 
-    // Si on a un contexte, afficher aussi l'interface admin
-    if (_globalContext != null && _globalContext!.mounted) {
-      _showAdminInterfaceNotification(data);
-    } else {
-      print(
-        '🔔 AdminGlobalNotificationService: Contexte non disponible, notification mise en attente pour l\'interface',
-      );
-      // Stocker la notification en attente pour l'afficher quand le contexte sera disponible
-      _pendingNotification = data;
+      // Toujours afficher une notification locale, même sans contexte
+      _showLocalNotificationForReservation(data);
+
+      // Si on a un contexte, afficher aussi l'interface admin
+      if (_globalContext != null && _globalContext!.mounted) {
+        _showAdminInterfaceNotification(data);
+      } else {
+        print(
+          '🔔 AdminGlobalNotificationService: Contexte non disponible, notification mise en attente pour l\'interface',
+        );
+        // Stocker la notification en attente pour l'afficher quand le contexte sera disponible
+        _pendingNotification = data;
+      }
+    } finally {
+      // ✅ Toujours nettoyer le tracking, même en cas d'erreur
+      _processingReservations.remove(reservationId);
     }
   }
 
@@ -526,6 +541,13 @@ class AdminGlobalNotificationService {
     print(
       '🔔 AdminGlobalNotificationService: Affichage de l\'interface admin pour la réservation',
     );
+
+    // ✅ Protection du contexte - éviter les crashes
+    if (_globalContext == null || !_globalContext!.mounted) {
+      print('⚠️ AdminGlobalNotificationService: Contexte non disponible, notification mise en attente');
+      _pendingNotification = data;
+      return;
+    }
 
     final userName = data['userName'] as String? ?? 'Client';
     final from = data['departure'] as String? ?? '';
@@ -599,6 +621,8 @@ class AdminGlobalNotificationService {
     if (_isPlaying) {
       print('🔔 AdminGlobalNotificationService: Son déjà en cours, arrêt de la boucle précédente');
       _stopLocalNotifications();
+      // ✅ Attendre que l'arrêt soit complet pour éviter les conflits audio
+      await Future.delayed(Duration(milliseconds: 100));
     }
 
     _isPlaying = true;
@@ -674,9 +698,29 @@ class AdminGlobalNotificationService {
     // Arrêter la musique quand l'admin accepte
     _stopLocalNotifications();
 
-    // Utiliser le callback pour faire exactement la même chose que la liste des demandes en attente
-    // Cela garantit que la réservation est ajoutée à _processingReservations et gérée correctement
-    _notifyReservationProcessing(reservationId);
+    try {
+      // Vérifier le statut actuel de la réservation avant d'accepter
+      final reservation = await _reservationService.getReservationById(reservationId);
+      if (reservation == null) {
+        print('❌ AdminGlobalNotificationService: Réservation $reservationId non trouvée');
+        _showStatusError('Réservation non trouvée');
+        return;
+      }
+
+      // Vérifier que la réservation est toujours en attente
+      if (reservation.status != ReservationStatus.pending) {
+        print('❌ AdminGlobalNotificationService: Réservation $reservationId n\'est plus en attente (statut: ${reservation.status})');
+        _showStatusError('Cette réservation a déjà été traitée');
+        return;
+      }
+
+      // Utiliser le callback pour faire exactement la même chose que la liste des demandes en attente
+      // Cela garantit que la réservation est ajoutée à _processingReservations et gérée correctement
+      _notifyReservationProcessing(reservationId);
+    } catch (e) {
+      print('❌ AdminGlobalNotificationService: Erreur lors de la vérification du statut: $e');
+      _showStatusError('Erreur lors de la vérification du statut');
+    }
   }
 
   // Refuser directement la réservation (même logique que la liste des demandes en attente)
@@ -692,8 +736,34 @@ class AdminGlobalNotificationService {
       '🔔 AdminGlobalNotificationService: Refus direct de la réservation ${reservation.id}',
     );
 
-    // Refuser directement sans menu (comme dans la liste des demandes en attente)
-    _declineReservation(reservation.id);
+    // Vérifier le statut avant de refuser
+    _checkStatusAndDecline(reservation.id);
+  }
+
+  // Vérifier le statut et refuser si possible
+  Future<void> _checkStatusAndDecline(String reservationId) async {
+    try {
+      // Vérifier le statut actuel de la réservation avant de refuser
+      final reservation = await _reservationService.getReservationById(reservationId);
+      if (reservation == null) {
+        print('❌ AdminGlobalNotificationService: Réservation $reservationId non trouvée');
+        _showStatusError('Réservation non trouvée');
+        return;
+      }
+
+      // Vérifier que la réservation est toujours en attente
+      if (reservation.status != ReservationStatus.pending) {
+        print('❌ AdminGlobalNotificationService: Réservation $reservationId n\'est plus en attente (statut: ${reservation.status})');
+        _showStatusError('Cette réservation a déjà été traitée');
+        return;
+      }
+
+      // Procéder au refus
+      await _declineReservation(reservationId);
+    } catch (e) {
+      print('❌ AdminGlobalNotificationService: Erreur lors de la vérification du statut: $e');
+      _showStatusError('Erreur lors de la vérification du statut');
+    }
   }
 
   // Refuser une réservation (même logique que la liste des demandes en attente)
@@ -706,6 +776,21 @@ class AdminGlobalNotificationService {
     _stopLocalNotifications();
 
     try {
+      // Vérifier le statut actuel de la réservation avant de refuser
+      final reservation = await _reservationService.getReservationById(reservationId);
+      if (reservation == null) {
+        print('❌ AdminGlobalNotificationService: Réservation $reservationId non trouvée');
+        _showStatusError('Réservation non trouvée');
+        return;
+      }
+
+      // Vérifier que la réservation est toujours en attente
+      if (reservation.status != ReservationStatus.pending) {
+        print('❌ AdminGlobalNotificationService: Réservation $reservationId n\'est plus en attente (statut: ${reservation.status})');
+        _showStatusError('Cette réservation a déjà été traitée');
+        return;
+      }
+
       // Mettre à jour le statut de la réservation à cancelled (comme dans _refuseReservation)
       await _reservationService.updateReservationStatus(
         reservationId,
@@ -741,6 +826,40 @@ class AdminGlobalNotificationService {
 
   // Afficher le dialogue de contre-offre
   void _showCounterOfferDialog(Reservation reservation) {
+    if (_globalContext == null || !_globalContext!.mounted) return;
+
+    // Vérifier le statut avant d'afficher le dialogue de contre-offre
+    _checkStatusAndShowCounterOffer(reservation);
+  }
+
+  // Vérifier le statut et afficher le dialogue de contre-offre si possible
+  Future<void> _checkStatusAndShowCounterOffer(Reservation reservation) async {
+    try {
+      // Vérifier le statut actuel de la réservation avant de proposer une contre-offre
+      final currentReservation = await _reservationService.getReservationById(reservation.id);
+      if (currentReservation == null) {
+        print('❌ AdminGlobalNotificationService: Réservation ${reservation.id} non trouvée');
+        _showStatusError('Réservation non trouvée');
+        return;
+      }
+
+      // Vérifier que la réservation est toujours en attente
+      if (currentReservation.status != ReservationStatus.pending) {
+        print('❌ AdminGlobalNotificationService: Réservation ${reservation.id} n\'est plus en attente (statut: ${currentReservation.status})');
+        _showStatusError('Cette réservation a déjà été traitée');
+        return;
+      }
+
+      // Procéder à l'affichage du dialogue de contre-offre
+      _showCounterOfferDialogInternal(reservation);
+    } catch (e) {
+      print('❌ AdminGlobalNotificationService: Erreur lors de la vérification du statut: $e');
+      _showStatusError('Erreur lors de la vérification du statut');
+    }
+  }
+
+  // Afficher le dialogue de contre-offre (méthode interne)
+  void _showCounterOfferDialogInternal(Reservation reservation) {
     if (_globalContext == null || !_globalContext!.mounted) return;
 
     DateTime selectedDate = reservation.selectedDate;
@@ -1009,6 +1128,21 @@ class AdminGlobalNotificationService {
     _stopLocalNotifications();
 
     try {
+      // Vérifier le statut actuel de la réservation avant d'envoyer la contre-offre
+      final reservation = await _reservationService.getReservationById(reservationId);
+      if (reservation == null) {
+        print('❌ AdminGlobalNotificationService: Réservation $reservationId non trouvée');
+        _showStatusError('Réservation non trouvée');
+        return;
+      }
+
+      // Vérifier que la réservation est toujours en attente
+      if (reservation.status != ReservationStatus.pending) {
+        print('❌ AdminGlobalNotificationService: Réservation $reservationId n\'est plus en attente (statut: ${reservation.status})');
+        _showStatusError('Cette réservation a déjà été traitée');
+        return;
+      }
+
       await FirebaseFirestore.instance
           .collection('reservations')
           .doc(reservationId)
@@ -1137,6 +1271,26 @@ class AdminGlobalNotificationService {
     _startBackgroundPolling();
   }
 
+  // Arrêter les notifications locales (méthode publique)
+  void stopLocalNotifications() {
+    print('🔔 AdminGlobalNotificationService: Arrêt des notifications locales (appel public)');
+    _stopLocalNotifications();
+  }
+
+  // Afficher un message d'erreur de statut
+  void _showStatusError(String message) {
+    if (_globalContext != null && _globalContext!.mounted) {
+      ScaffoldMessenger.of(_globalContext!).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   // Nettoyer les ressources
   void dispose() {
     _reservationSubscription?.cancel();
@@ -1147,6 +1301,8 @@ class AdminGlobalNotificationService {
     _globalContext = null;
     _isInitialized = false;
     _processedReservations.clear();
+    // ✅ Nettoyer aussi le tracking des réservations en cours
+    _processingReservations.clear();
     _isPlaying = false;
   }
 }

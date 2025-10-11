@@ -1320,6 +1320,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   Future<void> _confirmReservation(Reservation reservation) async {
+    // Arrêter la musique quand l'admin accepte
+    _notificationService.stopLocalNotifications();
+    
     // Marquer la réservation comme en cours de traitement
     setState(() {
       _processingReservations.add(reservation.id);
@@ -1365,6 +1368,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
   // Méthode pour confirmer une réservation depuis le pop-up (même logique que _confirmReservation)
   Future<void> _confirmReservationFromPopup(String reservationId) async {
+    // Arrêter la musique quand l'admin accepte
+    _notificationService.stopLocalNotifications();
+    
     // Marquer la réservation comme en cours de traitement
     setState(() {
       _processingReservations.add(reservationId);
@@ -1417,6 +1423,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
   }
 
   Future<void> _refuseReservation(Reservation reservation) async {
+    // Arrêter la musique quand l'admin refuse
+    _notificationService.stopLocalNotifications();
+    
     try {
       await _reservationService.updateReservationStatus(
         reservation.id,
@@ -1670,6 +1679,9 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     Reservation reservation,
     Map<String, dynamic> data,
   ) async {
+    // Arrêter la musique quand l'admin envoie une contre-offre
+    _notificationService.stopLocalNotifications();
+    
     try {
       // Ici vous pouvez implémenter l'envoi de la contre-offre
       // Par exemple, créer une nouvelle réservation avec le statut "counter_offer"

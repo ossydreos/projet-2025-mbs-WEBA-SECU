@@ -186,11 +186,30 @@ class CustomOfferService {
   // Marquer une offre comme en cours (après paiement)
   Future<void> startCustomOffer(String offerId) async {
     try {
+      // Vérifier le statut actuel de l'offre avant de la démarrer
+      final offerDoc = await _firestore.collection(_collection).doc(offerId).get();
+      if (!offerDoc.exists) {
+        print('❌ CustomOfferService: Offre $offerId non trouvée');
+        throw Exception('Offre non trouvée');
+      }
+      
+      final offerData = offerDoc.data()!;
+      final currentStatus = offerData['status'] as String?;
+      
+      // Vérifier que l'offre est toujours confirmée (en attente de paiement)
+      if (currentStatus != ReservationStatus.confirmed.name) {
+        print('❌ CustomOfferService: Offre $offerId n\'est plus confirmée (statut: $currentStatus)');
+        throw Exception('Cette offre a déjà été traitée ou annulée');
+      }
+      
       await _firestore.collection(_collection).doc(offerId).update({
         'status': ReservationStatus.inProgress.name,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
+      
+      print('✅ CustomOfferService: Offre personnalisée $offerId démarrée avec succès');
     } catch (e) {
+      print('❌ CustomOfferService: Erreur lors du démarrage de l\'offre: $e');
       throw Exception('Erreur lors du démarrage de l\'offre: $e');
     }
   }
@@ -240,11 +259,30 @@ class CustomOfferService {
     required ReservationStatus status,
   }) async {
     try {
+      // Vérifier le statut actuel de l'offre avant de la mettre à jour
+      final offerDoc = await _firestore.collection(_collection).doc(offerId).get();
+      if (!offerDoc.exists) {
+        print('❌ CustomOfferService: Offre $offerId non trouvée');
+        throw Exception('Offre non trouvée');
+      }
+      
+      final offerData = offerDoc.data()!;
+      final currentStatus = offerData['status'] as String?;
+      
+      // Vérifier que l'offre est toujours en attente (pending) avant de la traiter
+      if (currentStatus != ReservationStatus.pending.name) {
+        print('❌ CustomOfferService: Offre $offerId n\'est plus en attente (statut: $currentStatus)');
+        throw Exception('Cette offre a déjà été traitée ou annulée');
+      }
+      
       await _firestore.collection(_collection).doc(offerId).update({
         'status': status.name,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
+      
+      print('✅ CustomOfferService: Statut de l\'offre $offerId mis à jour vers ${status.name}');
     } catch (e) {
+      print('❌ CustomOfferService: Erreur lors de la mise à jour du statut: $e');
       throw Exception('Erreur lors de la mise à jour du statut: $e');
     }
   }
@@ -275,6 +313,22 @@ class CustomOfferService {
     String? reservationId,
   }) async {
     try {
+      // Vérifier le statut actuel de l'offre avant de la mettre à jour
+      final offerDoc = await _firestore.collection(_collection).doc(offerId).get();
+      if (!offerDoc.exists) {
+        print('❌ CustomOfferService: Offre $offerId non trouvée');
+        throw Exception('Offre non trouvée');
+      }
+      
+      final offerData = offerDoc.data()!;
+      final currentStatus = offerData['status'] as String?;
+      
+      // Vérifier que l'offre est toujours en attente (pending) avant de la confirmer
+      if (status == 'confirmed' && currentStatus != ReservationStatus.pending.name) {
+        print('❌ CustomOfferService: Offre $offerId n\'est plus en attente (statut: $currentStatus)');
+        throw Exception('Cette offre a déjà été traitée ou annulée');
+      }
+      
       final updateData = <String, dynamic>{
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       };

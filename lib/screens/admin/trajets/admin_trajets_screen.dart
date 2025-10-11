@@ -567,7 +567,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
               ),
               const SizedBox(height: 6),
 
-              // Moyen de paiement sous les adresses
+              // Moyen de paiement et prix sous les adresses
               Row(
                 children: [
                   const Icon(Icons.credit_card, color: AppColors.textWeak, size: 14),
@@ -579,6 +579,17 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textWeak,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                  const Spacer(),
+                  // Prix
+                  Text(
+                    '${reservation.totalPrice.toStringAsFixed(2)} CHF',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w600,
                       fontFamily: 'Poppins',
                     ),
                   ),
@@ -625,6 +636,26 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: AppColors.textWeak,
+                                    fontFamily: 'Poppins',
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                          ],
+                          
+                          // Prix proposé pour les offres personnalisées
+                          if (offer.proposedPrice != null) ...[
+                            Row(
+                              children: [
+                                Icon(Icons.attach_money, size: 14, color: AppColors.accent),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Prix: ${offer.proposedPrice!.toStringAsFixed(2)} CHF',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.accent,
+                                    fontWeight: FontWeight.w600,
                                     fontFamily: 'Poppins',
                                   ),
                                 ),

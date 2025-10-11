@@ -38,6 +38,7 @@ dependencies:
   printing: ^5.14.2
   path_provider: ^2.1.2
   app_links: ^3.5.1
+  onesignal_flutter: ^5.1.2
 
 dev_dependencies:
   flutter_test:
