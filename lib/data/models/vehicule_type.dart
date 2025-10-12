@@ -146,7 +146,7 @@ class VehiculeType {
     };
   }
 
-  // Créer depuis un document Firebase
+    // Créer depuis un document Firebase
   factory VehiculeType.fromMap(Map<String, dynamic> map) {
     // Supporter plusieurs formats possibles en BDD:
     // - icon: int (codePoint)
@@ -154,19 +154,6 @@ class VehiculeType {
     // - icon: String (codePoint en string)
     // - iconName: String (nom d'icône Material)
     IconData _resolveIconFromMap(Map<String, dynamic> m) {
-      final dynamic raw = m['icon'];
-      if (raw is int) {
-        return IconData(raw, fontFamily: 'MaterialIcons');
-      }
-      if (raw is num) {
-        return IconData(raw.toInt(), fontFamily: 'MaterialIcons');
-      }
-      if (raw is String) {
-        final parsed = int.tryParse(raw);
-        if (parsed != null) {
-          return IconData(parsed, fontFamily: 'MaterialIcons');
-        }
-      }
       final String? iconName = m['iconName'] as String?;
       if (iconName != null) {
         switch (iconName) {
@@ -188,6 +175,7 @@ class VehiculeType {
             return Icons.directions_car;
         }
       }
+      // Fallback vers une icône par défaut constante
       return Icons.directions_car;
     }
     final IconData resolvedIcon = _resolveIconFromMap(map);

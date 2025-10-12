@@ -26,11 +26,17 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   final NotificationService _notificationService = NotificationService();
   final ReservationService _reservationService = ReservationService();
   final CustomOfferService _customOfferService = CustomOfferService();
-  String _paymentMethod = 'Cash';
+  String _paymentMethod = 'Espèces';
+
+  @override
+  void initState() {
+    super.initState();
+    _paymentMethod = AppLocalizations.of(context).cash;
+  }
 
   Future<void> _confirmPayment() async {
     // ✅ Si paiement en ligne sélectionné, ouvrir Stripe
-    if (_paymentMethod == 'Paiement en ligne') {
+    if (_paymentMethod == AppLocalizations.of(context).onlinePayment) {
       _openSecurePaymentScreen();
       return;
     }
@@ -44,10 +50,10 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
         // Vérifier que l'offre est toujours confirmée avant de créer la réservation
         final offer = await _customOfferService.getCustomOfferById(widget.customOfferId!);
         if (offer == null) {
-          throw Exception('Offre non trouvée');
+          throw Exception(AppLocalizations.of(context).offerNotFound);
         }
         if (offer.status != ReservationStatus.confirmed) {
-          throw Exception('Cette offre a déjà été traitée ou annulée');
+          throw Exception(AppLocalizations.of(context).offerAlreadyProcessed);
         }
         
         reservationId = await _reservationService.createReservation(widget.reservation);
@@ -93,7 +99,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   String _getCurrencyForRegion() {
     // Pour l'instant, on utilise CHF car votre app est principalement en Suisse
     // Plus tard, vous pourrez détecter la région de l'utilisateur
-    return 'CHF';
+    return AppLocalizations.of(context).chf;
   }
 
   // ✅ Ouvrir directement Stripe Checkout avec devise adaptée
@@ -144,8 +150,8 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: AppColors.bgElev,
-              title: const Text(
-                'Méthode de paiement',
+              title: Text(
+                AppLocalizations.of(context).paymentMethod,
                 style: TextStyle(color: Colors.white),
               ),
               content: Column(
@@ -155,18 +161,18 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                   GestureDetector(
                     onTap: () {
                       setDialogState(() {
-                        tempPaymentMethod = 'Cash';
+                        tempPaymentMethod = AppLocalizations.of(context).cash;
                       });
                     },
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: tempPaymentMethod == 'Cash'
+                        color: tempPaymentMethod == AppLocalizations.of(context).cash
                             ? AppColors.accent.withOpacity(0.2)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: tempPaymentMethod == 'Cash'
+                          color: tempPaymentMethod == AppLocalizations.of(context).cash
                               ? AppColors.accent
                               : Colors.grey.withOpacity(0.5),
                           width: 2,
@@ -179,17 +185,17 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                             height: 24,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: tempPaymentMethod == 'Cash'
+                              color: tempPaymentMethod == AppLocalizations.of(context).cash
                                   ? AppColors.accent
                                   : Colors.transparent,
                               border: Border.all(
-                                color: tempPaymentMethod == 'Cash'
+                                color: tempPaymentMethod == AppLocalizations.of(context).cash
                                     ? AppColors.accent
                                     : Colors.grey,
                                 width: 2,
                               ),
                             ),
-                            child: tempPaymentMethod == 'Cash'
+                            child: tempPaymentMethod == AppLocalizations.of(context).cash
                                 ? const Icon(
                                     Icons.check,
                                     color: Colors.white,
@@ -205,7 +211,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                                 Text(
                                   'Cash',
                                   style: TextStyle(
-                                    color: tempPaymentMethod == 'Cash'
+                                    color: tempPaymentMethod == AppLocalizations.of(context).cash
                                         ? AppColors.accent
                                         : Colors.white,
                                     fontSize: 16,

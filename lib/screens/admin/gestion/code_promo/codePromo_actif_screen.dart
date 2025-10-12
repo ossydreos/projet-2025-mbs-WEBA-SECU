@@ -23,7 +23,7 @@ class ActivePromoCodesScreen extends StatelessWidget {
             }
             final items = snapshot.data ?? const <PromoCode>[];
             if (items.isEmpty) {
-              return const Center(child: Text('Aucun code pour le moment'));
+              return Center(child: Text(AppLocalizations.of(context).noCodesAtTheMoment));
             }
             return ListView.separated(
               padding: const EdgeInsets.all(16),
@@ -79,8 +79,8 @@ class _PromoTile extends StatelessWidget {
       ..write(' • ')
       ..write(
         promo.expiresAt != null
-            ? 'Expire: ${promo.expiresAt!.toString().split(' ').first}'
-            : 'Sans expiration',
+            ? '${AppLocalizations.of(context).expires}: ${promo.expiresAt!.toString().split(' ').first}'
+            : AppLocalizations.of(context).noExpiration,
       )
       ..write(' • ')
       ..write(

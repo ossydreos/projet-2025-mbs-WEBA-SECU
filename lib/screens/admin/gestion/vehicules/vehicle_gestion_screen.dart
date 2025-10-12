@@ -55,12 +55,12 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
             IconButton(
               onPressed: _showAddVehicleDialog,
               icon: Icon(Icons.add, color: AppColors.accent),
-              tooltip: 'Ajouter un véhicule',
+              tooltip: AppLocalizations.of(context).addVehicle,
             ),
             IconButton(
               onPressed: _loadVehicles,
               icon: Icon(Icons.refresh, color: AppColors.accent),
-              tooltip: 'Actualiser',
+              tooltip: AppLocalizations.of(context).refresh,
             ),
           ],
         ),
@@ -106,7 +106,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           Icon(Icons.category_outlined, size: 80, color: AppColors.textWeak),
           const SizedBox(height: 16),
           Text(
-            'Aucun véhicule',
+            AppLocalizations.of(context).noVehicles,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -115,12 +115,12 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Commencez par ajouter un véhicule',
+            AppLocalizations.of(context).startByAddingVehicle,
             style: TextStyle(fontSize: 14, color: AppColors.textWeak),
           ),
           const SizedBox(height: 24),
           GlassButton(
-            label: 'Ajouter un véhicule',
+            label: AppLocalizations.of(context).addVehicle,
             onPressed: _showAddVehicleDialog,
             primary: true,
           ),
@@ -139,7 +139,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
         children: [
           Expanded(
             child: _buildStatCard(
-              'Total',
+              AppLocalizations.of(context).total,
               _vehicles.length.toString(),
               Icons.directions_car,
               AppColors.accent,
@@ -148,7 +148,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           const SizedBox(width: 16),
           Expanded(
             child: _buildStatCard(
-              'Actifs',
+              AppLocalizations.of(context).active,
               activeCount.toString(),
               Icons.check_circle,
               Colors.green,
@@ -157,7 +157,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
           const SizedBox(width: 16),
           Expanded(
             child: _buildStatCard(
-              'Inactifs',
+              AppLocalizations.of(context).inactive,
               inactiveCount.toString(),
               Icons.cancel,
               Colors.red,
@@ -196,7 +196,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Véhicules disponibles',
+          AppLocalizations.of(context).availableVehicles,
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -297,7 +297,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          vehicle.isActive ? 'Actif' : 'Inactif',
+                          vehicle.isActive ? AppLocalizations.of(context).active : AppLocalizations.of(context).inactive,
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -337,7 +337,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                 IconButton(
                   onPressed: () => _showEditVehicleDialog(vehicle),
                   icon: Icon(Icons.edit, color: AppColors.accent, size: 18),
-                  tooltip: 'Modifier',
+                  tooltip: AppLocalizations.of(context).modify,
                   padding: const EdgeInsets.all(8),
                   constraints: const BoxConstraints(
                     minWidth: 32,
@@ -351,7 +351,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                     color: vehicle.isActive ? Colors.orange : Colors.green,
                     size: 18,
                   ),
-                  tooltip: vehicle.isActive ? 'Désactiver' : 'Activer',
+                  tooltip: vehicle.isActive ? AppLocalizations.of(context).deactivate : AppLocalizations.of(context).activate,
                   padding: const EdgeInsets.all(8),
                   constraints: const BoxConstraints(
                     minWidth: 32,
@@ -361,7 +361,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                 IconButton(
                   onPressed: () => _showDeleteVehicleDialog(vehicle),
                   icon: Icon(Icons.delete, color: Colors.red, size: 18),
-                  tooltip: 'Supprimer',
+                  tooltip: AppLocalizations.of(context).delete,
                   padding: const EdgeInsets.all(8),
                   constraints: const BoxConstraints(
                     minWidth: 32,
@@ -420,7 +420,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      isEditing ? 'Modifier le véhicule' : 'Nouveau véhicule',
+                      isEditing ? AppLocalizations.of(context).editVehicle : AppLocalizations.of(context).newVehicle,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

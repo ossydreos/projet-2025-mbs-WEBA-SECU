@@ -8,7 +8,7 @@ import 'package:my_mobility_services/data/services/pdf_export_service.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
-import '../../../l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
 
@@ -173,7 +173,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   const SizedBox(height: 16),
                   Text(
                     _upcomingFilter.hasActiveFilter
-                        ? 'Aucun résultat pour les filtres sélectionnés'
+                        ? AppLocalizations.of(context).noResultsForSelectedFilters
                         : AppLocalizations.of(context).noUpcomingRides,
                     style: TextStyle(
                       fontSize: 18,
@@ -185,7 +185,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   const SizedBox(height: 8),
                   Text(
                     _upcomingFilter.hasActiveFilter
-                        ? 'Essayez de modifier vos critères de filtrage'
+                        ? AppLocalizations.of(context).tryModifyingFilterCriteria
                         : AppLocalizations.of(context).upcomingRidesWillAppear,
                     style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
@@ -268,7 +268,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   const SizedBox(height: 16),
                   Text(
                     _completedFilter.hasActiveFilter
-                        ? 'Aucun résultat pour les filtres sélectionnés'
+                        ? AppLocalizations.of(context).noResultsForSelectedFilters
                         : AppLocalizations.of(context).noCompletedRides,
                     style: TextStyle(
                       fontSize: 18,
@@ -280,7 +280,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   const SizedBox(height: 8),
                   Text(
                     _completedFilter.hasActiveFilter
-                        ? 'Essayez de modifier vos critères de filtrage'
+                        ? AppLocalizations.of(context).tryModifyingFilterCriteria
                         : AppLocalizations.of(context).rideHistoryWillAppear,
                     style: TextStyle(fontSize: 14, color: AppColors.textWeak),
                   ),
@@ -364,7 +364,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                     PopupMenuButton<String>(
                       onSelected: (value) =>
                           _handleReservationMenuAction(value, reservation),
-                      itemBuilder: (context) => const [
+                      itemBuilder: (context) => [
                         PopupMenuItem(
                           value: 'details',
                           child: Row(
@@ -375,7 +375,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                                 size: 20,
                               ),
                               SizedBox(width: 8),
-                              Text('Détails'),
+                              Text(AppLocalizations.of(context).details),
                             ],
                           ),
                         ),
@@ -385,7 +385,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                             children: [
                               Icon(Icons.delete, color: Colors.red, size: 20),
                               SizedBox(width: 8),
-                              Text('Supprimer'),
+                              Text(AppLocalizations.of(context).delete),
                             ],
                           ),
                         ),
@@ -426,7 +426,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          reservation.userName ?? 'Client',
+                          reservation.userName ?? AppLocalizations.of(context).client,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -455,7 +455,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                             ),
                           ),
                           child: Text(
-                            'Demande personnalisée',
+                            AppLocalizations.of(context).customRequest,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -575,7 +575,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                   Text(
                     reservation.paymentMethod.isNotEmpty
                         ? reservation.paymentMethod
-                        : 'Paiement',
+                        : AppLocalizations.of(context).payment,
                     style: TextStyle(
                       fontSize: 12,
                       color: AppColors.textWeak,

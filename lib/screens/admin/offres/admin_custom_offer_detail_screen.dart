@@ -73,9 +73,9 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: 'Détail de l\'offre',
+          title: AppLocalizations.of(context).offerDetails,
           actions: [
-            if (widget.offer.status == 'pending')
+            if (widget.offer.status == AppLocalizations.of(context).pending)
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () => _rejectOffer(),
@@ -109,9 +109,9 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
                 const SizedBox(height: 16),
               
               // Prix proposé (si accepté)
-              if (widget.offer.status == 'accepted' && widget.offer.proposedPrice != null)
+              if (widget.offer.status == AppLocalizations.of(context).accepted && widget.offer.proposedPrice != null)
                 _buildPriceCard(),
-              if (widget.offer.status == 'accepted' && widget.offer.proposedPrice != null)
+              if (widget.offer.status == AppLocalizations.of(context).accepted && widget.offer.proposedPrice != null)
                 const SizedBox(height: 16),
               
               // Message du chauffeur (si présent)
@@ -164,7 +164,7 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
       default:
         statusColor = Colors.grey;
         statusIcon = Icons.help;
-        statusText = 'Inconnu';
+        statusText = AppLocalizations.of(context).unknown;
     }
 
     return GlassContainer(
@@ -179,7 +179,7 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.offer.userName ?? 'Client inconnu',
+                            widget.offer.userName ?? AppLocalizations.of(context).unknownClient,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -216,8 +216,8 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Informations du trajet',
+            Text(
+              AppLocalizations.of(context).tripInformation,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -315,8 +315,8 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
                         color: AppColors.accent.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Text(
-                        'Véhicule choisi',
+                      child: Text(
+                        AppLocalizations.of(context).selectedVehicle,
                         style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -349,8 +349,8 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Durée de service',
+            Text(
+              AppLocalizations.of(context).serviceDuration,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -388,8 +388,8 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Durée de service',
+                Text(
+                  AppLocalizations.of(context).serviceDuration,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -414,7 +414,7 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
             if (_isEditing) ...[
               // Date et heure de début
               _buildDateTimeSelector(
-                label: 'Date et heure de début',
+                label: AppLocalizations.of(context).startDateAndTime,
                 date: _modifiedStartDate,
                 time: _modifiedStartTime ?? TimeOfDay.now(),
                 onDateTap: _selectModifiedStartDate,

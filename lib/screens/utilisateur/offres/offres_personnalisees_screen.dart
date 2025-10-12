@@ -8,7 +8,7 @@ import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class OffresPersonnaliseesScreen extends StatefulWidget {
   final Function(int) onNavigate;
@@ -45,7 +45,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
   Widget _buildPendingOfferCard(CustomOffer offer) {
     final dateText = offer.startDateTime != null
         ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
-        : 'Date non définie';
+        : AppLocalizations.of(context).dateNotDefined;
 
     return _GlassPanel(
       borderRadius: const BorderRadius.all(Fx.radiusM),
@@ -58,7 +58,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               _StatusChip(
-                label: 'En attente d\'acceptation',
+                label: AppLocalizations.of(context).waitingForAcceptance,
                 icon: Icons.schedule,
                 color: AppColors.accent,
               ),
@@ -96,7 +96,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
             leftIcon: Icons.calendar_today,
             leftText: dateText,
             rightIcon: Icons.account_balance_wallet,
-            rightText: 'À définir',
+            rightText: AppLocalizations.of(context).toBeDefined,
           ),
 
           if (offer.clientNote != null && offer.clientNote!.isNotEmpty) ...[
@@ -115,7 +115,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
   Widget _buildAcceptedOfferCard(CustomOffer offer) {
     final dateText = offer.startDateTime != null
         ? '${offer.startDateTime!.day}/${offer.startDateTime!.month}/${offer.startDateTime!.year}'
-        : 'Date non définie';
+        : AppLocalizations.of(context).dateNotDefined;
 
     return _GlassPanel(
       borderRadius: const BorderRadius.all(Fx.radiusM),
@@ -135,14 +135,14 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
               const SizedBox(width: 12),
               Expanded(
                 child: _HeaderTitleSubtitle(
-                  title: 'Offre personnalisée',
-                  subtitle: 'Chauffeur: ${offer.driverName ?? 'Non spécifié'}',
+                  title: AppLocalizations.of(context).customOffer,
+                  subtitle: '${AppLocalizations.of(context).driver}: ${offer.driverName ?? AppLocalizations.of(context).notSpecified}',
                 ),
               ),
               const SizedBox(width: 8),
               _PriceBadge(
                 amountLabel: '${offer.proposedPrice?.toStringAsFixed(2) ?? '0.00'} CHF',
-                caption: 'Prix proposé',
+                caption: AppLocalizations.of(context).proposedPrice,
               ),
             ],
           ),
@@ -174,7 +174,7 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
             leftIcon: Icons.calendar_today,
             leftText: dateText,
             rightIcon: Icons.account_balance_wallet,
-            rightText: 'À définir',
+            rightText: AppLocalizations.of(context).toBeDefined,
           ),
 
           if (offer.driverMessage != null && offer.driverMessage!.isNotEmpty) ...[
@@ -190,10 +190,10 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
 
           // Actions
           _ActionsRow(
-            primaryLabel: 'Valider et payer',
+            primaryLabel: AppLocalizations.of(context).validateAndPay,
             primaryOnPressed: () => _confirmAndPayOffer(offer),
             primaryColor: AppColors.accent2,
-            secondaryLabel: 'Refuser',
+            secondaryLabel: AppLocalizations.of(context).refuse,
             secondaryOnPressed: () => _rejectOffer(offer),
             secondaryColor: AppColors.hot,
           ),
@@ -213,12 +213,12 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
     } else if (difference.inMinutes > 0) {
       return '${difference.inMinutes}min';
     } else {
-      return 'Maintenant';
+      return AppLocalizations.of(context).now;
     }
   }
 
   String _formatDateTime(DateTime? dateTime) {
-    if (dateTime == null) return 'Non défini';
+    if (dateTime == null) return AppLocalizations.of(context).notDefined;
     
     final day = dateTime.day.toString().padLeft(2, '0');
     final month = dateTime.month.toString().padLeft(2, '0');
@@ -231,12 +231,12 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
   Future<void> _confirmAndPayOffer(CustomOffer offer) async {
     try {
       if (offer.proposedPrice == null) {
-        throw Exception('Prix manquant sur l\'offre');
+        throw Exception(AppLocalizations.of(context).missingPriceOnOffer);
       }
 
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw Exception('Utilisateur non connecté');
+        throw Exception(AppLocalizations.of(context).userNotConnected);
       }
 
       // NE PAS créer de réservation maintenant - juste naviguer vers le paiement

@@ -118,7 +118,7 @@ class SignupFormState extends State<SignupForm> {
     
     // Debug: vérifier la concaténation
     print('DEBUG - Indicatif: ${_selectedCountry?.dialCode ?? '+33'}');
-    print('DEBUG - Pays: ${_selectedCountry?.name ?? 'France'}');
+    print(AppLocalizations.of(context).debugCountry(_selectedCountry?.name ?? 'France'));
     print('DEBUG - Numéro: $phone');
     print('DEBUG - Numéro complet: $fullPhone');
 
@@ -126,7 +126,7 @@ class SignupFormState extends State<SignupForm> {
       if (password.length < 8) {
         throw FirebaseAuthException(
           code: 'weak-password',
-          message: '8 caractères minimum',
+          message: AppLocalizations.of(context).minimum8Characters,
         );
       }
 
@@ -140,7 +140,7 @@ class SignupFormState extends State<SignupForm> {
         if (phoneQuery.docs.isNotEmpty) {
           throw FirebaseAuthException(
             code: 'phone-already-in-use',
-            message: 'Ce numéro de téléphone est déjà utilisé',
+            message: AppLocalizations.of(context).phoneAlreadyInUse,
           );
         }
       }

@@ -558,9 +558,9 @@ class _FavoriteTripsScreenState extends State<FavoriteTripsScreen> {
     final difference = now.difference(date);
 
     if (difference.inDays == 0) {
-      return 'Aujourd\'hui';
+      return AppLocalizations.of(context).today;
     } else if (difference.inDays == 1) {
-      return 'Hier';
+      return AppLocalizations.of(context).yesterday;
     } else if (difference.inDays < 7) {
       return 'Il y a ${difference.inDays} jours';
     } else {

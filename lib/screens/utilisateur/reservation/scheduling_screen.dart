@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/trip_summary_screen.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
 import 'package:my_mobility_services/widgets/ios_time_picker.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class SchedulingScreen extends StatefulWidget {
   final String vehicleName;
@@ -260,10 +261,10 @@ class _SchedulingScreenState extends State<SchedulingScreen> {
         context: context,
         initialTime: _selectedTime ?? minimumTime,
         minimumTime: isToday ? minimumTime : null,
-        title: 'Heure de prise en charge',
+        title: AppLocalizations.of(context).pickupTime,
         subtitle: isToday
-            ? 'Au moins 30 minutes à l\'avance'
-            : 'Sélectionnez l\'heure souhaitée',
+            ? AppLocalizations.of(context).atLeast30MinutesInAdvance
+            : AppLocalizations.of(context).selectDesiredTime,
       );
     } else {
       picked = await showTimePicker(

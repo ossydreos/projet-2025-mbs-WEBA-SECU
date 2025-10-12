@@ -28,15 +28,15 @@ class Utilisateur {
     required this.provider,
   });
 
-  factory Utilisateur.fromFirestore(DocumentSnapshot doc) {
+  factory Utilisateur.fromFirestore(DocumentSnapshot doc, BuildContext context) {
     final data = doc.data() as Map<String, dynamic>;
     final phone = data['phone'] ?? '';
     
     return Utilisateur(
       uid: data['uid'] ?? '',
-      nom: data['name'] ?? 'Utilisateur',
+      nom: data['name'] ?? AppLocalizations.of(context).user,
       email: data['email'] ?? '',
-      telephone: phone.isNotEmpty ? phone : 'Not provided',
+      telephone: phone.isNotEmpty ? phone : AppLocalizations.of(context).notProvided,
       dateCreation: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       emailVerified: data['emailVerified'] ?? false,
       provider: data['provider'] ?? 'password',
@@ -98,7 +98,7 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
             }
 
             final utilisateur = userSnapshot.hasData 
-                ? Utilisateur.fromFirestore(userSnapshot.data!)
+                ? Utilisateur.fromFirestore(userSnapshot.data!, context)
                 : _getDefaultUser(authSnapshot.data!);
 
             return _buildMainContent(utilisateur);
@@ -163,14 +163,18 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Informations personnelles',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textStrong,
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context).personalInformation,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textStrong,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        const SizedBox(width: 8),
                         ElevatedButton(
                           onPressed: () {
                             _showEditInfoDialog(utilisateur);
@@ -197,15 +201,15 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                     GlassContainer(
                       child: Column(
                         children: [
-                          _buildInfoRow(Icons.person, 'Nom complet', utilisateur.nom),
+                          _buildInfoRow(Icons.person, AppLocalizations.of(context).fullName, utilisateur.nom),
                           const Divider(color: AppColors.glassStroke),
-                          _buildInfoRow(Icons.email, 'Email', utilisateur.email),
+                          _buildInfoRow(Icons.email, AppLocalizations.of(context).emailAddress, utilisateur.email),
                           const Divider(color: AppColors.glassStroke),
                           _buildInfoRow(
                             Icons.phone, 
-                            'Téléphone', 
-                            utilisateur.telephone == 'Not provided' 
-                                ? 'Non fourni' 
+                            AppLocalizations.of(context).phone, 
+                            utilisateur.telephone == AppLocalizations.of(context).notProvided 
+                                ? AppLocalizations.of(context).notProvidedShort 
                                 : utilisateur.telephone
                           ),
                         ],
@@ -220,8 +224,8 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Trajets favoris',
+                    Text(
+                      AppLocalizations.of(context).favoriteTrips,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -230,7 +234,7 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                     ),
                     const SizedBox(height: 16),
                     GlassContainer(
-                      child: _buildMenuItem(Icons.favorite, 'Mes trajets favoris', () => _navigateToFavoriteTrips()),
+                      child: _buildMenuItem(Icons.favorite, AppLocalizations.of(context).myFavoriteTrips, () => _navigateToFavoriteTrips()),
                     ),
                   ],
                 ),
@@ -241,8 +245,8 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Légal',
+                    Text(
+                      AppLocalizations.of(context).legal,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -253,7 +257,7 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                     GlassContainer(
                       child: Column(
                         children: [
-                          _buildMenuItem(Icons.privacy_tip, 'Politique de confidentialité'),
+                          _buildMenuItem(Icons.privacy_tip, AppLocalizations.of(context).privacyPolicy),
                           const Divider(color: AppColors.glassStroke),
                           _buildMenuItem(Icons.description, 'Conditions d\'utilisation'),
                           const Divider(color: AppColors.glassStroke),

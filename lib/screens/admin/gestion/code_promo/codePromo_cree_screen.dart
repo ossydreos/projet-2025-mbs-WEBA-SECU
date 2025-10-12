@@ -46,7 +46,7 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
   }
 
   String? _required(String? v) =>
-      (v == null || v.trim().isEmpty) ? 'Champ requis' : null;
+      (v == null || v.trim().isEmpty) ? AppLocalizations.of(context).requiredField : null;
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -155,14 +155,14 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                           const SizedBox(height: 8),
                           DropdownButtonFormField<DiscountType>(
                             value: _type,
-                            items: const [
+                            items: [
                               DropdownMenuItem(
                                 value: DiscountType.amount,
-                                child: Text('Forfaitaire'),
+                                child: Text(AppLocalizations.of(context).fixed),
                               ),
                               DropdownMenuItem(
                                 value: DiscountType.percent,
-                                child: Text('Pourcentage'),
+                                child: Text(AppLocalizations.of(context).percentage),
                               ),
                             ],
                             isExpanded: true,
@@ -194,12 +194,12 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                           TextFormField(
                             controller: _valueCtrl,
                             validator: (v) {
-                              if (_required(v) != null) return 'Champ requis';
+                              if (_required(v) != null) return AppLocalizations.of(context).requiredField;
                               final value = double.tryParse(
                                 v!.replaceAll(',', '.'),
                               );
                               if (value == null || value <= 0)
-                                return 'Valeur invalide';
+                                return AppLocalizations.of(context).invalidValue;
                               if (_type == DiscountType.percent &&
                                   (value <= 0 || value > 100))
                                 return 'Pourcentage 1-100';
@@ -231,7 +231,7 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Date d\'expiration',
+                            AppLocalizations.of(context).expirationDate,
                             style: TextStyle(
                               color: AppColors.textStrong,
                               fontWeight: FontWeight.w600,
@@ -251,7 +251,7 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                                 children: [
                                   Text(
                                     _expiresAt == null
-                                        ? 'Aucune'
+                                        ? AppLocalizations.of(context).none
                                         : _expiresAt!
                                               .toString()
                                               .split(' ')
@@ -271,7 +271,7 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Nombre maximal d\'utilisateurs',
+                            AppLocalizations.of(context).maxUsers,
                             style: TextStyle(
                               color: AppColors.textStrong,
                               fontWeight: FontWeight.w600,
@@ -295,7 +295,7 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: GlassButton(
-                    label: _saving ? 'Enregistrement...' : 'Sauvegarder',
+                    label: _saving ? AppLocalizations.of(context).saving : AppLocalizations.of(context).save,
                     onPressed: _saving ? null : _save,
                     icon: Icons.save,
                   ),

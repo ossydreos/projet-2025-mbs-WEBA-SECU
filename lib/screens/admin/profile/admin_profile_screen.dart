@@ -200,7 +200,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       title: AppLocalizations.of(context).disconnection,
       message: AppLocalizations.of(context).adminLogoutConfirmation,
       confirmText: AppLocalizations.of(context).disconnection,
-      cancelText: 'Annuler',
+      cancelText: AppLocalizations.of(context).cancel,
       icon: Icons.logout,
       iconColor: Colors.redAccent,
       onConfirm: () {

@@ -178,9 +178,9 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
 
       if (pendingOffers.isNotEmpty && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Vous avez déjà une offre en attente. Veuillez attendre la réponse du chauffeur.',
+              AppLocalizations.of(context).youAlreadyHavePendingOffer,
             ),
             backgroundColor: Colors.orange,
           ),
@@ -464,7 +464,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         _lastPositionFetch = DateTime.now();
       } catch (e) {
         // Ignorer les erreurs de géolocalisation
-        print('Géolocalisation en arrière-plan échouée: $e');
+        print(AppLocalizations.of(context).backgroundGeolocationFailed);
       }
     });
   }
@@ -702,8 +702,8 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
       time = await showIOSTimePicker(
         context: context,
         initialTime: _startTime ?? TimeOfDay.now(),
-        title: 'Heure de début',
-        subtitle: 'Sélectionnez l\'heure de début de votre offre',
+        title: AppLocalizations.of(context).startTime,
+        subtitle: AppLocalizations.of(context).selectStartTime,
       );
     } else {
       time = await showTimePicker(
@@ -741,8 +741,8 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
       time = await showIOSTimePicker(
         context: context,
         initialTime: _endTime ?? TimeOfDay.now(),
-        title: 'Heure de fin',
-        subtitle: 'Sélectionnez l\'heure de fin de votre offre',
+        title: AppLocalizations.of(context).endTime,
+        subtitle: AppLocalizations.of(context).selectEndTime,
       );
     } else {
       time = await showTimePicker(
@@ -783,7 +783,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         ),
         if (hasError) ...[
           const SizedBox(height: 8),
-          const _FieldCaption(text: 'Sélectionnez une adresse valide'),
+          _FieldCaption(text: AppLocalizations.of(context).selectValidAddress),
         ],
         if (suggestions.isNotEmpty) ...[
           const SizedBox(height: 12),
@@ -1219,7 +1219,7 @@ class _GlassVehicleSelector extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Erreur de chargement des véhicules',
+                    AppLocalizations.of(context).errorLoadingVehicles,
                     style: TextStyle(color: AppColors.hot),
                   ),
                 );
@@ -1237,7 +1237,7 @@ class _GlassVehicleSelector extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Aucun véhicule disponible pour le moment',
+                    AppLocalizations.of(context).noVehiclesAvailable,
                     style: TextStyle(color: AppColors.textWeak),
                   ),
                 );

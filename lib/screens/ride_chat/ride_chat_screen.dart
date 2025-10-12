@@ -65,8 +65,8 @@ class _RideChatScreenState extends State<RideChatScreen> {
   @override
   Widget build(BuildContext context) {
     final title = widget.isAdmin
-        ? (widget.clientName ?? 'Chat course')
-        : 'Chat course';
+        ? (widget.clientName ?? AppLocalizations.of(context).rideChat)
+        : AppLocalizations.of(context).rideChat;
 
     return GlassBackground(
       child: Scaffold(
@@ -75,7 +75,7 @@ class _RideChatScreenState extends State<RideChatScreen> {
           title: title,
           actions: [
             IconButton(
-              tooltip: 'Appeler',
+              tooltip: AppLocalizations.of(context).call,
               icon: const Icon(Icons.phone, color: Colors.white),
               onPressed: _makePhoneCall,
             ),
@@ -124,13 +124,13 @@ class _RideChatScreenState extends State<RideChatScreen> {
                             }
                             final messages = snapshot.data!;
                             if (messages.isEmpty) {
-                              return const Center(
+                              return Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
                                     SizedBox(height: 16),
-                                    Text('Aucun message pour le moment'),
+                                    Text(AppLocalizations.of(context).noMessagesAtTheMoment),
                                     Text('Écrivez votre premier message ci-dessous'),
                                   ],
                                 ),

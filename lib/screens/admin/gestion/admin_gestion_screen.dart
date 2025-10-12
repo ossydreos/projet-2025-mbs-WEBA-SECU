@@ -50,12 +50,12 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _buildSection(
-              title: 'Gestion de flotte',
+              title: AppLocalizations.of(context).fleetManagement,
               icon: Icons.directions_car,
               children: [
                 _buildMenuItem(
                   icon: Icons.directions_car,
-                  title: 'Gérer véhicules',
+                  title: AppLocalizations.of(context).manageVehicles,
                   subtitle: 'Ajouter, modifier, activer ou désactiver',
                   onTap: () => _navigateToVehicleManagement(),
                 ),
@@ -63,12 +63,12 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
             ),
             const SizedBox(height: 24),
             _buildSection(
-              title: 'Codes promotionnels',
+              title: AppLocalizations.of(context).promoCodes,
               icon: Icons.local_offer,
               children: [
                 _buildMenuItem(
                   icon: Icons.local_offer,
-                  title: 'Gérer Code Promo',
+                  title: AppLocalizations.of(context).managePromoCodes,
                   subtitle: 'Créer, activer/désactiver et supprimer',
                   onTap: () => _showPromoCodesList(),
                 ),
@@ -76,13 +76,13 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
             ),
             const SizedBox(height: 24),
             _buildSection(
-              title: 'Administration',
+              title: AppLocalizations.of(context).administration,
               icon: Icons.admin_panel_settings,
               children: [
                 _buildMenuItem(
                   icon: Icons.people,
-                  title: 'Gestion des utilisateurs',
-                  subtitle: 'Voir les profils et réservations',
+                  title: AppLocalizations.of(context).userManagement,
+                  subtitle: AppLocalizations.of(context).viewProfilesAndReservations,
                   onTap: () => _navigateToUsers(),
                 ),
               ],

@@ -13,8 +13,8 @@ import 'package:my_mobility_services/data/services/support_chat_service.dart';
 import 'package:my_mobility_services/data/models/support_thread.dart';
 import 'package:my_mobility_services/screens/support/support_chat_screen.dart';
 import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/services/payment_service.dart';
-import '../../../l10n/generated/app_localizations.dart';
 
 class AdminReceptionScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -59,7 +59,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: 'Boîte de réception',
+          title: AppLocalizations.of(context).inbox,
           actions: [
             // Bulle de support
             GestureDetector(
@@ -78,7 +78,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             IconButton(
               onPressed: _cancelAllWaitingReservations,
               icon: Icon(Icons.clear_all, color: Colors.red),
-              tooltip: 'Annuler toutes les réservations en attente',
+              tooltip: AppLocalizations.of(context).cancelAllPendingReservations,
             ),
           ],
         ),
@@ -146,7 +146,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       child: Column(
         children: [
           Text(
-            'Test des notifications',
+            AppLocalizations.of(context).notificationTest,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -186,14 +186,14 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       final testReservation = Reservation(
         id: '',
         userId: 'test_user_${DateTime.now().millisecondsSinceEpoch}',
-        userName: 'Client Test',
-        vehicleName: 'Berline Premium',
+        userName: AppLocalizations.of(context).testClient,
+        vehicleName: AppLocalizations.of(context).premiumSedan,
         departure: 'Gare de Lausanne, 1003 Lausanne',
         destination: 'Aéroport de Genève, 1215 Le Grand-Saconnex',
         selectedDate: DateTime.now().add(const Duration(hours: 2)),
         selectedTime: '14:30',
         estimatedArrival: '15:15',
-        paymentMethod: 'Carte bancaire',
+        paymentMethod: AppLocalizations.of(context).bankCard,
         totalPrice: 45.50,
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
@@ -264,7 +264,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           children: [
             Expanded(
               child: _buildStatCard(
-                'En attente',
+                AppLocalizations.of(context).pending,
                 pendingCount.toString(),
                 Icons.pending,
               ),
@@ -272,7 +272,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildStatCard(
-                'Confirmées',
+                AppLocalizations.of(context).confirmed,
                 confirmedCount.toString(),
                 Icons.check_circle,
               ),
@@ -319,7 +319,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             Icon(Icons.inbox, color: AppColors.accent, size: 24),
             const SizedBox(width: 8),
             Text(
-              'Demandes en attente',
+              AppLocalizations.of(context).pendingRequests,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -359,7 +359,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 return reservation.status == ReservationStatus.pending ||
                     reservation.status == ReservationStatus.confirmed;
               }).map((reservation) => {
-                'type': 'reservation',
+                'type': AppLocalizations.of(context).reservation,
                 'data': reservation,
               }).toList();
               allRequests.addAll(reservations);
@@ -368,7 +368,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             // Ajouter les offres personnalisées en attente
             if (offerSnapshot.hasData) {
               final offers = offerSnapshot.data!.map((offer) => {
-                'type': 'custom_offer',
+                'type': AppLocalizations.of(context).customOffer,
                 'data': offer,
               }).toList();
               allRequests.addAll(offers);
@@ -412,7 +412,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     final type = request['type'] as String;
     final data = request['data'];
 
-    if (type == 'reservation') {
+    if (type == AppLocalizations.of(context).reservation) {
       return _buildReservationCard(data as Reservation);
     } else {
       return _buildCustomOfferCard(data as CustomOffer);
@@ -450,7 +450,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 
                 // Titre
                 Text(
-                  'Annuler la réservation',
+                  AppLocalizations.of(context).cancelReservation,
                   style: TextStyle(
                     color: AppColors.textStrong,
                     fontSize: 20,
@@ -482,7 +482,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: Text(
-                          'Non',
+                          AppLocalizations.of(context).no,
                           style: TextStyle(color: AppColors.accent),
                         ),
                       ),
@@ -564,7 +564,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 
                 // Titre
                 Text(
-                  'Annuler l\'offre',
+                  AppLocalizations.of(context).cancelOffer,
                   style: TextStyle(
                     color: AppColors.textStrong,
                     fontSize: 20,
@@ -596,7 +596,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: Text(
-                          'Non',
+                          AppLocalizations.of(context).no,
                           style: TextStyle(color: AppColors.accent),
                         ),
                       ),
@@ -656,7 +656,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           Icon(Icons.inbox_outlined, size: 64, color: AppColors.textWeak),
           const SizedBox(height: 16),
           Text(
-            'Aucune demande en attente',
+            AppLocalizations.of(context).noPendingRequests,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,

@@ -8,7 +8,7 @@ import 'package:my_mobility_services/screens/utilisateur/reservation/scheduling_
 import 'package:my_mobility_services/data/models/vehicule_type.dart';
 import 'package:my_mobility_services/data/services/vehicle_service.dart';
 import 'package:my_mobility_services/data/services/directions_service.dart';
-import '../../../l10n/generated/app_localizations.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/services/custom_marker_service.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -80,7 +80,7 @@ class _BookingScreenState extends State<BookingScreen>
 
     // Les véhicules sont maintenant chargés via StreamBuilder
 
-    // Calculer la distance et l'heure d'arrivée estimées
+    // ${AppLocalizations.of(context).calculateDistanceAndArrival}
     _calculateEstimatedDistanceAndArrival();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -111,7 +111,7 @@ class _BookingScreenState extends State<BookingScreen>
   }
 
 
-  // Calculer la distance et l'heure d'arrivée estimées
+  // ${AppLocalizations.of(context).calculateDistanceAndArrival}
   Future<void> _calculateEstimatedDistanceAndArrival() async {
     if (widget.departureCoordinates != null &&
         widget.destinationCoordinates != null) {
@@ -145,7 +145,7 @@ class _BookingScreenState extends State<BookingScreen>
         // Pas de fallback - l'API doit fonctionner
         setState(() {
           _estimatedDistance = 0.0;
-          _estimatedArrival = 'Erreur de calcul';
+          _estimatedArrival = AppLocalizations.of(context).calculationError;
           _isCalculating = false; // Calcul terminé (avec erreur)
         });
       }
@@ -170,7 +170,7 @@ class _BookingScreenState extends State<BookingScreen>
         );
 
         if (directions != null && directions['polyline'] != null) {
-          // Décoder la polyline de Google Maps
+          // ${AppLocalizations.of(context).decodePolyline}
           _routePoints = _decodePolyline(directions['polyline']);
 
           // Forcer la mise à jour de l'UI
@@ -494,7 +494,7 @@ class _BookingScreenState extends State<BookingScreen>
                           },
                           markers: {
                             gmaps.Marker(
-                              markerId: const gmaps.MarkerId('departure'),
+                              markerId: gmaps.MarkerId(AppLocalizations.of(context).departureMarker),
                               position: gmaps.LatLng(
                                 (widget.departureCoordinates ??
                                         const LatLng(48.8566, 2.3522))
@@ -508,7 +508,7 @@ class _BookingScreenState extends State<BookingScreen>
                               ),
                             ),
                             gmaps.Marker(
-                              markerId: const gmaps.MarkerId('destination'),
+                              markerId: gmaps.MarkerId(AppLocalizations.of(context).destinationMarker),
                               position: gmaps.LatLng(
                                 (widget.destinationCoordinates ??
                                         const LatLng(48.8584, 2.2945))
@@ -525,7 +525,7 @@ class _BookingScreenState extends State<BookingScreen>
                           polylines: _routePoints.isNotEmpty
                               ? {
                                   gmaps.Polyline(
-                                    polylineId: const gmaps.PolylineId('route'),
+                                    polylineId: gmaps.PolylineId(AppLocalizations.of(context).routePolyline),
                                     color: Colors.blue,
                                     width: 4,
                                     points: _routePoints,
@@ -534,7 +534,7 @@ class _BookingScreenState extends State<BookingScreen>
                               : {
                                   // Fallback en ligne droite si pas de route
                                   gmaps.Polyline(
-                                    polylineId: const gmaps.PolylineId('route'),
+                                    polylineId: gmaps.PolylineId(AppLocalizations.of(context).routePolyline),
                                     color: Colors.blue,
                                     width: 4,
                                     points: [
@@ -699,7 +699,7 @@ class _BookingScreenState extends State<BookingScreen>
                                         ),
                                         const SizedBox(height: 16),
                                         Text(
-                                          'Erreur de chargement',
+                                          AppLocalizations.of(context).loadingError,
                                           style: TextStyle(
                                             fontSize: 16,
                                             color: AppColors.textStrong,

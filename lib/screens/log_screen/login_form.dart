@@ -127,22 +127,22 @@ class LoginFormState extends State<LoginForm> {
       String msg;
       switch (e.code) {
         case 'invalid-email':
-          msg = 'Email invalide';
+          msg = AppLocalizations.of(context).invalidEmail;
           break;
         case 'user-disabled':
-          msg = 'Compte désactivé';
+          msg = AppLocalizations.of(context).accountDisabled;
           break;
         case 'user-not-found':
-          msg = 'Aucun compte pour cet email';
+          msg = AppLocalizations.of(context).noAccountForEmail;
           break;
         case 'wrong-password':
-          msg = 'Mot de passe incorrect';
+          msg = AppLocalizations.of(context).incorrectPassword;
           break;
         case 'weak-password':
-          msg = 'Mot de passe trop faible';
+          msg = AppLocalizations.of(context).weakPassword;
           break;
         case 'network-request-failed':
-          msg = 'Pas de connexion réseau';
+          msg = AppLocalizations.of(context).noNetworkConnection;
           break;
         case 'too-many-requests':
           msg = 'Trop de tentatives, réessaie plus tard';
@@ -177,7 +177,7 @@ class LoginFormState extends State<LoginForm> {
         const SheetHandle(),
         Center(
           child: Text(
-            'Welcome Back',
+            AppLocalizations.of(context).welcomeBack,
             style: txt.copyWith(
               color: Colors.white,
               fontSize: 20,
@@ -197,9 +197,9 @@ class LoginFormState extends State<LoginForm> {
                 inputFormatters: _antiEmojiFormatters,
                 style: const TextStyle(color: Colors.white),
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(
-                  labelText: 'Enter email',
-                  labelStyle: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context).enterEmail,
+                  labelStyle: const TextStyle(color: Colors.white),
                 ),
                 validator: (v) => _isValidEmail(v)
                     ? null
@@ -214,11 +214,11 @@ class LoginFormState extends State<LoginForm> {
                 style: const TextStyle(color: Colors.white),
                 obscureText: _obscure,
                 decoration: InputDecoration(
-                  labelText: 'Enter password',
+                  labelText: AppLocalizations.of(context).enterPassword,
                   labelStyle: const TextStyle(color: Colors.white),
                   suffixIcon: IconButton(
                     onPressed: () => setState(() => _obscure = !_obscure),
-                    tooltip: _obscure ? 'Show password' : 'Hide password',
+                    tooltip: _obscure ? AppLocalizations.of(context).showPassword : AppLocalizations.of(context).hidePassword,
                     icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off, color: AppColors.text),
                   ),
                 ),
@@ -274,7 +274,7 @@ class LoginFormState extends State<LoginForm> {
           children: [
             SocialBtn(
               icon: SvgPicture.asset('assets/images/Google__G__logo.svg'),
-              tooltip: 'Sign in with Google',
+              tooltip: AppLocalizations.of(context).signInWithGoogle,
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(AppLocalizations.of(context).googleSoon)),
               ),
@@ -288,7 +288,7 @@ class LoginFormState extends State<LoginForm> {
                   BlendMode.srcIn,
                 ),
               ),
-              tooltip: 'Sign in with Apple',
+              tooltip: AppLocalizations.of(context).signInWithApple,
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(AppLocalizations.of(context).appleSoon)),
               ),
@@ -296,7 +296,7 @@ class LoginFormState extends State<LoginForm> {
             const SizedBox(width: 24),
             SocialBtn(
               icon: SvgPicture.asset('assets/images/2023_Facebook_icon.svg'),
-              tooltip: 'Sign in with Facebook',
+              tooltip: AppLocalizations.of(context).signInWithFacebook,
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(AppLocalizations.of(context).facebookSoon)),
               ),
@@ -309,14 +309,14 @@ class LoginFormState extends State<LoginForm> {
           child: RichText(
             text: TextSpan(
               style: txt,
-              text: 'Dont have an account? ',
+              text: AppLocalizations.of(context).dontHaveAccount,
               children: [
                 TextSpan(
                   style: GoogleFonts.poppins(
                     color: AppColors.accent,
                     fontWeight: FontWeight.bold,
                   ),
-                  text: 'Sign up',
+                  text: AppLocalizations.of(context).signUp,
                   recognizer: _signupTap,
                 ),
               ],

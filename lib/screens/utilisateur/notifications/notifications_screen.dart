@@ -24,7 +24,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (user == null) {
       return const Scaffold(
         body: Center(
-          child: Text('Vous devez être connecté pour voir les notifications'),
+          child: Text(AppLocalizations.of(context).mustBeConnectedToSeeNotifications),
         ),
       );
     }
@@ -35,7 +35,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: GlassAppBar(
-            title: 'Notifications',
+            title: AppLocalizations.of(context).notifications,
             actions: [
               StreamBuilder<int>(
                 stream: _notificationService.getUnreadCount(user.uid),
@@ -67,7 +67,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               IconButton(
                 onPressed: () => _markAllAsRead(user.uid),
                 icon: const Icon(Icons.done_all, color: AppColors.accent),
-                tooltip: 'Marquer tout comme lu',
+                tooltip: AppLocalizations.of(context).markAllAsRead,
               ),
             ],
           ),
@@ -95,7 +95,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Erreur lors du chargement des notifications',
+                          AppLocalizations.of(context).errorLoadingNotifications,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -129,7 +129,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Aucune notification',
+                          AppLocalizations.of(context).noNotifications,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -196,7 +196,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Toutes les notifications ont été marquées comme lues',
+              AppLocalizations.of(context).allNotificationsMarkedAsRead,
             ),
             backgroundColor: Colors.green,
           ),

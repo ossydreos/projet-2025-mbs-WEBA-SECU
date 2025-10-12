@@ -41,10 +41,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: GlassAppBar(
-          title: 'Gestion des utilisateurs',
+          title: AppLocalizations.of(context).userManagement,
           actions: [
             IconButton(
-              tooltip: 'Rechercher',
+              tooltip: AppLocalizations.of(context).search,
               onPressed: () async {
                 await showSearchDialog(context);
               },
@@ -88,7 +88,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
               }).toList();
             }
             if (docs.isEmpty) {
-              return const Center(child: Text('Aucun utilisateur'));
+              return Center(child: Text(AppLocalizations.of(context).noUsers));
             }
             return ListView.separated(
               padding: const EdgeInsets.all(16),

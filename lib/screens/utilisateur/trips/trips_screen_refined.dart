@@ -12,7 +12,6 @@ import 'package:my_mobility_services/design/filters/trips_filters_sheet.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/widgets/trip_card_v2.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/widgets/trip_export_bar.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/widgets/optimized_trips_list.dart';
-import 'package:my_mobility_services/screens/utilisateur/trips/widgets/trips_skeleton.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/state/trip_selection_controller.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -843,7 +842,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
         final isLoading = snapshot.connectionState == ConnectionState.waiting && reservations.isEmpty;
         
         if (isLoading) {
-          return const TripsSkeleton(itemCount: 5);
+          return _buildSkeletonList(t);
         }
         
         if (snapshot.hasError) {

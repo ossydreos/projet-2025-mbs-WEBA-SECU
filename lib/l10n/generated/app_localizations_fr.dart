@@ -198,7 +198,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get errorNetworkError => 'Erreur de connexion réseau';
 
   @override
-  String get errorUnknownError => 'Une erreur inconnue s\'est produite';
+  String get errorUnknownError => 'Erreur inconnue';
 
   @override
   String get successReservationCreated => 'Réservation créée avec succès';
@@ -279,7 +279,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get user => 'Utilisateur';
 
   @override
-  String get notProvided => 'Non renseigné';
+  String get notProvided => 'Non fourni';
 
   @override
   String get defaultCountryCode => '+33';
@@ -443,7 +443,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get yesCancel => 'Oui, annuler';
 
   @override
-  String get client => 'client';
+  String get client => 'Client';
 
   @override
   String get reservationCancelledSuccess => 'Réservation annulée avec succès';
@@ -480,11 +480,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get confirmPayment => 'Confirmer le paiement';
-
-  @override
-  String reservationCreatedSuccess(String id) {
-    return 'Réservation créée avec succès ! ID: $id';
-  }
 
   @override
   String reservationCreationError(String error) {
@@ -551,10 +546,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get management => 'Gestion';
 
   @override
-  String get fleetManagement => 'Gestion de la flotte';
+  String get fleetManagement => 'Gestion de flotte';
 
   @override
-  String get manageVehicles => 'Gestion des véhicules';
+  String get manageVehicles => 'Gérer véhicules';
 
   @override
   String get manageVehiclesSubtitle =>
@@ -579,7 +574,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get administration => 'Administration';
 
   @override
-  String get userManagement => 'Gestion utilisateurs';
+  String get userManagement => 'Gestion des utilisateurs';
 
   @override
   String get userManagementSubtitle => 'Voir et gérer les utilisateurs';
@@ -594,7 +589,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get vehicleManagement => 'Gestion des véhicules';
 
   @override
-  String get addVehicle => 'Add vehicle';
+  String get addVehicle => 'Ajouter un véhicule';
 
   @override
   String get firstName => 'First name';
@@ -678,25 +673,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get developer => 'Developer';
 
   @override
-  String get legal => 'Legal';
+  String get legal => 'Légal';
 
   @override
   String get licenses => 'Licenses';
 
   @override
-  String get signInWithGoogle => 'Sign in with Google';
+  String get signInWithGoogle => 'Se connecter avec Google';
 
   @override
-  String get signInWithApple => 'Sign in with Apple';
+  String get signInWithApple => 'Se connecter avec Apple';
 
   @override
-  String get signInWithFacebook => 'Sign in with Facebook';
+  String get signInWithFacebook => 'Se connecter avec Facebook';
 
   @override
   String get orContinueWith => 'Or continue with';
 
   @override
-  String get dontHaveAccount => 'Don\'t have an account?';
+  String get dontHaveAccount => 'Pas de compte ? ';
 
   @override
   String get alreadyHaveAccount => 'Already have an account?';
@@ -859,13 +854,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get removePhoto => 'Remove photo';
 
   @override
-  String get search => 'Search';
+  String get search => 'Rechercher';
 
   @override
   String get searchResults => 'Search results';
 
   @override
-  String get noResults => 'No results found';
+  String get noResults => 'Aucun résultat';
 
   @override
   String get tryDifferentKeywords => 'Try different keywords';
@@ -1090,10 +1085,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get view => 'View';
 
   @override
-  String get save => 'Save';
+  String get save => 'Sauvegarder';
 
   @override
-  String get close => 'Fermer';
+  String get close => 'Terminer';
 
   @override
   String get back => 'Back';
@@ -1336,7 +1331,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deleteUser => 'Delete user';
 
   @override
-  String get editVehicle => 'Edit vehicle';
+  String get editVehicle => 'Modifier le véhicule';
 
   @override
   String get deleteVehicle => 'Delete vehicle';
@@ -2042,7 +2037,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sort => 'Trier';
 
   @override
-  String get confirmed => 'Confirmé';
+  String get confirmed => 'Confirmées';
 
   @override
   String get completed => 'Terminé';
@@ -2088,4 +2083,575 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get label => 'Étiquette';
+
+  @override
+  String get welcomeBack => 'Bon retour';
+
+  @override
+  String get showPassword => 'Afficher le mot de passe';
+
+  @override
+  String get hidePassword => 'Masquer le mot de passe';
+
+  @override
+  String get signUp => 'S\'inscrire';
+
+  @override
+  String get invalidEmail => 'Email invalide';
+
+  @override
+  String get accountDisabled => 'Compte désactivé';
+
+  @override
+  String get noAccountForEmail => 'Aucun compte pour cet email';
+
+  @override
+  String get incorrectPassword => 'Mot de passe incorrect';
+
+  @override
+  String get weakPassword => 'Mot de passe trop faible';
+
+  @override
+  String get noNetworkConnection => 'Pas de connexion réseau';
+
+  @override
+  String get phoneAlreadyInUse => 'Ce numéro de téléphone est déjà utilisé';
+
+  @override
+  String get minimum8Characters => '8 caractères minimum';
+
+  @override
+  String debugCountry(String country) {
+    return 'DEBUG - Pays: $country';
+  }
+
+  @override
+  String debugPhone(String phone) {
+    return 'DEBUG - Téléphone: $phone';
+  }
+
+  @override
+  String debugFullPhone(String fullPhone) {
+    return 'DEBUG - Téléphone complet: $fullPhone';
+  }
+
+  @override
+  String debugCode(String code) {
+    return 'DEBUG - Code: $code';
+  }
+
+  @override
+  String get calculateDistanceAndArrival =>
+      'Calculer la distance et l\'heure d\'arrivée estimées';
+
+  @override
+  String get calculationError => 'Erreur de calcul';
+
+  @override
+  String get decodePolyline => 'Décoder la polyline';
+
+  @override
+  String get departureMarker => 'départ';
+
+  @override
+  String get destinationMarker => 'destination';
+
+  @override
+  String get routePolyline => 'itinéraire';
+
+  @override
+  String get personalInformation => 'Informations personnelles';
+
+  @override
+  String get notProvidedShort => 'Non fourni';
+
+  @override
+  String get myFavoriteTrips => 'Mes trajets favoris';
+
+  @override
+  String get cancelAllPendingReservations =>
+      'Annuler toutes les réservations en attente';
+
+  @override
+  String get notificationTest => 'Test des notifications';
+
+  @override
+  String get testClient => 'Client Test';
+
+  @override
+  String get premiumSedan => 'Berline Premium';
+
+  @override
+  String get pendingRequests => 'Demandes en attente';
+
+  @override
+  String get reservation => 'Réservation';
+
+  @override
+  String get cancelOffer => 'Annuler l\'offre';
+
+  @override
+  String get noPendingRequests => 'Aucune demande en attente';
+
+  @override
+  String get noResultsForSelectedFilters =>
+      'Aucun résultat pour les filtres sélectionnés';
+
+  @override
+  String get tryModifyingFilterCriteria =>
+      'Essayez de modifier vos critères de filtrage';
+
+  @override
+  String get details => 'Détails';
+
+  @override
+  String get customRequest => 'Demande personnalisée';
+
+  @override
+  String get recentMessage => 'Message récent';
+
+  @override
+  String get supportConversation => 'Conversation de support';
+
+  @override
+  String get weUsuallyRespondInMinutes =>
+      'Nous répondons généralement en quelques minutes';
+
+  @override
+  String get now => 'Maintenant';
+
+  @override
+  String get mustBeConnectedToSeeNotifications =>
+      'Vous devez être connecté pour voir les notifications';
+
+  @override
+  String get markAllAsRead => 'Marquer tout comme lu';
+
+  @override
+  String get errorLoadingNotifications =>
+      'Erreur lors du chargement des notifications';
+
+  @override
+  String get noNotifications => 'Aucune notification';
+
+  @override
+  String get allNotificationsMarkedAsRead =>
+      'Toutes les notifications ont été marquées comme lues';
+
+  @override
+  String get errorLoading => 'Erreur lors du chargement';
+
+  @override
+  String get viewDetails => 'Voir détails';
+
+  @override
+  String get refund => 'Rembourser';
+
+  @override
+  String get onlinePayment => 'Paiement en ligne';
+
+  @override
+  String get offerNotFound => 'Offre non trouvée';
+
+  @override
+  String get offerAlreadyProcessed =>
+      'Cette offre a déjà été traitée ou annulée';
+
+  @override
+  String get chf => 'CHF';
+
+  @override
+  String get connectionError => 'Erreur de connexion';
+
+  @override
+  String get errorLoadingCompletedRides =>
+      'Erreur lors du chargement des courses terminées';
+
+  @override
+  String get yourCompletedRidesWillAppearHere =>
+      'Vos courses terminées apparaîtront ici';
+
+  @override
+  String get resetFilters => 'Réinitialiser les filtres';
+
+  @override
+  String get refresh => 'Actualiser';
+
+  @override
+  String get noVehicles => 'Aucun véhicule';
+
+  @override
+  String get startByAddingVehicle => 'Commencez par ajouter un véhicule';
+
+  @override
+  String get active => 'Actif';
+
+  @override
+  String get inactive => 'Inactif';
+
+  @override
+  String get deactivate => 'Désactiver';
+
+  @override
+  String get activate => 'Activer';
+
+  @override
+  String get newVehicle => 'Nouveau véhicule';
+
+  @override
+  String get noUsers => 'Aucun utilisateur';
+
+  @override
+  String get noCodesAtTheMoment => 'Aucun code pour le moment';
+
+  @override
+  String get expires => 'Expire';
+
+  @override
+  String get noExpiration => 'Sans expiration';
+
+  @override
+  String get requiredField => 'Champ requis';
+
+  @override
+  String get fixed => 'Forfaitaire';
+
+  @override
+  String get percentage => 'Pourcentage';
+
+  @override
+  String get invalidValue => 'Valeur invalide';
+
+  @override
+  String get expirationDate => 'Date d\'expiration';
+
+  @override
+  String get none => 'Aucune';
+
+  @override
+  String get maxUsers => 'Nombre maximal d\'utilisateurs';
+
+  @override
+  String get saving => 'Enregistrement...';
+
+  @override
+  String get managePromoCodes => 'Gérer Code Promo';
+
+  @override
+  String get viewProfilesAndReservations => 'Voir les profils et réservations';
+
+  @override
+  String get rideChat => 'Chat course';
+
+  @override
+  String get noMessagesAtTheMoment => 'Aucun message pour le moment';
+
+  @override
+  String get reopen => 'Rouvrir';
+
+  @override
+  String get pleaseFillAllCardFields =>
+      'Veuillez remplir tous les champs de la carte';
+
+  @override
+  String get unsupportedPaymentMethod => 'Méthode de paiement non supportée';
+
+  @override
+  String get card => 'Carte';
+
+  @override
+  String get atLeast30MinutesInAdvance => 'Au moins 30 minutes à l\'avance';
+
+  @override
+  String get selectDesiredTime => 'Sélectionnez l\'heure souhaitée';
+
+  @override
+  String get dateNotDefined => 'Date non définie';
+
+  @override
+  String get waitingForAcceptance => 'En attente d\'acceptation';
+
+  @override
+  String get toBeDefined => 'À définir';
+
+  @override
+  String get driver => 'Chauffeur';
+
+  @override
+  String get notSpecified => 'Non spécifié';
+
+  @override
+  String get validateAndPay => 'Valider et payer';
+
+  @override
+  String get notDefined => 'Non défini';
+
+  @override
+  String get missingPriceOnOffer => 'Prix manquant sur l\'offre';
+
+  @override
+  String get userNotConnected => 'Utilisateur non connecté';
+
+  @override
+  String get offerDetails => 'Détail de l\'offre';
+
+  @override
+  String get accepted => 'Accepté';
+
+  @override
+  String get rejected => 'Rejeté';
+
+  @override
+  String get unknownClient => 'Client inconnu';
+
+  @override
+  String get tripInformation => 'Informations du trajet';
+
+  @override
+  String get selectedVehicle => 'Véhicule choisi';
+
+  @override
+  String get serviceDuration => 'Durée de service';
+
+  @override
+  String get startDateAndTime => 'Date et heure de début';
+
+  @override
+  String get tripSummary => 'Résumé du trajet';
+
+  @override
+  String get destinationAddress => 'Adresse de destination';
+
+  @override
+  String get promoCode => 'Code promo';
+
+  @override
+  String get remove => 'Supprimer';
+
+  @override
+  String get createReservation => 'Créer la réservation';
+
+  @override
+  String reservationCreatedSuccess(Object reservationId) {
+    return 'Réservation créée avec succès ! ID : $reservationId';
+  }
+
+  @override
+  String promoCodeUsed(Object code) {
+    return 'Code promo utilisé : $code';
+  }
+
+  @override
+  String get jan => 'janv.';
+
+  @override
+  String get feb => 'févr.';
+
+  @override
+  String get mar => 'mars';
+
+  @override
+  String get apr => 'avr.';
+
+  @override
+  String get jun => 'juin';
+
+  @override
+  String get jul => 'juil.';
+
+  @override
+  String get aug => 'août';
+
+  @override
+  String get sep => 'sept.';
+
+  @override
+  String get oct => 'oct.';
+
+  @override
+  String get nov => 'nov.';
+
+  @override
+  String get dec => 'déc.';
+
+  @override
+  String get errorCalculatingArrivalTime =>
+      'Erreur lors du calcul de l\'heure d\'arrivée';
+
+  @override
+  String reservationSavedWithVehicle(Object vehicleName) {
+    return 'Réservation sauvegardée avec le véhicule : $vehicleName';
+  }
+
+  @override
+  String reservationCreatedWithId(Object reservationId) {
+    return 'Réservation créée avec l\'ID : $reservationId';
+  }
+
+  @override
+  String get youAlreadyHavePendingOffer =>
+      'Vous avez déjà une offre en attente. Veuillez attendre la réponse du chauffeur.';
+
+  @override
+  String get setDefaultTime30MinutesFromNow =>
+      'Définir l\'heure par défaut à 30 minutes après l\'heure actuelle';
+
+  @override
+  String get fallbackToLocalTime =>
+      'Fallback vers l\'heure locale si la base de données n\'est pas encore initialisée';
+
+  @override
+  String get useCachedPositionOrGeneva =>
+      'Utiliser la position cachée ou Genève par défaut';
+
+  @override
+  String get useCachedPositionIfRecent =>
+      'Utiliser la position cachée si elle est récente (< 5 min)';
+
+  @override
+  String get useGenevaAsDefault =>
+      'Sinon utiliser Genève par défaut (plus rapide que géolocalisation)';
+
+  @override
+  String get getPositionInBackground =>
+      'Récupérer la position en arrière-plan pour le prochain appel';
+
+  @override
+  String get googlePlacesAutocompleteUrl => 'URL Google Places Autocomplete';
+
+  @override
+  String get languageFrench => 'Français';
+
+  @override
+  String get componentsSwitzerlandFirst => 'Suisse en premier';
+
+  @override
+  String get sessionToken => 'Token de session';
+
+  @override
+  String get locationParam => 'Paramètre de localisation';
+
+  @override
+  String get apiKey => 'Clé API';
+
+  @override
+  String get statusOk => 'OK';
+
+  @override
+  String get predictions => 'Prédictions';
+
+  @override
+  String get sortSuggestions => 'Trier les suggestions';
+
+  @override
+  String get swissAddresses => 'Adresses suisses';
+
+  @override
+  String get switzerland => 'Suisse';
+
+  @override
+  String get geneva => 'Genève';
+
+  @override
+  String get zurich => 'Zurich';
+
+  @override
+  String get bern => 'Berne';
+
+  @override
+  String get lausanne => 'Lausanne';
+
+  @override
+  String get backgroundGeolocationFailed =>
+      'Géolocalisation en arrière-plan échouée';
+
+  @override
+  String get googlePlacesDetailsUrl => 'URL Google Places Details';
+
+  @override
+  String get placeId => 'ID du lieu';
+
+  @override
+  String get fieldsGeometry => 'Champs de géométrie';
+
+  @override
+  String get result => 'Résultat';
+
+  @override
+  String get geometry => 'Géométrie';
+
+  @override
+  String get latitude => 'Latitude';
+
+  @override
+  String get longitude => 'Longitude';
+
+  @override
+  String get useZurichTimeForValidation =>
+      'Utiliser l\'heure de Zurich pour la validation';
+
+  @override
+  String get departureCoordinates => 'Coordonnées de départ';
+
+  @override
+  String get destinationCoordinates => 'Coordonnées de destination';
+
+  @override
+  String get startTime => 'Heure de début';
+
+  @override
+  String get selectStartTime => 'Sélectionnez l\'heure de début de votre offre';
+
+  @override
+  String get endTime => 'Heure de fin';
+
+  @override
+  String get selectEndTime => 'Sélectionnez l\'heure de fin de votre offre';
+
+  @override
+  String get selectValidAddress => 'Sélectionnez une adresse valide';
+
+  @override
+  String get offerCreatedSuccessfully => 'Offre créée avec succès !';
+
+  @override
+  String get offerCreationError => 'Erreur lors de la création de l\'offre';
+
+  @override
+  String get fillAllFields => 'Veuillez remplir tous les champs';
+
+  @override
+  String get selectValidDate => 'Veuillez sélectionner une date valide';
+
+  @override
+  String get selectValidTime => 'Veuillez sélectionner une heure valide';
+
+  @override
+  String get selectDepartureAddress =>
+      'Veuillez sélectionner une adresse de départ';
+
+  @override
+  String get selectDestinationAddress =>
+      'Veuillez sélectionner une adresse de destination';
+
+  @override
+  String get selectVehicleType => 'Veuillez sélectionner un type de véhicule';
+
+  @override
+  String get addNote => 'Ajouter une note (optionnel)';
+
+  @override
+  String get vehicleType => 'Type de véhicule';
+
+  @override
+  String get endDateAndTime => 'Date et heure de fin';
+
+  @override
+  String get createOfferButton => 'Créer l\'offre';
+
+  @override
+  String get errorLoadingVehicles => 'Erreur de chargement des véhicules';
+
+  @override
+  String get noVehiclesAvailable => 'Aucun véhicule disponible pour le moment';
 }

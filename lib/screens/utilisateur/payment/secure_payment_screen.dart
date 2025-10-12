@@ -31,7 +31,7 @@ class _SecurePaymentScreenState extends State<SecurePaymentScreen> {
   final _cardController = CardFormEditController();
   
   bool _isProcessing = false;
-  String _selectedPaymentMethod = 'card';
+  String _selectedPaymentMethod = AppLocalizations.of(context).card;
   String? _errorMessage;
 
   @override
@@ -65,9 +65,9 @@ class _SecurePaymentScreenState extends State<SecurePaymentScreen> {
       PaymentResult result;
 
       switch (_selectedPaymentMethod) {
-        case 'card':
+        case AppLocalizations.of(context).card:
           if (!_cardController.details.complete) {
-            throw Exception('Veuillez remplir tous les champs de la carte');
+            throw Exception(AppLocalizations.of(context).pleaseFillAllCardFields);
           }
           result = await _paymentService.processPayment(
             amount: widget.amount,
@@ -91,7 +91,7 @@ class _SecurePaymentScreenState extends State<SecurePaymentScreen> {
           );
           break;
         default:
-          throw Exception('Méthode de paiement non supportée');
+          throw Exception(AppLocalizations.of(context).unsupportedPaymentMethod);
       }
 
       if (result.isSuccess) {
@@ -186,7 +186,7 @@ class _SecurePaymentScreenState extends State<SecurePaymentScreen> {
               const SizedBox(height: 24),
               
               // Formulaire de carte
-              if (_selectedPaymentMethod == 'card') _buildCardForm(),
+              if (_selectedPaymentMethod == AppLocalizations.of(context).card) _buildCardForm(),
               
               // Message d'erreur
               if (_errorMessage != null) _buildErrorMessage(),
@@ -228,7 +228,7 @@ class _SecurePaymentScreenState extends State<SecurePaymentScreen> {
           _buildSummaryRow(AppLocalizations.of(context).destination, widget.destination),
           const Divider(color: AppColors.textWeak),
           _buildSummaryRow(
-            'Total',
+            AppLocalizations.of(context).total,
             '${widget.amount.toStringAsFixed(2)} ${widget.currency}',
             isTotal: true,
           ),
@@ -281,7 +281,7 @@ class _SecurePaymentScreenState extends State<SecurePaymentScreen> {
           child: Column(
             children: [
               _buildPaymentMethodTile(
-                'card',
+                AppLocalizations.of(context).card,
                 Icons.credit_card,
                 AppLocalizations.of(context).bankCard,
                 AppLocalizations.of(context).bankCardSubtitle,

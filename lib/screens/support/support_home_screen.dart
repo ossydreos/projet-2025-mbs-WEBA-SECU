@@ -13,17 +13,17 @@ class SupportHomeScreen extends StatelessWidget {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const GlassAppBar(
-          title: 'Support',
+        appBar: GlassAppBar(
+          title: AppLocalizations.of(context).support,
         ),
         body: DefaultTabController(
           length: 2,
           child: Column(
             children: [
-              const TabBar(
+              TabBar(
                 tabs: [
-                  Tab(text: 'Accueil'),
-                  Tab(text: 'Messages'),
+                  Tab(text: AppLocalizations.of(context).home),
+                  Tab(text: AppLocalizations.of(context).messages),
                 ],
               ),
               Expanded(
@@ -93,7 +93,7 @@ class SupportHomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Message récent',
+                AppLocalizations.of(context).recentMessage,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -138,7 +138,7 @@ class SupportHomeScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Conversation de support',
+                                AppLocalizations.of(context).supportConversation,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -195,7 +195,7 @@ class SupportHomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Nous répondons généralement en quelques minutes',
+            AppLocalizations.of(context).weUsuallyRespondInMinutes,
             style: TextStyle(
               fontSize: 14,
               color: Colors.white70,
@@ -226,7 +226,7 @@ class SupportHomeScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Nouveau message',
+                    AppLocalizations.of(context).newMessage,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -284,13 +284,13 @@ class _SupportBottomNav extends StatelessWidget {
           children: [
             _NavItem(
               icon: Icons.home_rounded,
-              label: 'Accueil',
+              label: AppLocalizations.of(context).home,
               onTap: () {},
             ),
             const SizedBox(width: 24),
             _NavItem(
               icon: Icons.messenger_outline,
-              label: 'Messages',
+              label: AppLocalizations.of(context).messages,
               onTap: () {
                 Navigator.push(
                   context,
@@ -371,8 +371,8 @@ class _SupportThreadsListScreen extends StatelessWidget {
                         radius: 22,
                         child: Icon(Icons.support_agent, color: Colors.white),
                       ),
-                      title: const Text(
-                        'Support',
+                      title: Text(
+                        AppLocalizations.of(context).support,
                         style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                       ),
                       subtitle: Text(

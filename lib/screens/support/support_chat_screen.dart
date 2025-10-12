@@ -166,7 +166,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.isAdmin && _thread != null ? (_targetUserName ?? 'Support') : 'Support';
+    final title = widget.isAdmin && _thread != null ? (_targetUserName ?? AppLocalizations.of(context).support) : AppLocalizations.of(context).support;
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -185,7 +185,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                       setState(() => _thread = _thread!.copyWith(isClosed: newClosed));
                     },
                     icon: Icon(closed ? Icons.lock_open : Icons.lock, color: Colors.white),
-                    label: Text(closed ? 'Rouvrir' : 'Terminer', style: const TextStyle(color: Colors.white)),
+                    label: Text(closed ? AppLocalizations.of(context).reopen : AppLocalizations.of(context).close, style: const TextStyle(color: Colors.white)),
                   );
                 },
               ),
@@ -249,13 +249,13 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                         print('Messages reçus: ${messages.length}');
                         
                         if (messages.isEmpty) {
-                          return const Center(
+                          return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey),
                                 SizedBox(height: 16),
-                                Text('Aucun message pour le moment'),
+                                Text(AppLocalizations.of(context).noMessagesAtTheMoment),
                                 Text('Écrivez votre premier message ci-dessous'),
                               ],
                             ),

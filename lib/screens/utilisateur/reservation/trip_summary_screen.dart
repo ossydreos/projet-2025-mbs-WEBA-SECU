@@ -68,44 +68,44 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
     if (selectedDay == today) {
       final months = [
-        'janv.',
-        'févr.',
-        'mars',
-        'avr.',
-        'mai',
-        'juin',
-        'juil.',
-        'août',
-        'sept.',
-        'oct.',
-        'nov.',
-        'déc.',
+        AppLocalizations.of(context).jan,
+        AppLocalizations.of(context).feb,
+        AppLocalizations.of(context).mar,
+        AppLocalizations.of(context).apr,
+        AppLocalizations.of(context).may,
+        AppLocalizations.of(context).jun,
+        AppLocalizations.of(context).jul,
+        AppLocalizations.of(context).aug,
+        AppLocalizations.of(context).sep,
+        AppLocalizations.of(context).oct,
+        AppLocalizations.of(context).nov,
+        AppLocalizations.of(context).dec,
       ];
       final month = months[date.month - 1];
-      return 'Aujourd\'hui, ${date.day} $month';
+      return '${AppLocalizations.of(context).today}, ${date.day} $month';
     } else {
       final weekdays = [
-        'Lundi',
-        'Mardi',
-        'Mercredi',
-        'Jeudi',
-        'Vendredi',
-        'Samedi',
-        'Dimanche',
+        AppLocalizations.of(context).monday,
+        AppLocalizations.of(context).tuesday,
+        AppLocalizations.of(context).wednesday,
+        AppLocalizations.of(context).thursday,
+        AppLocalizations.of(context).friday,
+        AppLocalizations.of(context).saturday,
+        AppLocalizations.of(context).sunday,
       ];
       final months = [
-        'janv.',
-        'févr.',
-        'mars',
-        'avr.',
-        'mai',
-        'juin',
-        'juil.',
-        'août',
-        'sept.',
-        'oct.',
-        'nov.',
-        'déc.',
+        AppLocalizations.of(context).jan,
+        AppLocalizations.of(context).feb,
+        AppLocalizations.of(context).mar,
+        AppLocalizations.of(context).apr,
+        AppLocalizations.of(context).may,
+        AppLocalizations.of(context).jun,
+        AppLocalizations.of(context).jul,
+        AppLocalizations.of(context).aug,
+        AppLocalizations.of(context).sep,
+        AppLocalizations.of(context).oct,
+        AppLocalizations.of(context).nov,
+        AppLocalizations.of(context).dec,
       ];
 
       final weekday = weekdays[date.weekday - 1];
@@ -216,7 +216,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           });
         }
       } catch (e) {
-        print('Erreur lors du calcul de l\'heure d\'arrivée: $e');
+        print(AppLocalizations.of(context).errorCalculatingArrivalTime);
         // Garder l'heure d'arrivée par défaut
       }
     }
@@ -298,9 +298,9 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       if (_reservationService.isUserLoggedIn()) {
         final user = FirebaseAuth.instance.currentUser;
         userName =
-            user?.displayName ?? user?.email?.split('@')[0] ?? 'Utilisateur';
+            user?.displayName ?? user?.email?.split('@')[0] ?? AppLocalizations.of(context).user;
       } else {
-        userName = 'Invité';
+        userName = AppLocalizations.of(context).guest;
       }
 
       // Créer la réservation
@@ -314,7 +314,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
         selectedDate: widget.selectedDate,
         selectedTime: _formatTime(widget.selectedTime),
         estimatedArrival: _estimatedArrival,
-        paymentMethod: 'Espèces',
+        paymentMethod: AppLocalizations.of(context).cash,
         totalPrice: _calculatedPrice,
         status: ReservationStatus.pending,
         createdAt: DateTime.now(),
@@ -341,7 +341,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
       // Sauvegarder dans Firebase
       print(
-        '💾 Sauvegarde de la réservation avec le véhicule: $_currentVehicleName',
+        AppLocalizations.of(context).reservationSavedWithVehicle(_currentVehicleName),
       );
       if (_appliedPromo != null) {
         try {
@@ -354,7 +354,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       final reservationId = await _reservationService.createReservation(
         reservation,
       );
-      print('✅ Réservation créée avec l\'ID: $reservationId');
+      print(AppLocalizations.of(context).reservationCreatedWithId(reservationId));
 
       // Afficher le succès (ajoute le code promo s'il est utilisé)
       if (mounted) {
@@ -362,7 +362,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           context,
         ).reservationCreatedSuccess(reservationId);
         final promoMsg = _appliedPromo != null
-            ? '\nCode promo utilisé: ${_appliedPromo!.code}'
+            ? '\n${AppLocalizations.of(context).promoCodeUsed(_appliedPromo!.code)}'
             : '';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -492,8 +492,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       color: AppColors.accent,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Text(
-                                      'Modifier',
+                                    child: Text(
+                                      AppLocalizations.of(context).modify,
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
@@ -579,8 +579,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       color: AppColors.accent,
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: const Text(
-                                      'Modifier',
+                                    child: Text(
+                                      AppLocalizations.of(context).modify,
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w500,
@@ -611,7 +611,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'Adresse de prise en charge',
+                                        AppLocalizations.of(context).pickupAddress,
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: AppColors.textWeak,
@@ -666,7 +666,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'Adresse de destination',
+                                        AppLocalizations.of(context).destinationAddress,
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: AppColors.textWeak,
@@ -716,7 +716,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Arrivée estimée: $_estimatedArrival',
+                                '${AppLocalizations.of(context).estimatedArrival}: $_estimatedArrival',
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -743,8 +743,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                           children: [
                             Row(
                               children: [
-                                const Text(
-                                  'Véhicule',
+                                Text(
+                                  AppLocalizations.of(context).vehicle,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -792,7 +792,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          'Modifier',
+                                          AppLocalizations.of(context).modify,
                                           style: TextStyle(
                                             fontSize: 12,
                                             fontWeight: FontWeight.w500,
@@ -836,8 +836,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Code promo',
+                            Text(
+                              AppLocalizations.of(context).promoCode,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
@@ -946,7 +946,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Code promo appliqué: ${_appliedPromo!.code}',
+                                            '${AppLocalizations.of(context).promoCode} appliqué: ${_appliedPromo!.code}',
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w600,
@@ -1096,7 +1096,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Prix de base',
+                                AppLocalizations.of(context).price,
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: AppColors.textWeak,
@@ -1142,7 +1142,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Total',
+                                  AppLocalizations.of(context).total,
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -1170,7 +1170,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Total',
+                                  AppLocalizations.of(context).total,
                                   style: TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -1218,8 +1218,8 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                   ),
                                 ),
                               )
-                            : const Text(
-                                'Confirmer la réservation',
+                            : Text(
+                                AppLocalizations.of(context).createReservation,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

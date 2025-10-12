@@ -8,11 +8,11 @@ import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/admin_service.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/models/custom_offer.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/services/pdf_export_service.dart';
 import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:my_mobility_services/services/contact_launcher_service.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 
 // 👇 importe la barre réutilisable
@@ -188,7 +188,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
                 const SizedBox(height: 16),
                 Text(
-                  'Erreur de connexion',
+                  AppLocalizations.of(context).connectionError,
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -206,7 +206,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 ),
                 const SizedBox(height: 24),
                 GlassButton(
-                  label: 'Réessayer',
+                  label: AppLocalizations.of(context).retry,
                   onPressed: () {
                     setState(() {});
                   },
@@ -265,7 +265,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
                 const SizedBox(height: 16),
                 Text(
-                  'Erreur lors du chargement des courses terminées',
+                  AppLocalizations.of(context).errorLoadingCompletedRides,
                   style: TextStyle(fontSize: 16, color: Colors.red[300]),
                 ),
                 const SizedBox(height: 8),
@@ -275,7 +275,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                 ),
                 const SizedBox(height: 24),
                 GlassButton(
-                  label: 'Réessayer',
+                  label: AppLocalizations.of(context).retry,
                   onPressed: () {
                     setState(() {});
                   },
@@ -313,7 +313,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           Icon(Icons.check_circle_outline, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 24),
           Text(
-            'Aucune course terminée',
+            AppLocalizations.of(context).noCompletedRides,
             style: TextStyle(
               fontSize: 20,
               color: Colors.grey[400],
@@ -323,7 +323,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'Vos courses terminées apparaîtront ici',
+            AppLocalizations.of(context).yourCompletedRidesWillAppearHere,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
@@ -495,7 +495,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
                   // Message principal
                   Text(
-                    hasActiveFilter ? 'Aucun résultat' : 'No Upcoming rides',
+                    hasActiveFilter ? AppLocalizations.of(context).noResults : AppLocalizations.of(context).noUpcomingRides,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -541,7 +541,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                   }
                 },
                 label: hasActiveFilter
-                    ? 'Réinitialiser les filtres'
+                    ? AppLocalizations.of(context).resetFilters
                     : 'Planifiez un trajet',
               ),
             ),

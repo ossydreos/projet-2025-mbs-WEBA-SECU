@@ -44,7 +44,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Erreur lors du chargement',
+                      AppLocalizations.of(context).errorLoading,
                       style: TextStyle(
                         color: AppColors.textWeak,
                         fontSize: 16,
@@ -164,19 +164,19 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             ),
             if (reservationId.isNotEmpty)
               _buildDetailRow(
-                'Réservation',
+                AppLocalizations.of(context).reservation,
                 reservationId.substring(0, 8) + '...',
               ),
             
             const SizedBox(height: 12),
             
             // Actions
-            if (status == 'paid')
+            if (status == AppLocalizations.of(context).paid)
               Row(
                 children: [
                   Expanded(
                     child: GlassButton(
-                      label: 'Voir détails',
+                      label: AppLocalizations.of(context).viewDetails,
                       onPressed: () => _showPaymentDetails(payment),
                       primary: false,
                     ),
@@ -184,7 +184,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: GlassButton(
-                      label: 'Rembourser',
+                      label: AppLocalizations.of(context).refund,
                       onPressed: () => _showRefundDialog(payment),
                       primary: false,
                     ),
@@ -202,7 +202,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     String label;
     
     switch (status.toLowerCase()) {
-      case 'paid':
+      case AppLocalizations.of(context).paid:
         color = Colors.green;
         label = AppLocalizations.of(context).paid;
         break;
