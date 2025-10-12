@@ -30,6 +30,7 @@ flutter_ios_podfile_setup
 target 'Runner' do
   use_frameworks! :linkage => :static
   use_modular_headers!
+  inhibit_all_warnings!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
@@ -60,6 +61,12 @@ post_install do |installer|
         config.build_settings['SWIFT_SUPPRESS_WARNINGS'] = 'YES'
       end
     end
+    # Ajouter des outputs aux phases "Create Symlinks to Header Folders" pour éviter l'avertissement
+    target.shell_script_build_phases.each do |phase|
+      next unless phase.name&.include?('Create Symlinks to Header Folders')
+      out_path = "${DERIVED_FILE_DIR}/#{target.name}-SymlinkHeaders.done"
+      phase.output_paths = [out_path]
+    end
     # Fix: resource-only privacy bundle from url_launcher_ios should not embed Swift stdlib
     if target.name == 'url_launcher_ios-url_launcher_ios_privacy'
       target.build_configurations.each do |config|
@@ -67,4 +74,9 @@ post_install do |installer|
       end
     end
   end
+
+  # Marquer le projet Pods comme déjà migré vers les réglages Xcode courants
+  installer.pods_project.root_object.attributes['LastUpgradeCheck'] = '2600'
+  installer.pods_project.root_object.attributes['LastSwiftUpdateCheck'] = '2600'
+  installer.pods_project.save
 end
