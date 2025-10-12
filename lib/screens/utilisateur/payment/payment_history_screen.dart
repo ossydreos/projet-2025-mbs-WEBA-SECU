@@ -347,7 +347,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                   maxLines: 3,
                   style: TextStyle(color: AppColors.textStrong),
                   decoration: InputDecoration(
-                    hintText: 'Expliquez la raison du remboursement...',
+                    hintText: AppLocalizations.of(context).explainRefundReason,
                     hintStyle: TextStyle(color: AppColors.textWeak),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),

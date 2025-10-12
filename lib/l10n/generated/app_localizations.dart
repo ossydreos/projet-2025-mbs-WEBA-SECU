@@ -3359,8 +3359,8 @@ abstract class AppLocalizations {
   /// No description provided for @error.
   ///
   /// In en, this message translates to:
-  /// **'Error'**
-  String get error;
+  /// **'Error: {error}'**
+  String error(String error);
 
   /// No description provided for @termsConditions.
   ///
@@ -3595,6 +3595,481 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These terms are subject to Swiss law. In case of dispute, Swiss courts will have sole jurisdiction. The reference language is French.'**
   String get applicableLawText;
+
+  /// No description provided for @filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get filters;
+
+  /// No description provided for @period.
+  ///
+  /// In en, this message translates to:
+  /// **'Period'**
+  String get period;
+
+  /// No description provided for @reservationType.
+  ///
+  /// In en, this message translates to:
+  /// **'Reservation type'**
+  String get reservationType;
+
+  /// No description provided for @selectAtLeastOneReservation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one reservation'**
+  String get selectAtLeastOneReservation;
+
+  /// No description provided for @generatingPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating PDF... ({count} reservations)'**
+  String generatingPdf(int count);
+
+  /// No description provided for @noDataFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No data found for selected reservations'**
+  String get noDataFound;
+
+  /// No description provided for @pdfExportedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF exported successfully!'**
+  String get pdfExportedSuccessfully;
+
+  /// No description provided for @exportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Export error: {error}'**
+  String exportError(String error);
+
+  /// No description provided for @createTestReservation.
+  ///
+  /// In en, this message translates to:
+  /// **'🧪 Create test reservation'**
+  String get createTestReservation;
+
+  /// No description provided for @testError.
+  ///
+  /// In en, this message translates to:
+  /// **'❌ Test error: {error}'**
+  String testError(String error);
+
+  /// No description provided for @cancellationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation error: {error}'**
+  String cancellationError(String error);
+
+  /// No description provided for @offerCancelledSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer cancelled successfully'**
+  String get offerCancelledSuccess;
+
+  /// No description provided for @manage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get manage;
+
+  /// No description provided for @offerRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'Offer refused'**
+  String get offerRefused;
+
+  /// No description provided for @refuse.
+  ///
+  /// In en, this message translates to:
+  /// **'Refuse'**
+  String get refuse;
+
+  /// No description provided for @contactClient.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact client'**
+  String get contactClient;
+
+  /// No description provided for @paymentRequestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment request sent to client'**
+  String get paymentRequestSent;
+
+  /// No description provided for @sendCounterOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Send counter offer'**
+  String get sendCounterOffer;
+
+  /// No description provided for @profileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Information updated successfully!'**
+  String get profileUpdatedSuccess;
+
+  /// No description provided for @userProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'User profile'**
+  String get userProfile;
+
+  /// No description provided for @searchByNameOrEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or email'**
+  String get searchByNameOrEmail;
+
+  /// No description provided for @userNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'User not found'**
+  String get userNotFound;
+
+  /// No description provided for @noReservationsOrOffers.
+  ///
+  /// In en, this message translates to:
+  /// **'No reservations or offers'**
+  String get noReservationsOrOffers;
+
+  /// No description provided for @messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messages;
+
+  /// No description provided for @noMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages'**
+  String get noMessages;
+
+  /// No description provided for @newMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'New message'**
+  String get newMessage;
+
+  /// No description provided for @promoCodeExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Ex: Promo Code 20'**
+  String get promoCodeExample;
+
+  /// No description provided for @promoCodeIdExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Ex: Promo20'**
+  String get promoCodeIdExample;
+
+  /// No description provided for @chooseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a date'**
+  String get chooseDate;
+
+  /// No description provided for @usageLimitExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Ex: 100'**
+  String get usageLimitExample;
+
+  /// No description provided for @codeCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Code created'**
+  String get codeCreated;
+
+  /// No description provided for @promoCodeCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo code created'**
+  String get promoCodeCreated;
+
+  /// No description provided for @chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chat;
+
+  /// No description provided for @writeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a message...'**
+  String get writeMessage;
+
+  /// No description provided for @ticketFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'This ticket is finished. Open a new message.'**
+  String get ticketFinished;
+
+  /// No description provided for @conversationFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'This conversation is finished.'**
+  String get conversationFinished;
+
+  /// No description provided for @callError.
+  ///
+  /// In en, this message translates to:
+  /// **'Call error: {error}'**
+  String callError(String error);
+
+  /// No description provided for @fullNameExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Ex: John Doe'**
+  String get fullNameExample;
+
+  /// No description provided for @emailAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get emailAddress;
+
+  /// No description provided for @emailExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Ex: john.doe@email.com'**
+  String get emailExample;
+
+  /// No description provided for @phoneExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Ex: 612345678'**
+  String get phoneExample;
+
+  /// No description provided for @searchCountry.
+  ///
+  /// In en, this message translates to:
+  /// **'Search for a country...'**
+  String get searchCountry;
+
+  /// No description provided for @passwordExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Ex: MyPassword123!'**
+  String get passwordExample;
+
+  /// No description provided for @enterEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter email'**
+  String get enterEmail;
+
+  /// No description provided for @enterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password'**
+  String get enterPassword;
+
+  /// No description provided for @priceInChf.
+  ///
+  /// In en, this message translates to:
+  /// **'Price in CHF'**
+  String get priceInChf;
+
+  /// No description provided for @optionalMessageForClient.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional message for client...'**
+  String get optionalMessageForClient;
+
+  /// No description provided for @phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phone;
+
+  /// No description provided for @explainRefundReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain the reason for refund...'**
+  String get explainRefundReason;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @maxPassengers.
+  ///
+  /// In en, this message translates to:
+  /// **'Max passengers'**
+  String get maxPassengers;
+
+  /// No description provided for @four.
+  ///
+  /// In en, this message translates to:
+  /// **'4'**
+  String get four;
+
+  /// No description provided for @maxLuggage.
+  ///
+  /// In en, this message translates to:
+  /// **'Max luggage'**
+  String get maxLuggage;
+
+  /// No description provided for @two.
+  ///
+  /// In en, this message translates to:
+  /// **'2'**
+  String get two;
+
+  /// No description provided for @imageUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'Image URL'**
+  String get imageUrl;
+
+  /// No description provided for @imageUrlExample.
+  ///
+  /// In en, this message translates to:
+  /// **'https://example.com/image.jpg'**
+  String get imageUrlExample;
+
+  /// No description provided for @enterPromoCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your promo code'**
+  String get enterPromoCode;
+
+  /// No description provided for @promoCodeApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo code applied'**
+  String get promoCodeApplied;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// No description provided for @uberNotificationDemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Uber Notification Demo'**
+  String get uberNotificationDemo;
+
+  /// No description provided for @launchDemo.
+  ///
+  /// In en, this message translates to:
+  /// **'Launch demo'**
+  String get launchDemo;
+
+  /// No description provided for @uberNotificationTest.
+  ///
+  /// In en, this message translates to:
+  /// **'Uber Notification Test'**
+  String get uberNotificationTest;
+
+  /// No description provided for @explainChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain the change...'**
+  String get explainChange;
+
+  /// No description provided for @explainScheduleChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Explain the reason for schedule change...'**
+  String get explainScheduleChange;
+
+  /// No description provided for @sort.
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sort;
+
+  /// No description provided for @confirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get confirmed;
+
+  /// No description provided for @completed.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get completed;
+
+  /// No description provided for @cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cancelled;
+
+  /// No description provided for @unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknown;
+
+  /// No description provided for @deselectTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect this trip'**
+  String get deselectTrip;
+
+  /// No description provided for @selectTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'Select this trip'**
+  String get selectTrip;
+
+  /// No description provided for @arrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival'**
+  String get arrival;
+
+  /// No description provided for @tripDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip from {fromAddress} to {toAddress}, status {status}, departure {startAt}{arrivalInfo}, price {priceFormatted}'**
+  String tripDescription(
+    String fromAddress,
+    String toAddress,
+    String status,
+    String startAt,
+    String arrivalInfo,
+    String priceFormatted,
+  );
+
+  /// No description provided for @inProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get inProgress;
+
+  /// No description provided for @start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get start;
+
+  /// No description provided for @end.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get end;
+
+  /// No description provided for @selectedPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected period'**
+  String get selectedPeriod;
+
+  /// No description provided for @label.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get label;
 }
 
 class _AppLocalizationsDelegate

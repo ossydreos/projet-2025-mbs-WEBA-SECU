@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/services/support_chat_service.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/models/support_thread.dart';
 import 'package:my_mobility_services/screens/support/support_chat_screen.dart';
 
@@ -339,13 +340,13 @@ class _SupportThreadsListScreen extends StatelessWidget {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: embedded ? null : const GlassAppBar(title: 'Messages'),
+        appBar: embedded ? null : GlassAppBar(title: AppLocalizations.of(context).messages),
         body: StreamBuilder<List<SupportThread>>(
           stream: SupportChatService().watchThreadsForCurrentUser(),
           builder: (context, snapshot) {
             final threads = snapshot.data ?? const <SupportThread>[];
             if (threads.isEmpty) {
-              return const Center(child: Text('Aucun message', style: TextStyle(color: Colors.white70)));
+              return Center(child: Text(AppLocalizations.of(context).noMessages, style: TextStyle(color: Colors.white70)));
             }
             return ListView.separated(
               itemCount: threads.length,
@@ -393,7 +394,7 @@ class _SupportThreadsListScreen extends StatelessWidget {
             await SupportChatService().createNewThreadForCurrentUser();
           },
           backgroundColor: AppColors.accent,
-          label: const Text('Nouveau message'),
+          label: Text(AppLocalizations.of(context).newMessage),
           icon: const Icon(Icons.add),
         ),
       ),

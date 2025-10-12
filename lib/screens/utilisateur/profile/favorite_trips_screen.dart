@@ -318,7 +318,7 @@ class _FavoriteTripsScreenState extends State<FavoriteTripsScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context).error,
+              AppLocalizations.of(context).error(''),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,

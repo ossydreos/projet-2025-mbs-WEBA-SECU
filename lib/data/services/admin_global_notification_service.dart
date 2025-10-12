@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/notification_manager.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class AdminGlobalNotificationService {
   static final AdminGlobalNotificationService _instance =
@@ -71,15 +73,31 @@ class AdminGlobalNotificationService {
       // Initialiser les notifications locales
       await _initializeLocalNotifications();
       
-      // Démarrer le polling pour les notifications en arrière-plan
-      _startBackgroundPolling();
-      
-      // Réinitialiser le timestamp pour capturer toutes les nouvelles réservations
-      _lastSeenReservationAt = DateTime.now().subtract(
-        const Duration(minutes: 1),
-      );
-      _processedReservations.clear();
-      _startListeningToReservations();
+      // Vérifier si l'utilisateur est admin avant de démarrer le pooling
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        if (userDoc.exists && userDoc.data()?['role'] == 'admin') {
+          print('🔔 AdminGlobalNotificationService: Utilisateur admin détecté, démarrage du pooling');
+          // Démarrer le polling pour les notifications en arrière-plan
+          _startBackgroundPolling();
+          
+          // Réinitialiser le timestamp pour capturer toutes les nouvelles réservations
+          _lastSeenReservationAt = DateTime.now().subtract(
+            const Duration(minutes: 1),
+          );
+          _processedReservations.clear();
+          _startListeningToReservations();
+        } else {
+          print('🔔 AdminGlobalNotificationService: Utilisateur non admin, pooling désactivé');
+        }
+      } else {
+        print('🔔 AdminGlobalNotificationService: Aucun utilisateur connecté, pooling désactivé');
+      }
     }
   }
 
@@ -90,8 +108,8 @@ class AdminGlobalNotificationService {
     // Annuler le timer existant s'il y en a un
     _backgroundPollingTimer?.cancel();
     
-    // Vérifier toutes les 5 secondes pour les nouvelles réservations
-    _backgroundPollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    // Vérifier toutes les 30 secondes pour les nouvelles réservations
+    _backgroundPollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
       _checkForNewReservationsBackground();
     });
   }
@@ -100,6 +118,29 @@ class AdminGlobalNotificationService {
   Future<void> _checkForNewReservationsBackground() async {
     try {
       print('🔔 AdminGlobalNotificationService: Vérification polling en arrière-plan...');
+      
+      // Vérifier si l'utilisateur actuel est admin
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        print('🔔 AdminGlobalNotificationService: Aucun utilisateur connecté, arrêt du polling');
+        return;
+      }
+      
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      if (!userDoc.exists || userDoc.data()?['role'] != 'admin') {
+        print('🔔 AdminGlobalNotificationService: Utilisateur non admin, arrêt du polling et des sons');
+        // Arrêter immédiatement les sons si l'utilisateur n'est pas admin
+        if (_isPlaying) {
+          _stopLocalNotifications();
+        }
+        return;
+      }
+      
+      print('🔔 AdminGlobalNotificationService: Utilisateur admin confirmé, vérification des réservations...');
       
       final snapshot = await FirebaseFirestore.instance
           .collection('reservations')
@@ -616,7 +657,7 @@ class AdminGlobalNotificationService {
     }
   }
 
-  // Démarrer la boucle de son répétitive
+  // Démarrer la boucle de son EN BOUCLE CONTINUE À FOND
   Future<void> _startSoundLoop() async {
     if (_isPlaying) {
       print('🔔 AdminGlobalNotificationService: Son déjà en cours, arrêt de la boucle précédente');
@@ -628,19 +669,10 @@ class AdminGlobalNotificationService {
     _isPlaying = true;
     _soundCount = 0;
 
-    print('🔔 AdminGlobalNotificationService: Démarrage boucle son');
+    print('🔔 AdminGlobalNotificationService: Démarrage son EN BOUCLE CONTINUE À FOND');
 
-    // Jouer le premier son immédiatement
-    await _playNotificationSound();
-
-    // Programmer les sons suivants
-    _soundTimer = Timer.periodic(_soundInterval, (timer) async {
-      if (!_isPlaying) {
-        timer.cancel();
-        return;
-      }
-      await _playNotificationSound();
-    });
+    // Jouer le son EN BOUCLE CONTINUE immédiatement
+    await _playNotificationSoundLoop();
 
     // Programmer l'arrêt automatique après le timeout
     _soundTimeoutTimer = Timer(_maxSoundDuration, () {
@@ -649,7 +681,29 @@ class AdminGlobalNotificationService {
     });
   }
 
-  // Jouer le son de notification
+  // Jouer le son en boucle continue À FOND
+  Future<void> _playNotificationSoundLoop() async {
+    if (!_isPlaying) return;
+
+    try {
+      print('🔔 AdminGlobalNotificationService: Démarrage son EN BOUCLE CONTINUE À FOND');
+
+      // Configurer le volume à 100% (1.0)
+      await _audioPlayer.setVolume(1.0);
+      
+      // Configurer le mode de lecture en boucle
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+
+      // Jouer le son en boucle
+      await _audioPlayer.play(AssetSource('sounds/uber_classic_retro.mp3'));
+
+      print('🔔 AdminGlobalNotificationService: Son EN BOUCLE CONTINUE À FOND démarré (volume: 1.0)');
+    } catch (e) {
+      print('🔔 AdminGlobalNotificationService: Erreur lecture son en boucle: $e');
+    }
+  }
+
+  // Jouer le son de notification À FOND EN BOUCLE
   Future<void> _playNotificationSound() async {
     // Vérifier si on doit encore jouer le son
     if (!_isPlaying) {
@@ -658,18 +712,27 @@ class AdminGlobalNotificationService {
     }
 
     try {
-      print('🔔 AdminGlobalNotificationService: Lecture son ${_soundCount + 1}');
+      print('🔔 AdminGlobalNotificationService: Lecture son ${_soundCount + 1} À FOND');
+
+      // Configurer le volume à 100% (1.0)
+      await _audioPlayer.setVolume(1.0);
+      
+      // Configurer le mode de lecture en boucle
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
 
       // Essayer de jouer le son personnalisé
       await _audioPlayer.play(AssetSource('sounds/uber_classic_retro.mp3'));
 
       _soundCount++;
-      print('🔔 AdminGlobalNotificationService: Son joué avec succès');
+      print('🔔 AdminGlobalNotificationService: Son joué À FOND avec succès (volume: 1.0, loop: true)');
     } catch (e) {
       print('🔔 AdminGlobalNotificationService: Erreur lecture son: $e');
       // Fallback vers le même son Uber (présent dans les assets)
       try {
+        await _audioPlayer.setVolume(1.0);
+        await _audioPlayer.setReleaseMode(ReleaseMode.loop);
         await _audioPlayer.play(AssetSource('sounds/uber_classic_retro.mp3'));
+        print('🔔 AdminGlobalNotificationService: Son fallback joué À FOND');
       } catch (e2) {
         print('🔔 AdminGlobalNotificationService: Erreur fallback Uber: $e2');
       }
@@ -685,8 +748,41 @@ class AdminGlobalNotificationService {
     _soundTimer = null;
     _soundTimeoutTimer?.cancel();
     _soundTimeoutTimer = null;
+    
+    // Arrêter le son en boucle
     _audioPlayer.stop();
+    
+    // Remettre le mode normal (pas en boucle)
+    _audioPlayer.setReleaseMode(ReleaseMode.release);
+    
     print('🔔 AdminGlobalNotificationService: Notifications locales arrêtées (playing: $_isPlaying, timer: ${_soundTimer != null})');
+  }
+
+  // Redémarrer le service pour un utilisateur admin
+  Future<void> restartForAdmin() async {
+    print('🔔 AdminGlobalNotificationService: Redémarrage pour admin');
+    
+    // Arrêter le pooling actuel
+    _backgroundPollingTimer?.cancel();
+    _backgroundPollingTimer = null;
+    
+    // Vérifier si l'utilisateur est admin
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      if (userDoc.exists && userDoc.data()?['role'] == 'admin') {
+        print('🔔 AdminGlobalNotificationService: Admin confirmé, redémarrage du pooling');
+        _startBackgroundPolling();
+        _startListeningToReservations();
+      } else {
+        print('🔔 AdminGlobalNotificationService: Utilisateur non admin, pooling arrêté');
+        _stopLocalNotifications();
+      }
+    }
   }
 
   // Accepter une réservation (délègue à l'écran de réception pour la même logique)
@@ -800,7 +896,7 @@ class AdminGlobalNotificationService {
       if (_globalContext != null && _globalContext!.mounted) {
         ScaffoldMessenger.of(_globalContext!).showSnackBar(
           SnackBar(
-            content: Text('Réservation refusée'),
+            content: Text(AppLocalizations.of(_globalContext!).reservationRefused),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -815,7 +911,7 @@ class AdminGlobalNotificationService {
       if (_globalContext != null && _globalContext!.mounted) {
         ScaffoldMessenger.of(_globalContext!).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text(AppLocalizations.of(_globalContext!).error(e.toString())),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -1068,7 +1164,7 @@ class AdminGlobalNotificationService {
                   maxLines: 3,
                   style: TextStyle(color: AppColors.text),
                   decoration: InputDecoration(
-                    hintText: 'Expliquez le motif du changement d\'horaire...',
+                    hintText: AppLocalizations.of(_globalContext!).explainScheduleChange,
                     hintStyle: TextStyle(color: AppColors.textWeak),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.accent),
@@ -1109,7 +1205,7 @@ class AdminGlobalNotificationService {
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Proposer'),
+              child: Text(AppLocalizations.of(_globalContext!).propose),
             ),
           ],
         ),
@@ -1176,7 +1272,7 @@ class AdminGlobalNotificationService {
       if (_globalContext != null && _globalContext!.mounted) {
         ScaffoldMessenger.of(_globalContext!).showSnackBar(
           SnackBar(
-            content: Text('Erreur: $e'),
+            content: Text(AppLocalizations.of(_globalContext!).error(e.toString())),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),

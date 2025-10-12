@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/models/promo_code.dart';
 import 'package:my_mobility_services/data/services/promo_code_service.dart';
 
@@ -70,14 +71,14 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Code promo créé')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).promoCodeCreated)));
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+        ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).error(e.toString()))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -89,7 +90,7 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: GlassAppBar(title: 'Créer un code promo'),
+        appBar: GlassAppBar(title: AppLocalizations.of(context).createPromoCode),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
@@ -108,8 +109,8 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                 TextFormField(
                   controller: _nameCtrl,
                   validator: _required,
-                  decoration: const InputDecoration(
-                    hintText: 'Ex: Code Promo 20',
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context).promoCodeExample,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -132,8 +133,8 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                             controller: _codeCtrl,
                             validator: _required,
                             textCapitalization: TextCapitalization.characters,
-                            decoration: const InputDecoration(
-                              hintText: 'Ex: Promo20',
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context).promoCodeIdExample,
                             ),
                           ),
                         ],
@@ -241,8 +242,8 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                             onTap: _pickDate,
                             borderRadius: BorderRadius.circular(16),
                             child: InputDecorator(
-                              decoration: const InputDecoration(
-                                hintText: 'Choisir une date',
+                              decoration: InputDecoration(
+                                hintText: AppLocalizations.of(context).chooseDate,
                               ),
                               child: Row(
                                 mainAxisAlignment:
@@ -280,8 +281,8 @@ class _CreatePromoCodeScreenState extends State<CreatePromoCodeScreen> {
                           TextFormField(
                             controller: _maxUsersCtrl,
                             keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              hintText: 'Ex: 100',
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context).usageLimitExample,
                             ),
                           ),
                         ],

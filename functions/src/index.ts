@@ -56,6 +56,7 @@ async function sendToOneSignalByUserId(params: {
   title: string;
   body: string;
   data?: Record<string, string>;
+  sendAfterGMT?: string;
 }) {
   const payload: any = {
     app_id: APP_ID,
@@ -65,6 +66,10 @@ async function sendToOneSignalByUserId(params: {
     contents: { fr: params.body, en: params.body },
     data: params.data ?? {},
   };
+  
+  if (params.sendAfterGMT) {
+    payload.send_after = params.sendAfterGMT;
+  }
 
   const res = await fetch("https://api.onesignal.com/notifications", {
     method: "POST",
@@ -158,3 +163,173 @@ export const onReservationConfirmed = functions.firestore
       console.error("❌ Erreur notification client:", error);
     }
   });
+
+// 🔔 Trigger: réservation annulée → notification au client
+export const onReservationCancelled = functions.firestore
+  .document("reservations/{resId}")
+  .onUpdate(async (change, ctx) => {
+    const before = change.before.data() as any;
+    const after = change.after.data() as any;
+    
+    // Vérifier que le statut est passé à "cancelled"
+    if (after.status !== "cancelled") {
+      console.log("❌ Pas de changement vers cancelled, skipping");
+      return;
+    }
+
+    console.log("🔔 Réservation annulée pour l'utilisateur:", after.userId);
+
+    // Envoyer notification au client spécifique
+    try {
+      const result = await sendToOneSignalByUserId({
+        userId: after.userId,
+        title: "❌ Course annulée",
+        body: `Votre course de ${after.departure} vers ${after.destination} a été annulée. Vous serez remboursé si un paiement a été effectué.`,
+        data: { 
+          route: `/reservations/${ctx.params.resId}`,
+          type: "reservation_cancelled",
+          reservationId: ctx.params.resId
+        },
+      });
+
+      console.log("✅ Notification annulation envoyée:", result);
+    } catch (error) {
+      console.error("❌ Erreur notification annulation:", error);
+    }
+  });
+
+// 🔔 Trigger: réservation annulée → notification aux admins
+export const onReservationCancelledAdmin = functions.firestore
+  .document("reservations/{resId}")
+  .onUpdate(async (change, ctx) => {
+    const before = change.before.data() as any;
+    const after = change.after.data() as any;
+    
+    // Vérifier que le statut est passé à "cancelled"
+    if (after.status !== "cancelled") {
+      console.log("❌ Pas de changement vers cancelled, skipping admin notification");
+      return;
+    }
+
+    console.log("🔔 Réservation annulée - notification aux admins");
+
+    // Envoyer notification aux admins
+    try {
+      const result = await sendToOneSignalByTag({
+        title: "❌ Course annulée",
+        body: `Course annulée: ${after.departure} → ${after.destination}\nClient: ${after.userName || 'Inconnu'}\nRéservation: ${ctx.params.resId}`,
+        data: { 
+          route: `/reservations/${ctx.params.resId}`,
+          type: "reservation_cancelled_admin",
+          reservationId: ctx.params.resId
+        },
+      });
+
+      console.log("✅ Notification annulation admin envoyée:", result);
+    } catch (error) {
+      console.error("❌ Erreur notification annulation admin:", error);
+    }
+  });
+
+// 🔔 Trigger: réservation confirmée → programmer rappels 24h et 1h avant
+export const onReservationConfirmedReminders = functions.firestore
+  .document("reservations/{resId}")
+  .onUpdate(async (change, ctx) => {
+    const before = change.before.data() as any;
+    const after = change.after.data() as any;
+    
+    // Vérifier que le statut est passé à "confirmed"
+    if (before.status !== "pending" || after.status !== "confirmed") {
+      console.log("❌ Pas de changement pending→confirmed, skipping reminders");
+      return;
+    }
+
+    // Vérifier qu'on a une date valide
+    if (!after.dateISO) {
+      console.log("❌ Pas de dateISO, skipping reminders");
+      return;
+    }
+
+    try {
+      const courseDate = new Date(after.dateISO);
+      const now = new Date();
+      
+      // Vérifier que la course est dans le futur
+      if (courseDate <= now) {
+        console.log("❌ Course dans le passé, skipping reminders");
+        return;
+      }
+
+      // Calculer les dates de rappel
+      const reminder24h = new Date(courseDate.getTime() - 24 * 60 * 60 * 1000);
+      const reminder1h = new Date(courseDate.getTime() - 60 * 60 * 1000);
+      
+      // Vérifier que les rappels sont dans le futur
+      if (reminder24h > now) {
+        console.log("🔔 Programmation rappel 24h avant:", reminder24h.toISOString());
+        
+        const result24h = await sendToOneSignalByUserId({
+          userId: after.userId,
+          title: "⏰ Rappel course dans 24h",
+          body: `Votre course de ${after.departure} vers ${after.destination} commence demain !\nHeure: ${courseDate.toLocaleString('fr-FR')}`,
+          data: {
+            route: `/reservations/${ctx.params.resId}`,
+            type: "reminder_24h",
+            reservationId: ctx.params.resId
+          },
+          sendAfterGMT: reminder24h.toISOString()
+        });
+        
+        console.log("✅ Rappel 24h programmé:", result24h);
+      }
+
+      if (reminder1h > now) {
+        console.log("🔔 Programmation rappel 1h avant:", reminder1h.toISOString());
+        
+        const result1h = await sendToOneSignalByUserId({
+          userId: after.userId,
+          title: "🚗 Votre course dans 1h !",
+          body: `Votre course de ${after.departure} vers ${after.destination} commence dans 1 heure !\nHeure: ${courseDate.toLocaleString('fr-FR')}`,
+          data: {
+            route: `/reservations/${ctx.params.resId}`,
+            type: "reminder_1h",
+            reservationId: ctx.params.resId
+          },
+          sendAfterGMT: reminder1h.toISOString()
+        });
+        
+        console.log("✅ Rappel 1h programmé:", result1h);
+      }
+
+    } catch (error) {
+      console.error("❌ Erreur programmation rappels:", error);
+    }
+  });
+
+// 🔐 Function pour exposer les clés API de manière sécurisée
+export const getApiKeys = functions.https.onCall(async (data, context) => {
+  // Vérifier l'authentification
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Utilisateur non authentifié');
+  }
+
+  // Récupération sécurisée des clés depuis la config Firebase
+  const mapsAndroidKey = functions.config().google?.maps_android_key as string;
+  const mapsIosKey = functions.config().google?.maps_ios_key as string;
+  const placesWebKey = functions.config().google?.places_web_key as string;
+  const stripePublishableKey = functions.config().stripe?.publishable_key as string;
+  const stripeSecretKey = functions.config().stripe?.secret_key as string;
+
+  // Vérifier que toutes les clés sont présentes
+  if (!mapsAndroidKey || !mapsIosKey || !placesWebKey || !stripePublishableKey || !stripeSecretKey) {
+    throw new functions.https.HttpsError('internal', 'Configuration des clés API incomplète');
+  }
+
+  return {
+    googleMapsAndroidKey: mapsAndroidKey,
+    googleMapsIosKey: mapsIosKey,
+    googlePlacesWebKey: placesWebKey,
+    stripePublishableKey: stripePublishableKey,
+    stripeSecretKey: stripeSecretKey,
+  };
+});

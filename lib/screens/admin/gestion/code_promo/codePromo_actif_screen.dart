@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/models/promo_code.dart';
 import 'package:my_mobility_services/data/services/promo_code_service.dart';
 
@@ -13,7 +14,7 @@ class ActivePromoCodesScreen extends StatelessWidget {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: GlassAppBar(title: 'Codes promotionnels'),
+        appBar: GlassAppBar(title: AppLocalizations.of(context).promoCodes),
         body: StreamBuilder<List<PromoCode>>(
           stream: _service.getPromoCodesStream(),
           builder: (context, snapshot) {
@@ -46,7 +47,7 @@ class ActivePromoCodesScreen extends StatelessWidget {
             if (created == true && context.mounted) {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('Code créé')));
+              ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).codeCreated)));
             }
           },
           child: const Icon(Icons.add),

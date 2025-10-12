@@ -758,38 +758,24 @@ class ReservationService {
     String userId,
     ReservationFilter filter,
   ) {
-    // Utiliser une seule collection avec le champ 'type'
-    return _getUserReservationsFromSingleCollection(userId, filter);
-  }
+    Query query = _firestore.collection(_collection);
 
-  /// Récupérer les réservations d'une seule collection avec le champ 'type'
-  Stream<List<Reservation>> _getUserReservationsFromSingleCollection(
-    String userId,
-    ReservationFilter filter,
-  ) async* {
-    try {
-      print('🔍 Récupération des réservations pour userId: $userId');
-      
-      // Récupérer toutes les réservations de l'utilisateur (tous types)
-      final reservationsSnapshot = await FirebaseFirestore.instance
-          .collection('reservations')
-          .where('userId', isEqualTo: userId)
-          .get();
+    // Filtrer par utilisateur
+    query = query.where('userId', isEqualTo: userId);
 
-      print('🔍 Total réservations trouvées: ${reservationsSnapshot.docs.length}');
-      
-      // Convertir en objets Reservation
-      final reservations = reservationsSnapshot.docs
-          .map((doc) => Reservation.fromMap({
-                ...doc.data() as Map<String, dynamic>,
-                'id': doc.id,
-              }))
+    // Requête simple pour éviter les index complexes
+    // On récupère toutes les réservations de l'utilisateur et on filtre côté client
+    query = query.orderBy('createdAt', descending: true);
+
+    return query.snapshots().asyncMap((snapshot) async {
+      final reservations = snapshot.docs
+          .map(
+            (doc) => Reservation.fromMap({
+              ...doc.data() as Map<String, dynamic>,
+              'id': doc.id,
+            }),
+          )
           .toList();
-
-      print('🔍 Réservations converties: ${reservations.length}');
-      for (var r in reservations) {
-        print('🔍 Reservation: ${r.id}, type: ${r.type.name}, status: ${r.status.name}');
-      }
 
       // Enrichir avec les noms d'utilisateurs
       final enrichedReservations = <Reservation>[];
@@ -798,16 +784,11 @@ class ReservationService {
         enrichedReservations.add(enriched);
       }
 
-      // Appliquer le filtre
-      final filtered = filter.applyFilter(enrichedReservations);
-      print('🔍 Après filtrage: ${filtered.length} réservations');
-      
-      yield filtered;
-    } catch (e) {
-      print('❌ Erreur lors de la récupération des réservations: $e');
-      yield [];
-    }
+      // Appliquer le tri final côté client
+      return filter.applyFilter(enrichedReservations);
+    });
   }
+
 
   /// Obtenir les réservations terminées d'un utilisateur avec filtres
   Future<List<Reservation>> getUserCompletedReservationsWithFilter(

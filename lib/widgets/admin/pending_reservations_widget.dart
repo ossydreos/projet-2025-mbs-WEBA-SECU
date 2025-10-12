@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 enum RefusalAction { refuse, counterOffer }
 
@@ -35,7 +36,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context).error(e.toString())), backgroundColor: Colors.red),
         );
       }
     }
@@ -104,13 +105,13 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(RefusalAction.refuse),
-              child: const Text('Refuser', style: TextStyle(color: Colors.red)),
+              child: Text(AppLocalizations.of(context).refuse, style: TextStyle(color: Colors.red)),
             ),
             ElevatedButton(
               onPressed: () =>
                   Navigator.of(context).pop(RefusalAction.counterOffer),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-              child: const Text('Contre-offre'),
+              child: Text(AppLocalizations.of(context).counterOffer),
             ),
           ],
         );
@@ -255,7 +256,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
                   controller: messageController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    hintText: 'Expliquez le changement...',
+                    hintText: AppLocalizations.of(context).explainChange,
                     hintStyle: const TextStyle(color: Colors.white54),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -300,7 +301,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
                 });
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-              child: const Text('Proposer'),
+              child: Text(AppLocalizations.of(context).propose),
             ),
           ],
         ),
@@ -349,7 +350,7 @@ class _PendingReservationsWidgetState extends State<PendingReservationsWidget> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context).error(e.toString())), backgroundColor: Colors.red),
         );
       }
     }

@@ -45,6 +45,7 @@ import 'widgets/payment_success_animation.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'services/maps_initialization_service.dart';
 
 // Clé globale pour le navigator (pour afficher l'animation depuis n'importe où)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -62,10 +63,15 @@ void main() async {
     OneSignal.initialize("031e7630-e928-42fe-98a3-767668b2bedb");
     await OneSignal.Notifications.requestPermission(true); // iOS/Android 13+
     
+    // Google Maps initialisé automatiquement via AndroidManifest.xml
+    
+    // Initialiser le service de notifications locales pour les admins
+    await AdminGlobalNotificationService().initializeGlobal();
+    
     // ❌ SUPPRIMÉ - Connexion automatique anonyme qui causait le bug de déconnexion
     // L'authentification sera gérée par AuthGate selon les besoins de l'utilisateur
     
-    debugPrint('✅ OneSignal configuré - Authentification gérée par AuthGate');
+    debugPrint('✅ OneSignal, Google Maps et notifications locales configurés - Authentification gérée par AuthGate');
     
     // Initialiser les données de fuseau horaire
     tz.initializeTimeZones();

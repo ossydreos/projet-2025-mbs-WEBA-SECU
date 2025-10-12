@@ -5,6 +5,7 @@ import 'package:my_mobility_services/services/contact_launcher_service.dart';
 import 'package:my_mobility_services/data/models/support_message.dart';
 import 'package:my_mobility_services/data/models/ride_chat_thread.dart';
 import 'package:my_mobility_services/data/services/ride_chat_service.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class RideChatScreen extends StatefulWidget {
   final String reservationId;
@@ -56,7 +57,7 @@ class _RideChatScreenState extends State<RideChatScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: $e'), backgroundColor: AppColors.hot),
+        SnackBar(content: Text(AppLocalizations.of(context).error(e.toString())), backgroundColor: AppColors.hot),
       );
     }
   }
@@ -234,8 +235,8 @@ class _RideChatScreenState extends State<RideChatScreen> {
                 child: TextField(
                   controller: _controller,
                   style: TextStyle(color: AppColors.textStrong),
-                  decoration: const InputDecoration(
-                    hintText: 'Écrire un message...'
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context).writeMessage
                   ),
                   minLines: 1,
                   maxLines: 4,
@@ -259,7 +260,7 @@ class _RideChatScreenState extends State<RideChatScreen> {
     if (text.isEmpty || _thread == null) return;
     if (_thread!.isClosed) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cette conversation est terminée.')),
+        SnackBar(content: Text(AppLocalizations.of(context).conversationFinished)),
       );
       return;
     }
@@ -278,7 +279,7 @@ class _RideChatScreenState extends State<RideChatScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de l\'appel: $e'), backgroundColor: AppColors.hot),
+        SnackBar(content: Text(AppLocalizations.of(context).callError(e.toString())), backgroundColor: AppColors.hot),
       );
     }
   }

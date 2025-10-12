@@ -258,7 +258,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Code promo appliqué')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).promoCodeApplied)));
     } catch (e) {
       setState(() {
         _appliedPromo = null;
@@ -267,7 +267,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).error(e.toString()))));
     } finally {
       if (mounted) setState(() => _applyingPromo = false);
     }
@@ -874,7 +874,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                         fontSize: 16,
                                       ),
                                       decoration: InputDecoration(
-                                        hintText: 'Entrez votre code promo',
+                                        hintText: AppLocalizations.of(context).enterPromoCode,
                                         hintStyle: TextStyle(
                                           color: AppColors.textWeak,
                                           fontSize: 16,
@@ -915,7 +915,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
                                                 ),
                                           ),
                                         )
-                                      : const Text('Appliquer'),
+                                      : Text(AppLocalizations.of(context).apply),
                                 ),
                               ],
                             ),
@@ -1255,7 +1255,7 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Non', style: TextStyle(color: AppColors.text)),
+              child: Text(AppLocalizations.of(context).no, style: TextStyle(color: AppColors.text)),
             ),
             TextButton(
               onPressed: () {

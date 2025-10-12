@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/reservation_filter.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 /// Helper public pour ouvrir directement la feuille de filtres depuis n'importe où
 Future<void> showReservationFilterBottomSheet({
@@ -255,7 +256,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       decoration: const BoxDecoration(
-        color: Colors.black87,
+        color: Colors.black,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
@@ -348,7 +349,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                       side: BorderSide(color: AppColors.glassStroke),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Annuler'),
+                    child: Text(AppLocalizations.of(context).cancel),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -360,7 +361,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Appliquer'),
+                    child: Text(AppLocalizations.of(context).apply),
                   ),
                 ),
               ],
@@ -493,7 +494,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 colorScheme: const ColorScheme.dark(
                   primary: AppColors.accent,
                   onPrimary: Colors.white,
-                  surface: Colors.black87,
+                  surface: Colors.black,
                   onSurface: Colors.white,
                 ),
               ),
@@ -618,7 +619,7 @@ class _SortBottomSheet extends StatelessWidget {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.black87,
+        color: Colors.black,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),

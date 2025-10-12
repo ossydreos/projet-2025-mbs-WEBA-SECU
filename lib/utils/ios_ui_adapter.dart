@@ -1,5 +1,6 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Service d'adaptation d'interface utilisateur pour iOS
@@ -169,7 +170,7 @@ class IOSUIAdapter {
               Navigator.of(context).pop();
               onCancel?.call();
             },
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
         ),
       );
@@ -195,7 +196,7 @@ class IOSUIAdapter {
                   Navigator.of(context).pop();
                   onCancel?.call();
                 },
-                child: const Text('Annuler'),
+                child: Text(AppLocalizations.of(context).cancel),
               ),
             ],
           ),

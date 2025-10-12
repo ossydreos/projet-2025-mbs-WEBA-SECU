@@ -160,18 +160,12 @@ class ReservationFilter {
         '🔍 Statuts des courses filtrées: ${filtered.map((r) => r.status.name).toList()}',
       );
     } else {
-      // Pour les courses terminées : courses terminées ou complétées
-      print('🔍 Filtrage des courses terminées - Total avant filtre: ${filtered.length}');
+      // Pour les courses terminées : SEULEMENT les courses terminées (pas les annulées)
       filtered = filtered
           .where(
-            (r) => r.isCompleted || 
-                   r.status == ReservationStatus.completed ||
-                   (r.type == ReservationType.offer && r.status == ReservationStatus.completed),
+            (r) => r.isCompleted || r.status == ReservationStatus.completed,
           )
           .toList();
-      print('🔍 Courses terminées après filtre: ${filtered.length}');
-      print('🔍 Statuts des courses terminées: ${filtered.map((r) => r.status.name).toList()}');
-      print('🔍 Offres personnalisées terminées: ${filtered.where((r) => r.type == ReservationType.offer).length}');
     }
 
     // Filtrer par type de réservation

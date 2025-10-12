@@ -483,7 +483,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                             );
                           },
                           icon: const Icon(Icons.chat_bubble, size: 18),
-                          label: const Text('Chat'),
+                          label: Text(AppLocalizations.of(context).chat),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.accent,
                             side: BorderSide(color: AppColors.accent),
@@ -537,7 +537,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                             );
                           },
                           icon: const Icon(Icons.chat_bubble, size: 18),
-                          label: const Text('Chat'),
+                          label: Text(AppLocalizations.of(context).chat),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.accent,
                             side: BorderSide(color: AppColors.accent),

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/services/client_notification_service.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/widgets/notifications/notification_card.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -182,7 +183,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context).error(e.toString())), backgroundColor: Colors.red),
         );
       }
     }
@@ -204,7 +205,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context).error(e.toString())), backgroundColor: Colors.red),
         );
       }
     }
@@ -224,7 +225,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(AppLocalizations.of(context).error(e.toString())), backgroundColor: Colors.red),
         );
       }
     }

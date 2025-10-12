@@ -733,13 +733,13 @@ class _TimesBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text('Début', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
+        Text(AppLocalizations.of(context).start, style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
         Text(
           _hhmm(start),
           style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
-        Text('Fin', style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
+        Text(AppLocalizations.of(context).end, style: TextStyle(color: AppColors.textWeak, fontSize: 12)),
         Text(
           _hhmm(end),
           style: TextStyle(color: AppColors.textStrong, fontSize: 14, fontWeight: FontWeight.w600),

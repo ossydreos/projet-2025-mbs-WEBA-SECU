@@ -450,7 +450,7 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                       controller: descriptionController,
                       maxLines: 2,
                       decoration: InputDecoration(
-                        labelText: 'Description',
+                        labelText: AppLocalizations.of(context).description,
                         hintText: AppLocalizations.of(
                           context,
                         ).vehicleDescriptionHint,
@@ -506,8 +506,8 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                             controller: maxPassengersController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              labelText: 'Passagers max',
-                              hintText: '4',
+                              labelText: AppLocalizations.of(context).maxPassengers,
+                              hintText: AppLocalizations.of(context).four,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -520,8 +520,8 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                             controller: maxLuggageController,
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
-                              labelText: 'Bagages max',
-                              hintText: '2',
+                              labelText: AppLocalizations.of(context).maxLuggage,
+                              hintText: AppLocalizations.of(context).two,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -536,8 +536,8 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                     TextField(
                       controller: imageUrlController,
                       decoration: InputDecoration(
-                        labelText: 'URL de l\'image',
-                        hintText: 'https://example.com/image.jpg',
+                        labelText: AppLocalizations.of(context).imageUrl,
+                        hintText: AppLocalizations.of(context).imageUrlExample,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

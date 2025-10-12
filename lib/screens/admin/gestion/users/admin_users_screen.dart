@@ -6,6 +6,7 @@ import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/reservation_detail_screen.dart';
 import 'package:my_mobility_services/screens/admin/offres/admin_custom_offer_detail_screen.dart';
 import 'package:my_mobility_services/design/widgets/primitives/custom_badge.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
@@ -193,7 +194,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                     autofocus: true,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: 'Rechercher par nom ou email',
+                      hintText: AppLocalizations.of(context).searchByNameOrEmail,
                       hintStyle: TextStyle(color: AppColors.textWeak),
                       prefixIcon: Icon(Icons.search, color: AppColors.accent),
                       filled: true,
@@ -249,7 +250,7 @@ class AdminUserDetailScreen extends StatelessWidget {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: GlassAppBar(title: 'Fiche utilisateur'),
+        appBar: GlassAppBar(title: AppLocalizations.of(context).userProfile),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -264,7 +265,7 @@ class AdminUserDetailScreen extends StatelessWidget {
                   }
                   final data = snapshot.data!.data() as Map<String, dynamic>?;
                   if (data == null) {
-                    return const Text('Utilisateur introuvable');
+                    return Text(AppLocalizations.of(context).userNotFound);
                   }
                   final displayName = (data['displayName'] ?? '').toString();
                   final firstName = (data['firstName'] ?? '').toString();
@@ -431,7 +432,7 @@ class AdminUserDetailScreen extends StatelessWidget {
                       });
                       
                       if (allItems.isEmpty) {
-                        return const Text('Aucune réservation ou offre');
+                        return Text(AppLocalizations.of(context).noReservationsOrOffers);
                       }
                       
                       return Column(
@@ -590,7 +591,7 @@ class AdminUserDetailScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Fermer', style: TextStyle(color: AppColors.accent)),
+              child: Text(AppLocalizations.of(context).close, style: TextStyle(color: AppColors.accent)),
             ),
           ],
         );

@@ -757,5 +757,173 @@
   "intellectualPropertyText": "All elements of this site (texts, images, logos, design) are protected by copyright. Any reproduction without authorization is prohibited. The application and its database are intellectual works protected by the Intellectual Property Code.",
   
   "applicableLaw": "Applicable Law",
-  "applicableLawText": "These terms are subject to Swiss law. In case of dispute, Swiss courts will have sole jurisdiction. The reference language is French."
+  "applicableLawText": "These terms are subject to Swiss law. In case of dispute, Swiss courts will have sole jurisdiction. The reference language is French.",
+
+  "filters": "Filters",
+  "period": "Period",
+  "reservationType": "Reservation type",
+  "date": "Date",
+  "price": "Price",
+  "selectAtLeastOneReservation": "Please select at least one reservation",
+  "generatingPdf": "Generating PDF... ({count} reservations)",
+  "@generatingPdf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noDataFound": "No data found for selected reservations",
+  "pdfExportedSuccessfully": "PDF exported successfully!",
+  "exportError": "Export error: {error}",
+  "@exportError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reservationRefused": "Reservation refused",
+  "error": "Error: {error}",
+  "@error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "propose": "Propose",
+  "createTestReservation": "🧪 Create test reservation",
+  "testError": "❌ Test error: {error}",
+  "@testError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "reservationCancelledSuccess": "Reservation cancelled successfully",
+  "cancellationError": "Cancellation error: {error}",
+  "@cancellationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "yesCancel": "Yes, cancel",
+  "offerCancelledSuccess": "Offer cancelled successfully",
+  "manage": "Manage",
+  "offerRefused": "Offer refused",
+  "refuse": "Refuse",
+  "contactClient": "Contact client",
+  "paymentRequestSent": "Payment request sent to client",
+  "counterOffer": "Counter offer",
+  "sendCounterOffer": "Send counter offer",
+  "confirm": "Confirm",
+  "profileUpdatedSuccess": "Information updated successfully!",
+  "management": "Management",
+  "userProfile": "User profile",
+  "searchByNameOrEmail": "Search by name or email",
+  "userNotFound": "User not found",
+  "noReservationsOrOffers": "No reservations or offers",
+  "close": "Close",
+  "messages": "Messages",
+  "noMessages": "No messages",
+  "newMessage": "New message",
+  "account": "Account",
+  "createPromoCode": "Create promo code",
+  "promoCodeExample": "Ex: Promo Code 20",
+  "promoCodeIdExample": "Ex: Promo20",
+  "chooseDate": "Choose a date",
+  "usageLimitExample": "Ex: 100",
+  "promoCodes": "Promo codes",
+  "codeCreated": "Code created",
+  "promoCodeCreated": "Promo code created",
+  "chat": "Chat",
+  "writeMessage": "Write a message...",
+  "ticketFinished": "This ticket is finished. Open a new message.",
+  "retry": "Retry",
+  "conversationFinished": "This conversation is finished.",
+  "callError": "Call error: {error}",
+  "@callError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "fullName": "Full name",
+  "fullNameExample": "Ex: John Doe",
+  "emailAddress": "Email address",
+  "emailExample": "Ex: john.doe@email.com",
+  "phoneNumber": "Phone number",
+  "phoneExample": "Ex: 612345678",
+  "searchCountry": "Search for a country...",
+  "password": "Password",
+  "passwordExample": "Ex: MyPassword123!",
+  "enterEmail": "Enter email",
+  "enterPassword": "Enter password",
+  "priceInChf": "Price in CHF",
+  "optionalMessageForClient": "Optional message for client...",
+  "phone": "Phone",
+  "explainRefundReason": "Explain the reason for refund...",
+  "description": "Description",
+  "maxPassengers": "Max passengers",
+  "four": "4",
+  "maxLuggage": "Max luggage",
+  "two": "2",
+  "imageUrl": "Image URL",
+  "imageUrlExample": "https://example.com/image.jpg",
+  "destination": "Destination",
+  "enterPromoCode": "Enter your promo code",
+  "promoCodeApplied": "Promo code applied",
+  "no": "No",
+  "apply": "Apply",
+  "createOffer": "Create offer",
+  "uberNotificationDemo": "Uber Notification Demo",
+  "launchDemo": "Launch demo",
+  "uberNotificationTest": "Uber Notification Test",
+  "explainChange": "Explain the change...",
+  "explainScheduleChange": "Explain the reason for schedule change...",
+  "filter": "Filter",
+  "sort": "Sort",
+  "pending": "Pending",
+  "confirmed": "Confirmed",
+  "completed": "Completed",
+  "cancelled": "Cancelled",
+  "unknown": "Unknown",
+  "deselectTrip": "Deselect this trip",
+  "selectTrip": "Select this trip",
+  "payment": "Payment",
+  "departure": "Departure",
+  "arrival": "Arrival",
+  "tripDescription": "Trip from {fromAddress} to {toAddress}, status {status}, departure {startAt}{arrivalInfo}, price {priceFormatted}",
+  "@tripDescription": {
+    "placeholders": {
+      "fromAddress": {
+        "type": "String"
+      },
+      "toAddress": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "startAt": {
+        "type": "String"
+      },
+      "arrivalInfo": {
+        "type": "String"
+      },
+      "priceFormatted": {
+        "type": "String"
+      }
+    }
+  },
+  "inProgress": "In progress",
+  "start": "Start",
+  "end": "End",
+  "selectedPeriod": "Selected period",
+  "label": "Label"
 }

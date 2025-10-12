@@ -531,7 +531,7 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
               keyboardType: TextInputType.number,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                labelText: 'Prix en CHF',
+                labelText: AppLocalizations.of(context).priceInChf,
                 labelStyle: const TextStyle(color: Colors.white70),
                 prefixIcon: const Icon(Icons.euro, color: Colors.white70),
                 border: OutlineInputBorder(
@@ -622,7 +622,7 @@ class _AdminCustomOfferDetailScreenState extends State<AdminCustomOfferDetailScr
               decoration: InputDecoration(
                 labelText: l10n.driverMessage,
                 labelStyle: const TextStyle(color: Colors.white70),
-                hintText: 'Message optionnel pour le client...',
+                hintText: AppLocalizations.of(context).optionalMessageForClient,
                 hintStyle: const TextStyle(color: Colors.white54),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),

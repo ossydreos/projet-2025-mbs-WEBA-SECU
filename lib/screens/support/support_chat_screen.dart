@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_mobility_services/data/models/support_message.dart';
 import 'package:my_mobility_services/data/models/support_thread.dart';
 import 'package:my_mobility_services/data/services/support_chat_service.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 
 class SupportChatScreen extends StatefulWidget {
@@ -235,7 +236,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                                     });
                                     _initThread();
                                   },
-                                  child: const Text('Réessayer'),
+                                  child: Text(AppLocalizations.of(context).retry),
                                 ),
                               ],
                             ),
@@ -359,8 +360,8 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                 child: TextField(
                   controller: _controller,
                   style: TextStyle(color: AppColors.textStrong),
-                  decoration: const InputDecoration(
-                    hintText: 'Écrire un message...'
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context).writeMessage
                   ),
                   minLines: 1,
                   maxLines: 4,
@@ -385,7 +386,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
     // Empêcher l'envoi si le ticket est fermé
     if (_thread!.isClosed) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ce ticket est terminé. Ouvrez un nouveau message.')),
+        SnackBar(content: Text(AppLocalizations.of(context).ticketFinished)),
       );
       return;
     }

@@ -800,7 +800,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
                         children: const [
                           Icon(Icons.chat_bubble, color: AppColors.accent, size: 18),
                           SizedBox(width: 8),
-                          Text('Chat', style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)),
+                          Text(AppLocalizations.of(context).chat, style: TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)),
                         ],
                       ),
                     ),

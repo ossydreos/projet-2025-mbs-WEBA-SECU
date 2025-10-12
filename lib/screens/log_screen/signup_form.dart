@@ -251,10 +251,10 @@ class SignupFormState extends State<SignupForm> {
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.name],
             style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: 'Nom complet',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).fullName,
               labelStyle: TextStyle(color: Colors.white),
-              hintText: 'Ex: Jean Dupont',
+              hintText: AppLocalizations.of(context).fullNameExample,
               hintStyle: TextStyle(color: Colors.white54),
             ),
             validator: (v) {
@@ -274,10 +274,10 @@ class SignupFormState extends State<SignupForm> {
             keyboardType: TextInputType.emailAddress,
             autofillHints: const [AutofillHints.email],
             style: const TextStyle(color: Colors.white),
-            decoration: const InputDecoration(
-              labelText: 'Adresse email',
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).emailAddress,
               labelStyle: TextStyle(color: Colors.white),
-              hintText: 'Ex: jean.dupont@email.com',
+              hintText: AppLocalizations.of(context).emailExample,
               hintStyle: TextStyle(color: Colors.white54),
             ),
             validator: (v) => _isValidEmail(v)
@@ -299,9 +299,9 @@ class SignupFormState extends State<SignupForm> {
             autofillHints: const [AutofillHints.telephoneNumber],
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              labelText: 'Numéro de téléphone',
+              labelText: AppLocalizations.of(context).phoneNumber,
               labelStyle: const TextStyle(color: Colors.white),
-              hintText: 'Ex: 612345678',
+              hintText: AppLocalizations.of(context).phoneExample,
               hintStyle: const TextStyle(color: Colors.white54),
               prefixIcon: CountryCodePicker(
                 onChanged: (CountryCode countryCode) {
@@ -325,8 +325,8 @@ class SignupFormState extends State<SignupForm> {
                 searchStyle: const TextStyle(color: Colors.white, fontSize: 16),
                 dialogBackgroundColor: const Color(0xFF1E1E1E),
                 barrierColor: Colors.black54,
-                searchDecoration: const InputDecoration(
-                  hintText: 'Rechercher un pays...',
+                searchDecoration: InputDecoration(
+                  hintText: AppLocalizations.of(context).searchCountry,
                   hintStyle: TextStyle(color: Colors.white54),
                   border: OutlineInputBorder(),
                 ),
@@ -346,9 +346,9 @@ class SignupFormState extends State<SignupForm> {
             autofillHints: const [AutofillHints.newPassword],
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              labelText: 'Mot de passe',
+              labelText: AppLocalizations.of(context).password,
               labelStyle: const TextStyle(color: Colors.white),
-              hintText: 'Ex: MonMotDePasse123!',
+              hintText: AppLocalizations.of(context).passwordExample,
               hintStyle: const TextStyle(color: Colors.white54),
               suffixIcon: IconButton(
                 onPressed: () =>

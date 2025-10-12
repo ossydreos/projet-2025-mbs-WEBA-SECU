@@ -139,11 +139,7 @@ class _AddressSuggestionFieldState extends State<AddressSuggestionField> {
     });
 
     try {
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
-          : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+      final key = await AppConstants.googlePlacesWebKey;
       
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
@@ -262,11 +258,7 @@ class _AddressSuggestionFieldState extends State<AddressSuggestionField> {
 
   Future<LatLng?> _fetchPlaceDetailsLatLng(String placeId) async {
     try {
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
-          : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+      final key = await AppConstants.googlePlacesWebKey;
       
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&key=$key',

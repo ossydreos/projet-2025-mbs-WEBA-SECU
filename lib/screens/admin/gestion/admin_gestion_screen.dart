@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
 
 class AdminGestionScreen extends StatefulWidget {
@@ -24,7 +25,7 @@ class _AdminGestionScreenState extends State<AdminGestionScreen> {
     return GlassBackground(
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: GlassAppBar(title: 'Gestion', actions: []),
+        appBar: GlassAppBar(title: AppLocalizations.of(context).management, actions: []),
         body: Column(
           children: [
             // Contenu principal

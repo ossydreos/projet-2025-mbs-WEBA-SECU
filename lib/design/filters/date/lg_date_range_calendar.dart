@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:my_mobility_services/design/tokens/app_tokens.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class LgDateRangeCalendar extends StatefulWidget {
   final DateTimeRange? initialRange;
@@ -171,7 +172,7 @@ class _LgDateRangeCalendarState extends State<LgDateRangeCalendar> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Période sélectionnée', style: t.caption.copyWith(color: t.textSecondary)),
+        Text(AppLocalizations.of(context).selectedPeriod, style: t.caption.copyWith(color: t.textSecondary)),
         SizedBox(height: t.spaceXxs),
         Text(value, style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
       ],

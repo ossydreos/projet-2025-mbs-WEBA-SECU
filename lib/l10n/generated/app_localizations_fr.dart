@@ -246,7 +246,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get fullName => 'Nom complet';
 
   @override
-  String get phoneNumber => 'Téléphone';
+  String get phoneNumber => 'Numéro de téléphone';
 
   @override
   String get menu => 'Menu';
@@ -871,7 +871,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tryDifferentKeywords => 'Try different keywords';
 
   @override
-  String get filter => 'Filter';
+  String get filter => 'Filtrer';
 
   @override
   String get sortBy => 'Sort by';
@@ -1093,7 +1093,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get save => 'Save';
 
   @override
-  String get close => 'Close';
+  String get close => 'Fermer';
 
   @override
   String get back => 'Back';
@@ -1693,7 +1693,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tapToOpen => 'Appuyez pour ouvrir';
 
   @override
-  String get error => 'Erreur';
+  String error(String error) {
+    return 'Erreur: $error';
+  }
 
   @override
   String get termsConditions => 'Conditions d\'utilisation';
@@ -1829,4 +1831,261 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get applicableLawText =>
       'Les présentes conditions sont soumises au droit suisse. En cas de litige, les tribunaux suisses seront seuls compétents. La langue de référence est le français.';
+
+  @override
+  String get filters => 'Filtres';
+
+  @override
+  String get period => 'Période';
+
+  @override
+  String get reservationType => 'Type de réservation';
+
+  @override
+  String get selectAtLeastOneReservation =>
+      'Veuillez sélectionner au moins une réservation';
+
+  @override
+  String generatingPdf(int count) {
+    return 'Génération du PDF... ($count réservations)';
+  }
+
+  @override
+  String get noDataFound =>
+      'Aucune donnée trouvée pour les réservations sélectionnées';
+
+  @override
+  String get pdfExportedSuccessfully => 'PDF exporté avec succès !';
+
+  @override
+  String exportError(String error) {
+    return 'Erreur lors de l\'export: $error';
+  }
+
+  @override
+  String get createTestReservation => '🧪 Créer réservation de test';
+
+  @override
+  String testError(String error) {
+    return '❌ Erreur lors du test: $error';
+  }
+
+  @override
+  String cancellationError(String error) {
+    return 'Erreur lors de l\'annulation: $error';
+  }
+
+  @override
+  String get offerCancelledSuccess => 'Offre annulée avec succès';
+
+  @override
+  String get manage => 'Gérer';
+
+  @override
+  String get offerRefused => 'Offre refusée';
+
+  @override
+  String get refuse => 'Refuser';
+
+  @override
+  String get contactClient => 'Contacter le client';
+
+  @override
+  String get paymentRequestSent => 'Demande de paiement envoyée au client';
+
+  @override
+  String get sendCounterOffer => 'Envoyer la contre-offre';
+
+  @override
+  String get profileUpdatedSuccess => 'Informations mises à jour avec succès !';
+
+  @override
+  String get userProfile => 'Fiche utilisateur';
+
+  @override
+  String get searchByNameOrEmail => 'Rechercher par nom ou email';
+
+  @override
+  String get userNotFound => 'Utilisateur introuvable';
+
+  @override
+  String get noReservationsOrOffers => 'Aucune réservation ou offre';
+
+  @override
+  String get messages => 'Messages';
+
+  @override
+  String get noMessages => 'Aucun message';
+
+  @override
+  String get newMessage => 'Nouveau message';
+
+  @override
+  String get promoCodeExample => 'Ex: Code Promo 20';
+
+  @override
+  String get promoCodeIdExample => 'Ex: Promo20';
+
+  @override
+  String get chooseDate => 'Choisir une date';
+
+  @override
+  String get usageLimitExample => 'Ex: 100';
+
+  @override
+  String get codeCreated => 'Code créé';
+
+  @override
+  String get promoCodeCreated => 'Code promo créé';
+
+  @override
+  String get chat => 'Chat';
+
+  @override
+  String get writeMessage => 'Écrire un message...';
+
+  @override
+  String get ticketFinished =>
+      'Ce ticket est terminé. Ouvrez un nouveau message.';
+
+  @override
+  String get conversationFinished => 'Cette conversation est terminée.';
+
+  @override
+  String callError(String error) {
+    return 'Erreur lors de l\'appel: $error';
+  }
+
+  @override
+  String get fullNameExample => 'Ex: Jean Dupont';
+
+  @override
+  String get emailAddress => 'Adresse email';
+
+  @override
+  String get emailExample => 'Ex: jean.dupont@email.com';
+
+  @override
+  String get phoneExample => 'Ex: 612345678';
+
+  @override
+  String get searchCountry => 'Rechercher un pays...';
+
+  @override
+  String get passwordExample => 'Ex: MonMotDePasse123!';
+
+  @override
+  String get enterEmail => 'Entrer l\'email';
+
+  @override
+  String get enterPassword => 'Entrer le mot de passe';
+
+  @override
+  String get priceInChf => 'Prix en CHF';
+
+  @override
+  String get optionalMessageForClient => 'Message optionnel pour le client...';
+
+  @override
+  String get phone => 'Téléphone';
+
+  @override
+  String get explainRefundReason => 'Expliquez la raison du remboursement...';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get maxPassengers => 'Passagers max';
+
+  @override
+  String get four => '4';
+
+  @override
+  String get maxLuggage => 'Bagages max';
+
+  @override
+  String get two => '2';
+
+  @override
+  String get imageUrl => 'URL de l\'image';
+
+  @override
+  String get imageUrlExample => 'https://example.com/image.jpg';
+
+  @override
+  String get enterPromoCode => 'Entrez votre code promo';
+
+  @override
+  String get promoCodeApplied => 'Code promo appliqué';
+
+  @override
+  String get apply => 'Appliquer';
+
+  @override
+  String get uberNotificationDemo => 'Démo Notification Uber';
+
+  @override
+  String get launchDemo => 'Lancer la démo';
+
+  @override
+  String get uberNotificationTest => 'Test Notification Uber';
+
+  @override
+  String get explainChange => 'Expliquez le changement...';
+
+  @override
+  String get explainScheduleChange =>
+      'Expliquez le motif du changement d\'horaire...';
+
+  @override
+  String get sort => 'Trier';
+
+  @override
+  String get confirmed => 'Confirmé';
+
+  @override
+  String get completed => 'Terminé';
+
+  @override
+  String get cancelled => 'Annulé';
+
+  @override
+  String get unknown => 'Inconnu';
+
+  @override
+  String get deselectTrip => 'Désélectionner ce trajet';
+
+  @override
+  String get selectTrip => 'Sélectionner ce trajet';
+
+  @override
+  String get arrival => 'Arrivée';
+
+  @override
+  String tripDescription(
+    String fromAddress,
+    String toAddress,
+    String status,
+    String startAt,
+    String arrivalInfo,
+    String priceFormatted,
+  ) {
+    return 'Trajet de $fromAddress vers $toAddress, statut $status, départ $startAt$arrivalInfo, prix $priceFormatted';
+  }
+
+  @override
+  String get inProgress => 'En cours';
+
+  @override
+  String get start => 'Début';
+
+  @override
+  String get end => 'Fin';
+
+  @override
+  String get selectedPeriod => 'Période sélectionnée';
+
+  @override
+  String get label => 'Étiquette';
 }

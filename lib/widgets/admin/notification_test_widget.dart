@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/services/notification_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class NotificationTestWidget extends StatelessWidget {
   const NotificationTestWidget({super.key});
@@ -11,7 +12,7 @@ class NotificationTestWidget extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
-        title: const Text('Test Notification Uber'),
+        title: Text(AppLocalizations.of(context).uberNotificationTest),
         backgroundColor: AppColors.bgElev,
       ),
       body: Center(

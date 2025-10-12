@@ -1,0 +1,141 @@
+file,line,widget,param,snippet,isLocalized,proposedKey,notes
+lib/design/filters/trips_filters_sheet.dart,119,Text,text,Filtres,no,filters,Interface de filtrage
+lib/design/filters/trips_filters_sheet.dart,134,Text,text,Période,no,period,Section période
+lib/design/filters/trips_filters_sheet.dart,162,Text,text,Type de réservation,no,reservationType,Section type de réservation
+lib/design/filters/trips_filters_sheet.dart,202,Text,text,Date,no,date,Section date
+lib/design/filters/trips_filters_sheet.dart,221,Text,text,Prix,no,price,Section prix
+lib/screens/utilisateur/trips/trips_screen_refined.dart,96,SnackBar,content,Veuillez sélectionner au moins une réservation,no,selectAtLeastOneReservation,Message d'erreur sélection
+lib/screens/utilisateur/trips/trips_screen_refined.dart,107,SnackBar,content,Génération du PDF... (${_selection.count} réservations),no,generatingPdf,Message génération PDF
+lib/screens/utilisateur/trips/trips_screen_refined.dart,119,SnackBar,content,Aucune donnée trouvée pour les réservations sélectionnées,no,noDataFound,Message aucune donnée
+lib/screens/utilisateur/trips/trips_screen_refined.dart,132,SnackBar,content,PDF exporté avec succès !,no,pdfExportedSuccessfully,Message succès export
+lib/screens/utilisateur/trips/trips_screen_refined.dart,142,SnackBar,content,Erreur lors de l'export: $e,no,exportError,Message erreur export
+lib/data/services/admin_global_notification_service.dart,803,SnackBar,content,Réservation refusée,no,reservationRefused,Message refus réservation
+lib/data/services/admin_global_notification_service.dart,818,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/data/services/admin_global_notification_service.dart,1112,Text,text,Proposer,no,propose,Action proposer
+lib/data/services/admin_global_notification_service.dart,1179,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/admin/reception/admin_reception_screen_complete.dart,166,Text,text,🧪 Créer réservation de test,no,createTestReservation,Bouton test réservation
+lib/screens/admin/reception/admin_reception_screen_complete.dart,234,SnackBar,content,❌ Erreur lors du test: $e,no,testError,Message erreur test
+lib/screens/admin/reception/admin_reception_screen_complete.dart,503,SnackBar,content,Réservation annulée avec succès,no,reservationCancelledSuccess,Message succès annulation
+lib/screens/admin/reception/admin_reception_screen_complete.dart,512,SnackBar,content,Erreur lors de l'annulation: $e,no,cancellationError,Message erreur annulation
+lib/screens/admin/reception/admin_reception_screen_complete.dart,524,Text,text,Oui, annuler,no,yesCancel,Confirmation annulation
+lib/screens/admin/reception/admin_reception_screen_complete.dart,617,SnackBar,content,Offre annulée avec succès,no,offerCancelledSuccess,Message succès annulation offre
+lib/screens/admin/reception/admin_reception_screen_complete.dart,626,SnackBar,content,Erreur lors de l'annulation: $e,no,cancellationError,Message erreur annulation
+lib/screens/admin/reception/admin_reception_screen_complete.dart,638,Text,text,Oui, annuler,no,yesCancel,Confirmation annulation
+lib/screens/admin/reception/admin_reception_screen_complete.dart,914,Text,text,Gérer,no,manage,Action gérer
+lib/screens/admin/reception/admin_reception_screen_complete.dart,928,SnackBar,content,Offre refusée,no,offerRefused,Message offre refusée
+lib/screens/admin/reception/admin_reception_screen_complete.dart,934,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/admin/reception/admin_reception_screen_complete.dart,940,Text,text,Refuser,no,refuse,Action refuser
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1114,Text,text,Contacter le client,no,contactClient,Action contacter client
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1348,SnackBar,content,Demande de paiement envoyée au client,no,paymentRequestSent,Message demande paiement
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1359,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1404,SnackBar,content,Demande de paiement envoyée au client,no,paymentRequestSent,Message demande paiement
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1415,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1438,SnackBar,content,Réservation refusée,no,reservationRefused,Message refus réservation
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1446,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1476,Text,text,Refuser,no,refuse,Action refuser
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1482,Text,text,Contre-offre,no,counterOffer,Action contre-offre
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1666,Text,text,Envoyer la contre-offre,no,sendCounterOffer,Action envoyer contre-offre
+lib/screens/admin/reception/admin_reception_screen_complete.dart,1747,Text,text,Confirmer,no,confirm,Action confirmer
+lib/screens/utilisateur/profile/profile_screen_refined.dart,613,SnackBar,content,Informations mises à jour avec succès !,no,profileUpdatedSuccess,Message succès mise à jour profil
+lib/screens/admin/gestion/users/admin_users_screen.dart,27,AppBar,title,Gestion,no,management,Titre écran gestion
+lib/screens/admin/gestion/users/admin_users_screen.dart,252,AppBar,title,Fiche utilisateur,no,userProfile,Titre fiche utilisateur
+lib/screens/admin/gestion/users/admin_users_screen.dart,196,InputDecoration,hintText,Rechercher par nom ou email,no,searchByNameOrEmail,Placeholder recherche
+lib/screens/admin/gestion/users/admin_users_screen.dart,267,Text,text,Utilisateur introuvable,no,userNotFound,Message utilisateur introuvable
+lib/screens/admin/gestion/users/admin_users_screen.dart,434,Text,text,Aucune réservation ou offre,no,noReservationsOrOffers,Message aucune donnée
+lib/screens/admin/gestion/users/admin_users_screen.dart,593,Text,text,Fermer,no,close,Action fermer
+lib/screens/support/support_home_screen.dart,342,AppBar,title,Messages,no,messages,Titre écran messages
+lib/screens/support/support_home_screen.dart,348,Text,text,Aucun message,no,noMessages,Message aucun message
+lib/screens/support/support_home_screen.dart,396,Text,text,Nouveau message,no,newMessage,Action nouveau message
+lib/screens/admin/profile/admin_profile_screen.dart,50,AppBar,title,Compte,no,account,Titre écran compte
+lib/screens/admin/gestion/code_promo/codePromo_cree_screen.dart,92,AppBar,title,Créer un code promo,no,createPromoCode,Titre écran création code promo
+lib/screens/admin/gestion/code_promo/codePromo_cree_screen.dart,112,InputDecoration,hintText,Ex: Code Promo 20,no,promoCodeExample,Exemple code promo
+lib/screens/admin/gestion/code_promo/codePromo_cree_screen.dart,136,InputDecoration,hintText,Ex: Promo20,no,promoCodeIdExample,Exemple ID code promo
+lib/screens/admin/gestion/code_promo/codePromo_cree_screen.dart,245,InputDecoration,hintText,Choisir une date,no,chooseDate,Placeholder choix date
+lib/screens/admin/gestion/code_promo/codePromo_cree_screen.dart,284,InputDecoration,hintText,Ex: 100,no,usageLimitExample,Exemple limite d'usage
+lib/screens/admin/gestion/code_promo/codePromo_actif_screen.dart,16,AppBar,title,Codes promotionnels,no,promoCodes,Titre écran codes promo
+lib/screens/admin/gestion/code_promo/codePromo_actif_screen.dart,49,SnackBar,content,Code créé,no,codeCreated,Message code créé
+lib/screens/admin/gestion/code_promo/codePromo_cree_screen.dart,73,SnackBar,content,Code promo créé,no,promoCodeCreated,Message code promo créé
+lib/screens/admin/gestion/code_promo/codePromo_cree_screen.dart,80,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/admin/trajets/admin_trajets_screen.dart,486,Text,text,Chat,no,chat,Action chat
+lib/screens/admin/trajets/admin_trajets_screen.dart,540,Text,text,Chat,no,chat,Action chat
+lib/screens/support/support_chat_screen.dart,363,InputDecoration,hintText,Écrire un message...,no,writeMessage,Placeholder message
+lib/screens/support/support_chat_screen.dart,388,SnackBar,content,Ce ticket est terminé. Ouvrez un nouveau message.,no,ticketFinished,Message ticket terminé
+lib/screens/support/support_chat_screen.dart,238,Text,text,Réessayer,no,retry,Action réessayer
+lib/screens/ride_chat/ride_chat_screen.dart,238,InputDecoration,hintText,Écrire un message...,no,writeMessage,Placeholder message
+lib/screens/ride_chat/ride_chat_screen.dart,59,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/ride_chat/ride_chat_screen.dart,262,SnackBar,content,Cette conversation est terminée.,no,conversationFinished,Message conversation terminée
+lib/screens/ride_chat/ride_chat_screen.dart,281,SnackBar,content,Erreur lors de l'appel: $e,no,callError,Message erreur appel
+lib/screens/log_screen/signup_form.dart,255,InputDecoration,labelText,Nom complet,no,fullName,Label nom complet
+lib/screens/log_screen/signup_form.dart,258,InputDecoration,hintText,Ex: Jean Dupont,no,fullNameExample,Exemple nom complet
+lib/screens/log_screen/signup_form.dart,278,InputDecoration,labelText,Adresse email,no,emailAddress,Label adresse email
+lib/screens/log_screen/signup_form.dart,281,InputDecoration,hintText,Ex: jean.dupont@email.com,no,emailExample,Exemple email
+lib/screens/log_screen/signup_form.dart,302,InputDecoration,labelText,Numéro de téléphone,no,phoneNumber,Label téléphone
+lib/screens/log_screen/signup_form.dart,305,InputDecoration,hintText,Ex: 612345678,no,phoneExample,Exemple téléphone
+lib/screens/log_screen/signup_form.dart,329,InputDecoration,hintText,Rechercher un pays...,no,searchCountry,Placeholder recherche pays
+lib/screens/log_screen/signup_form.dart,349,InputDecoration,labelText,Mot de passe,no,password,Label mot de passe
+lib/screens/log_screen/signup_form.dart,351,InputDecoration,hintText,Ex: MonMotDePasse123!,no,passwordExample,Exemple mot de passe
+lib/screens/log_screen/login_form.dart,202,InputDecoration,labelText,Enter email,no,enterEmail,Label email (anglais)
+lib/screens/log_screen/login_form.dart,218,InputDecoration,labelText,Enter password,no,enterPassword,Label mot de passe (anglais)
+lib/screens/admin/offres/admin_custom_offer_detail_screen.dart,534,InputDecoration,labelText,Prix en CHF,no,priceInChf,Label prix CHF
+lib/screens/admin/offres/admin_custom_offer_detail_screen.dart,625,InputDecoration,hintText,Message optionnel pour le client...,no,optionalMessageForClient,Placeholder message optionnel
+lib/screens/utilisateur/profile/profile_screen_refined.dart,481,InputDecoration,labelText,Nom complet,no,fullName,Label nom complet
+lib/screens/utilisateur/profile/profile_screen_refined.dart,502,InputDecoration,labelText,Email,no,email,Label email
+lib/screens/utilisateur/profile/profile_screen_refined.dart,523,InputDecoration,labelText,Téléphone,no,phone,Label téléphone
+lib/screens/utilisateur/payment/payment_history_screen.dart,350,InputDecoration,hintText,Expliquez la raison du remboursement...,no,explainRefundReason,Placeholder raison remboursement
+lib/screens/admin/gestion/vehicules/vehicle_gestion_screen.dart,453,InputDecoration,labelText,Description,no,description,Label description
+lib/screens/admin/gestion/vehicules/vehicle_gestion_screen.dart,509,InputDecoration,labelText,Passagers max,no,maxPassengers,Label passagers max
+lib/screens/admin/gestion/vehicules/vehicle_gestion_screen.dart,510,InputDecoration,hintText,4,no,four,Exemple nombre passagers
+lib/screens/admin/gestion/vehicules/vehicle_gestion_screen.dart,523,InputDecoration,labelText,Bagages max,no,maxLuggage,Label bagages max
+lib/screens/admin/gestion/vehicules/vehicle_gestion_screen.dart,524,InputDecoration,hintText,2,no,two,Exemple nombre bagages
+lib/screens/admin/gestion/vehicules/vehicle_gestion_screen.dart,539,InputDecoration,labelText,URL de l'image,no,imageUrl,Label URL image
+lib/screens/admin/gestion/vehicules/vehicle_gestion_screen.dart,540,InputDecoration,hintText,https://example.com/image.jpg,no,imageUrlExample,Exemple URL image
+lib/screens/utilisateur/reservation/localisation_recherche_screen.dart,1156,InputDecoration,hintText,Destination,no,destination,Placeholder destination
+lib/screens/utilisateur/reservation/trip_summary_screen.dart,877,InputDecoration,hintText,Entrez votre code promo,no,enterPromoCode,Placeholder code promo
+lib/screens/utilisateur/reservation/trip_summary_screen.dart,261,SnackBar,content,Code promo appliqué,no,promoCodeApplied,Message code promo appliqué
+lib/screens/utilisateur/reservation/trip_summary_screen.dart,270,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/utilisateur/reservation/trip_summary_screen.dart,1258,Text,text,Non,no,no,Action non
+lib/screens/utilisateur/reservation/trip_summary_screen.dart,918,Text,text,Appliquer,no,apply,Action appliquer
+lib/widgets/utilisateur/reservation/confirmed_reservation_sheet.dart,347,Text,text,Chat,no,chat,Action chat
+lib/widgets/utilisateur/reservation/pending_reservation_sheet.dart,313,Text,text,Chat,no,chat,Action chat
+lib/widgets/admin/reservation_filter_widget.dart,351,Text,text,Annuler,no,cancel,Action annuler
+lib/widgets/admin/reservation_filter_widget.dart,363,Text,text,Appliquer,no,apply,Action appliquer
+lib/widgets/custom_offer_form_widget.dart,238,Text,text,Annuler,no,cancel,Action annuler
+lib/widgets/custom_offer_form_widget.dart,245,Text,text,Créer l'offre,no,createOffer,Action créer offre
+lib/widgets/admin/test_notification_demo.dart,14,AppBar,title,Démo Notification Uber,no,uberNotificationDemo,Titre démo notification
+lib/widgets/admin/test_notification_demo.dart,53,Text,text,Lancer la démo,no,launchDemo,Action lancer démo
+lib/widgets/admin/notification_test_widget.dart,14,AppBar,title,Test Notification Uber,no,uberNotificationTest,Titre test notification
+lib/widgets/admin/pending_reservations_widget.dart,107,Text,text,Refuser,no,refuse,Action refuser
+lib/widgets/admin/pending_reservations_widget.dart,113,Text,text,Contre-offre,no,counterOffer,Action contre-offre
+lib/widgets/admin/pending_reservations_widget.dart,258,InputDecoration,hintText,Expliquez le changement...,no,explainChange,Placeholder explication changement
+lib/widgets/admin/pending_reservations_widget.dart,303,Text,text,Proposer,no,propose,Action proposer
+lib/widgets/admin/pending_reservations_widget.dart,37,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/widgets/admin/pending_reservations_widget.dart,352,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/utils/ios_ui_adapter.dart,172,Text,text,Annuler,no,cancel,Action annuler
+lib/utils/ios_ui_adapter.dart,198,Text,text,Annuler,no,cancel,Action annuler
+lib/screens/utilisateur/notifications/notifications_screen.dart,185,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/utilisateur/notifications/notifications_screen.dart,207,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/utilisateur/notifications/notifications_screen.dart,227,SnackBar,content,Erreur: $e,no,error,Message erreur générique
+lib/screens/utilisateur/offres/offres_personnalisees_screen.dart,736,Text,text,Début,no,start,Label début
+lib/screens/utilisateur/offres/offres_personnalisees_screen.dart,742,Text,text,Fin,no,end,Label fin
+lib/screens/utilisateur/trajets/trajets_screen.dart,803,Text,text,Chat,no,chat,Action chat
+lib/design/filters/date/lg_date_range_calendar.dart,174,Text,text,Période sélectionnée,no,selectedPeriod,Label période sélectionnée
+lib/screens/utilisateur/trips/widgets/optimized_trips_list.dart,99,Text,text,En attente,no,pending,Statut en attente
+lib/screens/utilisateur/trips/widgets/optimized_trips_list.dart,99,Text,text,Confirmé,no,confirmed,Statut confirmé
+lib/screens/utilisateur/trips/widgets/optimized_trips_list.dart,99,Text,text,Terminé,no,completed,Statut terminé
+lib/screens/utilisateur/trips/widgets/optimized_trips_list.dart,99,Text,text,Annulé,no,cancelled,Statut annulé
+lib/screens/utilisateur/trips/widgets/optimized_trips_list.dart,99,Text,text,Inconnu,no,unknown,Statut inconnu
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,182,Text,text,Désélectionner ce trajet,no,deselectTrip,Action désélectionner
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,182,Text,text,Sélectionner ce trajet,no,selectTrip,Action sélectionner
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,396,Text,text,Paiement,no,payment,Label paiement
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,406,Text,text,Départ,no,departure,Label départ
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,416,Text,text,Arrivée,no,arrival,Label arrivée
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,469,Text,text,Chat,no,chat,Action chat
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,481,Text,text,Chat,no,chat,Action chat
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,504,Text,text,confirmé,no,confirmed,Statut confirmé
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,505,Text,text,en cours,no,inProgress,Statut en cours
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,507,Text,text,terminé,no,completed,Statut terminé
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,509,Text,text,annulé,no,cancelled,Statut annulé
+lib/screens/utilisateur/trips/widgets/trip_card_v2.dart,517,Text,text,Trajet de ${widget.fromAddress} vers ${widget.toAddress}, statut ${widget.status}, départ ${_formatDateTime(widget.startAt)}$arrivalInfo, prix ${widget.priceFormatted},no,tripDescription,Description trajet
+lib/design/filters/trips_filters_sheet.dart,75,Text,text,Filtrer,no,filter,Action filtrer
+lib/design/filters/trips_filters_sheet.dart,75,Text,text,Trier,no,sort,Action trier
+lib/data/services/admin_global_notification_service.dart,1071,InputDecoration,hintText,Expliquez le motif du changement d'horaire...,no,explainScheduleChange,Placeholder explication changement horaire

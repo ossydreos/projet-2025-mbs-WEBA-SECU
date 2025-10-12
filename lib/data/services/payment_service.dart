@@ -3,19 +3,22 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/reservation.dart';
+import '../../firebase/api_keys_service.dart';
 
 class PaymentService {
-  static const String _stripePublishableKey =
-      'pk_test_51SA4Pk0xP2bV4rW1o0e3BSzzRNOICsoXLfA2hexPWAaRvNYxYGpM9EXZeOibyR0NMhAeMJoDR9XsM8NVBCbqWxpt00Vr2CovbL';
-  static const String _stripeSecretKey =
-      'sk_test_51SA4Pk0xP2bV4rW12MnpPYIjYeNTOJCYIES1TramydQGjEtqw0uUnYYJBwWjAIyVAOjK2VKsLEzva0kTIWIg9svj00j2ERKneZ';
+  // Clé publique Stripe - SÉCURISÉE via Firebase Functions
+  static Future<String> get _stripePublishableKey async => 
+      await ApiKeysService.getStripePublishableKey();
+  // Clé secrète Stripe - SÉCURISÉE via Firebase Functions
+  static Future<String> get _stripeSecretKey async => 
+      await ApiKeysService.getStripeSecretKey();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Initialiser Stripe (optionnel)
   static Future<void> initializeStripe() async {
     try {
-      Stripe.publishableKey = _stripePublishableKey;
+      Stripe.publishableKey = await _stripePublishableKey;
       await Stripe.instance.applySettings();
     } catch (e) {
       print('Stripe initialization failed: $e');
@@ -35,7 +38,7 @@ class PaymentService {
         Uri.parse('https://your-backend.com/create-payment-intent'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_stripeSecretKey',
+          'Authorization': 'Bearer ${await _stripeSecretKey}',
         },
         body: jsonEncode({
           'amount': (amount * 100).round(), // Stripe utilise les centimes

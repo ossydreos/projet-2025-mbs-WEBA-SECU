@@ -47,7 +47,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         return GlassBackground(
           child: Scaffold(
             backgroundColor: Colors.transparent,
-            appBar: GlassAppBar(title: 'Compte', actions: []),
+            appBar: GlassAppBar(title: AppLocalizations.of(context).account, actions: []),
             body: Column(
               children: [
                 Expanded(child: _buildContent(user)),

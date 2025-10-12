@@ -273,11 +273,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     });
 
     try {
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
-          : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+      final key = await AppConstants.googlePlacesWebKey;
 
       // Utiliser la position cachée ou Genève par défaut (plus rapide)
       String locationParam = '';
@@ -370,11 +366,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     });
 
     try {
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
-          : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+      final key = await AppConstants.googlePlacesWebKey;
 
       // Utiliser la position cachée ou Genève par défaut (plus rapide)
       String locationParam = '';
@@ -479,11 +471,7 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
 
   Future<LatLng?> _fetchPlaceDetailsLatLng(String placeId) async {
     try {
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
-          : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+      final key = await AppConstants.googlePlacesWebKey;
 
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json'

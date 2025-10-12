@@ -15,9 +15,7 @@ class DirectionsService {
   }) async {
     try {
       // Utiliser la clé Places Web qui est configurée pour les requêtes HTTP
-      final apiKey = AppConstants.googlePlacesWebKey.isNotEmpty 
-          ? AppConstants.googlePlacesWebKey 
-          : AppConstants.googleMapsApiKeyAndroid;
+      final apiKey = await AppConstants.googlePlacesWebKey;
           
       final url = Uri.parse('$_baseUrl?'
           'origin=${origin.latitude},${origin.longitude}'

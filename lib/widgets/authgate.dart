@@ -9,6 +9,7 @@ import 'package:my_mobility_services/data/services/session_service.dart';
 import 'package:my_mobility_services/data/models/user_model.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/home_shell.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import '../data/services/admin_global_notification_service.dart';
 
 class Authgate extends StatefulWidget {
   const Authgate({super.key});
@@ -104,9 +105,15 @@ class _AuthgateState extends State<Authgate> {
       if (isAdmin) {
         await OneSignal.User.addTagWithKey("role", "admin");
         debugPrint('✅ OneSignal: Admin connecté avec UID $uid');
+        
+        // Redémarrer le service de notifications locales pour l'admin
+        await AdminGlobalNotificationService().restartForAdmin();
       } else {
         await OneSignal.User.addTagWithKey("role", "client");
         debugPrint('✅ OneSignal: Client connecté avec UID $uid');
+        
+        // Arrêter le service de notifications locales pour les clients
+        AdminGlobalNotificationService().stopLocalNotifications();
       }
     } catch (e) {
       debugPrint('❌ Erreur OneSignal login pour UID $uid: $e');

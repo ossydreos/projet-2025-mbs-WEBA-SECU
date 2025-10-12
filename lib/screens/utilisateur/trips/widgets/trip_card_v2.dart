@@ -4,6 +4,7 @@ import 'package:my_mobility_services/design/tokens/app_tokens.dart';
 import 'package:my_mobility_services/design/widgets/primitives/glass_container.dart';
 import 'package:my_mobility_services/design/widgets/primitives/custom_badge.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 /// Trip Card V2 with improved layout and custom reservation support
 class TripCardV2 extends StatefulWidget {
@@ -163,8 +164,8 @@ class _TripCardV2State extends State<TripCardV2>
                         bottom: 0,
                         child: Semantics(
                           label: widget.isSelected
-                              ? 'Désélectionner ce trajet'
-                              : 'Sélectionner ce trajet',
+                              ? AppLocalizations.of(context).deselectTrip
+                              : AppLocalizations.of(context).selectTrip,
                           button: true,
                           child: GestureDetector(
                             behavior: HitTestBehavior.opaque,
@@ -377,7 +378,7 @@ class _TripCardV2State extends State<TripCardV2>
         // Payment method
         _buildMetaRow(
           Icons.payment_rounded,
-          'Paiement',
+          AppLocalizations.of(context).payment,
           widget.paymentLabel,
           t,
         ),
@@ -387,7 +388,7 @@ class _TripCardV2State extends State<TripCardV2>
         // Departure time (always shown)
         _buildMetaRow(
           Icons.schedule_rounded,
-          'Départ',
+          AppLocalizations.of(context).departure,
           _formatDateTime(widget.startAt),
           t,
         ),
@@ -397,7 +398,7 @@ class _TripCardV2State extends State<TripCardV2>
           SizedBox(height: 4), // Réduire l'espacement
           _buildMetaRow(
             Icons.flag_rounded,
-            'Arrivée',
+            AppLocalizations.of(context).arrival,
             widget.endAt != null 
                 ? _formatDateTime(widget.endAt!)
                 : '—:—',
@@ -450,7 +451,7 @@ class _TripCardV2State extends State<TripCardV2>
             
             // Chat button on the right
             _AppButton.tinted(
-              label: 'Chat',
+              label: AppLocalizations.of(context).chat,
               icon: Icons.chat_rounded,
               onPressed: widget.onChat,
             ),
@@ -462,7 +463,7 @@ class _TripCardV2State extends State<TripCardV2>
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             _AppButton.tinted(
-              label: 'Chat',
+              label: AppLocalizations.of(context).chat,
               icon: Icons.chat_rounded,
               onPressed: widget.onChat,
             ),

@@ -478,7 +478,7 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                 TextField(
                   controller: nameController,
                   decoration: InputDecoration(
-                    labelText: 'Nom complet',
+                    labelText: AppLocalizations.of(context).fullName,
                     labelStyle: const TextStyle(color: AppColors.textWeak),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -499,7 +499,7 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                 TextField(
                   controller: emailController,
                   decoration: InputDecoration(
-                    labelText: 'Email',
+                    labelText: AppLocalizations.of(context).email,
                     labelStyle: const TextStyle(color: AppColors.textWeak),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -520,7 +520,7 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
                 TextField(
                   controller: phoneController,
                   decoration: InputDecoration(
-                    labelText: 'Téléphone',
+                    labelText: AppLocalizations.of(context).phone,
                     labelStyle: const TextStyle(color: AppColors.textWeak),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -610,7 +610,7 @@ class _ProfileScreenRefinedState extends State<ProfileScreenRefined>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Informations mises à jour avec succès !'),
+              content: Text(AppLocalizations.of(context).profileUpdatedSuccess),
               backgroundColor: AppColors.accent,
             ),
           );

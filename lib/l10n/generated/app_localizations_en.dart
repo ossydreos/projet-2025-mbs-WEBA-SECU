@@ -1679,7 +1679,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tapToOpen => 'Tap to open';
 
   @override
-  String get error => 'Error';
+  String error(String error) {
+    return 'Error: $error';
+  }
 
   @override
   String get termsConditions => 'Terms & Conditions';
@@ -1815,4 +1817,259 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get applicableLawText =>
       'These terms are subject to Swiss law. In case of dispute, Swiss courts will have sole jurisdiction. The reference language is French.';
+
+  @override
+  String get filters => 'Filters';
+
+  @override
+  String get period => 'Period';
+
+  @override
+  String get reservationType => 'Reservation type';
+
+  @override
+  String get selectAtLeastOneReservation =>
+      'Please select at least one reservation';
+
+  @override
+  String generatingPdf(int count) {
+    return 'Generating PDF... ($count reservations)';
+  }
+
+  @override
+  String get noDataFound => 'No data found for selected reservations';
+
+  @override
+  String get pdfExportedSuccessfully => 'PDF exported successfully!';
+
+  @override
+  String exportError(String error) {
+    return 'Export error: $error';
+  }
+
+  @override
+  String get createTestReservation => '🧪 Create test reservation';
+
+  @override
+  String testError(String error) {
+    return '❌ Test error: $error';
+  }
+
+  @override
+  String cancellationError(String error) {
+    return 'Cancellation error: $error';
+  }
+
+  @override
+  String get offerCancelledSuccess => 'Offer cancelled successfully';
+
+  @override
+  String get manage => 'Manage';
+
+  @override
+  String get offerRefused => 'Offer refused';
+
+  @override
+  String get refuse => 'Refuse';
+
+  @override
+  String get contactClient => 'Contact client';
+
+  @override
+  String get paymentRequestSent => 'Payment request sent to client';
+
+  @override
+  String get sendCounterOffer => 'Send counter offer';
+
+  @override
+  String get profileUpdatedSuccess => 'Information updated successfully!';
+
+  @override
+  String get userProfile => 'User profile';
+
+  @override
+  String get searchByNameOrEmail => 'Search by name or email';
+
+  @override
+  String get userNotFound => 'User not found';
+
+  @override
+  String get noReservationsOrOffers => 'No reservations or offers';
+
+  @override
+  String get messages => 'Messages';
+
+  @override
+  String get noMessages => 'No messages';
+
+  @override
+  String get newMessage => 'New message';
+
+  @override
+  String get promoCodeExample => 'Ex: Promo Code 20';
+
+  @override
+  String get promoCodeIdExample => 'Ex: Promo20';
+
+  @override
+  String get chooseDate => 'Choose a date';
+
+  @override
+  String get usageLimitExample => 'Ex: 100';
+
+  @override
+  String get codeCreated => 'Code created';
+
+  @override
+  String get promoCodeCreated => 'Promo code created';
+
+  @override
+  String get chat => 'Chat';
+
+  @override
+  String get writeMessage => 'Write a message...';
+
+  @override
+  String get ticketFinished => 'This ticket is finished. Open a new message.';
+
+  @override
+  String get conversationFinished => 'This conversation is finished.';
+
+  @override
+  String callError(String error) {
+    return 'Call error: $error';
+  }
+
+  @override
+  String get fullNameExample => 'Ex: John Doe';
+
+  @override
+  String get emailAddress => 'Email address';
+
+  @override
+  String get emailExample => 'Ex: john.doe@email.com';
+
+  @override
+  String get phoneExample => 'Ex: 612345678';
+
+  @override
+  String get searchCountry => 'Search for a country...';
+
+  @override
+  String get passwordExample => 'Ex: MyPassword123!';
+
+  @override
+  String get enterEmail => 'Enter email';
+
+  @override
+  String get enterPassword => 'Enter password';
+
+  @override
+  String get priceInChf => 'Price in CHF';
+
+  @override
+  String get optionalMessageForClient => 'Optional message for client...';
+
+  @override
+  String get phone => 'Phone';
+
+  @override
+  String get explainRefundReason => 'Explain the reason for refund...';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get maxPassengers => 'Max passengers';
+
+  @override
+  String get four => '4';
+
+  @override
+  String get maxLuggage => 'Max luggage';
+
+  @override
+  String get two => '2';
+
+  @override
+  String get imageUrl => 'Image URL';
+
+  @override
+  String get imageUrlExample => 'https://example.com/image.jpg';
+
+  @override
+  String get enterPromoCode => 'Enter your promo code';
+
+  @override
+  String get promoCodeApplied => 'Promo code applied';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get uberNotificationDemo => 'Uber Notification Demo';
+
+  @override
+  String get launchDemo => 'Launch demo';
+
+  @override
+  String get uberNotificationTest => 'Uber Notification Test';
+
+  @override
+  String get explainChange => 'Explain the change...';
+
+  @override
+  String get explainScheduleChange =>
+      'Explain the reason for schedule change...';
+
+  @override
+  String get sort => 'Sort';
+
+  @override
+  String get confirmed => 'Confirmed';
+
+  @override
+  String get completed => 'Completed';
+
+  @override
+  String get cancelled => 'Cancelled';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String get deselectTrip => 'Deselect this trip';
+
+  @override
+  String get selectTrip => 'Select this trip';
+
+  @override
+  String get arrival => 'Arrival';
+
+  @override
+  String tripDescription(
+    String fromAddress,
+    String toAddress,
+    String status,
+    String startAt,
+    String arrivalInfo,
+    String priceFormatted,
+  ) {
+    return 'Trip from $fromAddress to $toAddress, status $status, departure $startAt$arrivalInfo, price $priceFormatted';
+  }
+
+  @override
+  String get inProgress => 'In progress';
+
+  @override
+  String get start => 'Start';
+
+  @override
+  String get end => 'End';
+
+  @override
+  String get selectedPeriod => 'Selected period';
+
+  @override
+  String get label => 'Label';
 }

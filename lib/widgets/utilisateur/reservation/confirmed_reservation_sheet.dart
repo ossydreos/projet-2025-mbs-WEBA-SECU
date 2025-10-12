@@ -344,7 +344,7 @@ class ConfirmedReservationSheet extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onMessage,
             icon: const Icon(Icons.chat_bubble, size: 18),
-            label: const Text('Chat'),
+            label: Text(AppLocalizations.of(context).chat),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
               foregroundColor: Colors.white,

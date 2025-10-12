@@ -1,14 +1,22 @@
+import '../firebase/api_keys_service.dart';
+
 /// Utilitaire pour optimiser et centraliser toutes les constantes
 /// Évite les duplications de clés API et config dans tous les fichiers
 class ConstantsOptimizer {
-  // Api Keys centralisées - sécurisées
-  static const String googleMapsApiKeyAndroid = 'AIzaSyATiODItwM8vfA-hN1hRNkdE4lLDjGySwc';
-  static const String googleMapsApiKeyIOS = 'AIzaSyAYhn4l640vzEvk1gC1BtfoG--5SMFcZoI';
-  static const String googlePlacesWebKey = 'AIzaSyBDZ8VvSv9OD7s8m5XnooHAmXNo9Uh6sHw';
+  // Api Keys centralisées - SÉCURISÉES via Firebase Functions
+  static Future<String> get googleMapsApiKeyAndroid async => 
+      await ApiKeysService.getGoogleMapsAndroidKey();
+  static Future<String> get googleMapsApiKeyIOS async => 
+      await ApiKeysService.getGoogleMapsIosKey();
+  static Future<String> get googlePlacesWebKey async => 
+      await ApiKeysService.getGooglePlacesWebKey();
 
-  // Stripe Keys - centralisées depuis payment_service.dart
-  static const String stripePublishableKey = 'pk_test_51SA4Pk0xP2bV4rW1o0e3BSzzRNOICsoXLfA2hexPWAaRvNYxYGpM9EXZeOibyR0NMhAeMJoDR9XsM8NVBCbqWxpt00Vr2CovbL';
-  static const String stripeSecretKey = 'sk_test_51SA4Pk0xP2bV4rW12MnpPYIjYeNTOJCYIES1TramydQGjEtqw0uUnYYJBwWjAIyVAOjK2VKsLEzva0kTIWIg9svj00j2ERKneZ';
+  // Stripe Keys - SÉCURISÉES via Firebase Functions
+  static Future<String> get stripePublishableKey async => 
+      await ApiKeysService.getStripePublishableKey();
+  // Clé secrète Stripe - SÉCURISÉE via Firebase Functions
+  static Future<String> get stripeSecretKey async => 
+      await ApiKeysService.getStripeSecretKey();
 
   // Firebase Collections centralisées
   static const String reservationCollection = 'reservations';

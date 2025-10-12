@@ -7,17 +7,21 @@ import 'dart:async';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/reservation.dart';
+import '../../firebase/api_keys_service.dart';
 
 class StripeCheckoutService {
-  static const String _stripePublishableKey = 'pk_test_51SA4Pk0xP2bV4rW1o0e3BSzzRNOICsoXLfA2hexPWAaRvNYxYGpM9EXZeOibyR0NMhAeMJoDR9XsM8NVBCbqWxpt00Vr2CovbL';
-  static const String _stripeSecretKey = 'sk_test_51SA4Pk0xP2bV4rW12MnpPYIjYeNTOJCYIES1TramydQGjEtqw0uUnYYJBwWjAIyVAOjK2VKsLEzva0kTIWIg9svj00j2ERKneZ';
+  // Clés Stripe - SÉCURISÉES via Firebase Functions
+  static Future<String> get _stripePublishableKey async => 
+      await ApiKeysService.getStripePublishableKey();
+  static Future<String> get _stripeSecretKey async => 
+      await ApiKeysService.getStripeSecretKey();
   
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // ✅ Initialiser Stripe
   static Future<void> initializeStripe() async {
     try {
-      Stripe.publishableKey = _stripePublishableKey;
+      Stripe.publishableKey = await _stripePublishableKey;
       await Stripe.instance.applySettings();
     } catch (e) {
       print('Erreur initialisation Stripe: $e');
@@ -101,7 +105,7 @@ class StripeCheckoutService {
     final response = await http.post(
       url,
       headers: {
-        'Authorization': 'Bearer $_stripeSecretKey',
+        'Authorization': 'Bearer ${await _stripeSecretKey}',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: body,
@@ -192,7 +196,7 @@ class StripeCheckoutService {
     final response = await http.get(
       url,
       headers: {
-        'Authorization': 'Bearer $_stripeSecretKey',
+        'Authorization': 'Bearer ${await _stripeSecretKey}',
       },
     );
 
@@ -275,7 +279,7 @@ class StripeCheckoutService {
     final response = await http.post(
       url,
       headers: {
-        'Authorization': 'Bearer $_stripeSecretKey',
+        'Authorization': 'Bearer ${await _stripeSecretKey}',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: body,

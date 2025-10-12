@@ -163,7 +163,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
           ElevatedButton.icon(
             onPressed: _testNotification,
             icon: const Icon(Icons.notifications_active),
-            label: const Text('🧪 Créer réservation de test'),
+            label: Text(AppLocalizations.of(context).createTestReservation),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accent,
               foregroundColor: Colors.white,
@@ -231,7 +231,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Erreur lors du test: $e'),
+            content: Text(AppLocalizations.of(context).testError(e.toString())),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
@@ -499,8 +499,8 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                             );
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Réservation annulée avec succès'),
+                                SnackBar(
+                                  content: Text(AppLocalizations.of(context).reservationCancelledSuccess),
                                   backgroundColor: Colors.green,
                                 ),
                               );
@@ -509,7 +509,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Erreur lors de l\'annulation: $e'),
+                                  content: Text(AppLocalizations.of(context).cancellationError(e.toString())),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -521,7 +521,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Oui, annuler'),
+                        child: Text(AppLocalizations.of(context).yesCancel),
                       ),
                     ),
                   ],
@@ -613,8 +613,8 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                             );
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Offre annulée avec succès'),
+                                SnackBar(
+                                  content: Text(AppLocalizations.of(context).offerCancelledSuccess),
                                   backgroundColor: Colors.green,
                                 ),
                               );
@@ -623,7 +623,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text('Erreur lors de l\'annulation: $e'),
+                                  content: Text(AppLocalizations.of(context).cancellationError(e.toString())),
                                   backgroundColor: Colors.red,
                                 ),
                               );
@@ -635,7 +635,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
-                        child: const Text('Oui, annuler'),
+                        child: Text(AppLocalizations.of(context).yesCancel),
                       ),
                     ),
                   ],
@@ -911,7 +911,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                             );
                           },
                           icon: const Icon(Icons.edit),
-                          label: const Text('Gérer'),
+                          label: Text(AppLocalizations.of(context).manage),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -925,19 +925,19 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                               );
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Offre refusée'), backgroundColor: Colors.red),
+                                  SnackBar(content: Text(AppLocalizations.of(context).offerRefused), backgroundColor: Colors.red),
                                 );
                               }
                             } catch (e) {
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
+                                  SnackBar(content: Text(AppLocalizations.of(context).error(e.toString())), backgroundColor: Colors.red),
                                 );
                               }
                             }
                           },
                           icon: const Icon(Icons.close),
-                          label: const Text('Refuser'),
+                          label: Text(AppLocalizations.of(context).refuse),
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
                         ),
                       ),
@@ -1111,7 +1111,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () => _contactClient(reservation),
                   icon: const Icon(Icons.message, size: 16),
-                  label: const Text('Contacter le client'),
+                  label: Text(AppLocalizations.of(context).contactClient),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accent,
                     foregroundColor: AppColors.bg,

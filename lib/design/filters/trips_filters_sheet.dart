@@ -7,6 +7,7 @@ import 'package:my_mobility_services/design/filters/widgets/lg_radio_tile.dart';
 import 'package:my_mobility_services/design/filters/widgets/lg_segmented_switch.dart';
 import 'package:my_mobility_services/design/tokens/app_tokens.dart';
 import 'package:my_mobility_services/data/models/reservation_filter.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class TripsFiltersSheet extends StatefulWidget {
   final ReservationFilter currentFilter;
@@ -64,31 +65,28 @@ class _TripsFiltersSheetState extends State<TripsFiltersSheet> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: t.glassBlurBackground, sigmaY: t.glassBlurBackground),
-                  child: Container(
-                    color: t.glassTint,
-                    child: Column(
-                      children: [
-                        _buildTopBar(t),
-                        Padding(
+                child: Container(
+                  color: const Color(0xFF282828),
+                  child: Column(
+                    children: [
+                      _buildTopBar(t),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: t.spaceLg),
+                        child: LgSegmentedSwitch(
+                          values: [AppLocalizations.of(context).filter, AppLocalizations.of(context).sort],
+                          index: _tab,
+                          onChanged: (i) => setState(() => _tab = i),
+                        ),
+                      ),
+                      SizedBox(height: t.spaceLg),
+                      Expanded(
+                        child: Padding(
                           padding: EdgeInsets.symmetric(horizontal: t.spaceLg),
-                          child: LgSegmentedSwitch(
-                            values: const ['Filtrer', 'Trier'],
-                            index: _tab,
-                            onChanged: (i) => setState(() => _tab = i),
-                          ),
+                          child: _tab == 0 ? _buildFilterTab(t) : _buildSortTab(t),
                         ),
-                        SizedBox(height: t.spaceLg),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: t.spaceLg),
-                            child: _tab == 0 ? _buildFilterTab(t) : _buildSortTab(t),
-                          ),
-                        ),
-                        _buildFooter(t),
-                      ],
-                    ),
+                      ),
+                      _buildFooter(t),
+                    ],
                   ),
                 ),
               ),
@@ -119,7 +117,7 @@ class _TripsFiltersSheetState extends State<TripsFiltersSheet> {
           ),
           Expanded(
             child: Center(
-              child: Text('Filtres', style: t.title2.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
+              child: Text(AppLocalizations.of(context).filters, style: t.title2.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
             ),
           ),
           SizedBox(width: 40), // Espace pour équilibrer
@@ -133,8 +131,8 @@ class _TripsFiltersSheetState extends State<TripsFiltersSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Période
-          Text('Période', style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
+          // Période - OPTIMISÉ
+          Text(AppLocalizations.of(context).period, style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
           SizedBox(height: t.spaceSm),
           Container(
             padding: EdgeInsets.all(t.spaceMd),
@@ -143,26 +141,52 @@ class _TripsFiltersSheetState extends State<TripsFiltersSheet> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: t.glassStroke.withOpacity(0.24)),
             ),
-            child: LgDateRangeCalendar(
-              initialRange: _range,
-              firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
-              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-              onChanged: (r) => setState(() => _range = r),
+            child: RepaintBoundary(
+              child: LgDateRangeCalendar(
+                initialRange: _range,
+                firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)), // Réduit de 5 à 2 ans
+                lastDate: DateTime.now().add(const Duration(days: 365 * 1)), // Réduit à 1 an
+                onChanged: (r) {
+                  // Debounce pour éviter les rebuilds trop fréquents
+                  Future.delayed(const Duration(milliseconds: 100), () {
+                    if (mounted) {
+                      setState(() => _range = r);
+                    }
+                  });
+                },
+              ),
             ),
           ),
           SizedBox(height: t.spaceLg),
 
-          // Type de réservation
-          Text('Type de réservation', style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
+          // Type de réservation - OPTIMISÉ
+          Text(AppLocalizations.of(context).reservationType, style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
           SizedBox(height: t.spaceSm),
-          Wrap(
-            spacing: t.spaceSm,
-            runSpacing: t.spaceSm,
-            children: [
-              LgChip(label: 'Tous', selected: _type == ReservationTypeFilter.all, onTap: () => setState(() => _type = ReservationTypeFilter.all)),
-              LgChip(label: 'Réservation normale', selected: _type == ReservationTypeFilter.reservation, onTap: () => setState(() => _type = ReservationTypeFilter.reservation)),
-              LgChip(label: 'Offre personnalisée', selected: _type == ReservationTypeFilter.offer, onTap: () => setState(() => _type = ReservationTypeFilter.offer)),
-            ],
+          RepaintBoundary(
+            child: Wrap(
+              spacing: t.spaceSm,
+              runSpacing: t.spaceSm,
+              children: [
+                LgChip(
+                  key: const ValueKey('all'),
+                  label: 'Tous', 
+                  selected: _type == ReservationTypeFilter.all, 
+                  onTap: () => setState(() => _type = ReservationTypeFilter.all)
+                ),
+                LgChip(
+                  key: const ValueKey('reservation'),
+                  label: 'Réservation normale', 
+                  selected: _type == ReservationTypeFilter.reservation, 
+                  onTap: () => setState(() => _type = ReservationTypeFilter.reservation)
+                ),
+                LgChip(
+                  key: const ValueKey('offer'),
+                  label: 'Offre personnalisée', 
+                  selected: _type == ReservationTypeFilter.offer, 
+                  onTap: () => setState(() => _type = ReservationTypeFilter.offer)
+                ),
+              ],
+            ),
           ),
 
           SizedBox(height: t.spaceXl),
@@ -176,7 +200,7 @@ class _TripsFiltersSheetState extends State<TripsFiltersSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Date', style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
+          Text(AppLocalizations.of(context).date, style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
           SizedBox(height: t.spaceSm),
           LgRadioTile<ReservationSortType>(
             value: ReservationSortType.dateDescending,
@@ -195,7 +219,7 @@ class _TripsFiltersSheetState extends State<TripsFiltersSheet> {
           ),
 
           SizedBox(height: t.spaceLg),
-          Text('Prix', style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
+          Text(AppLocalizations.of(context).price, style: t.body.copyWith(color: t.textPrimary, fontWeight: FontWeight.w600)),
           SizedBox(height: t.spaceSm),
           LgRadioTile<ReservationSortType>(
             value: ReservationSortType.priceAscending,

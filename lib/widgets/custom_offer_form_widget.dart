@@ -5,6 +5,7 @@ import '../utils/logging_service.dart';
 import '../utils/debounce_timer.dart';
 import '../utils/loading_mixin.dart';
 import 'universal_search_field.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 /// Widget centralisé pour la création d'offres personnalisées
 /// Remplace les 1101 lignes du monstre custom_offer_creation_screen.dart
@@ -235,14 +236,14 @@ class _CustomOfferFormWidgetState extends State<CustomOfferFormWidget>
         Expanded(
           child: OutlinedButton(
             onPressed: widget.onCancel,
-            child: const Text('Annuler'),
+            child: Text(AppLocalizations.of(context).cancel),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: ElevatedButton(
             onPressed: _canSubmit() ? _submitOffer : null,
-            child: const Text('Créer l\'offre'),
+            child: Text(AppLocalizations.of(context).createOffer),
           ),
         ),
       ],

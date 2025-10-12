@@ -11,6 +11,8 @@ import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 import 'package:my_mobility_services/design/filters/trips_filters_sheet.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/widgets/trip_card_v2.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/widgets/trip_export_bar.dart';
+import 'package:my_mobility_services/screens/utilisateur/trips/widgets/optimized_trips_list.dart';
+import 'package:my_mobility_services/screens/utilisateur/trips/widgets/trips_skeleton.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/state/trip_selection_controller.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -93,7 +95,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
     if (_selection.selectedIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Veuillez sélectionner au moins une réservation'),
+          content: Text(AppLocalizations.of(context).selectAtLeastOneReservation),
           backgroundColor: Colors.orange,
         ),
       );
@@ -104,7 +106,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
       // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Génération du PDF... (${_selection.count} réservations)'),
+          content: Text(AppLocalizations.of(context).generatingPdf(_selection.count)),
           backgroundColor: Colors.blue,
           duration: Duration(seconds: 2),
         ),
@@ -116,7 +118,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
       if (selectedReservations.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Aucune donnée trouvée pour les réservations sélectionnées'),
+            content: Text(AppLocalizations.of(context).noDataFound),
             backgroundColor: Colors.orange,
           ),
         );
@@ -129,7 +131,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
       // Success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('PDF exporté avec succès !'),
+          content: Text(AppLocalizations.of(context).pdfExportedSuccessfully),
           backgroundColor: Colors.green,
         ),
       );
@@ -139,7 +141,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erreur lors de l\'export: $e'),
+          content: Text(AppLocalizations.of(context).exportError(e.toString())),
           backgroundColor: Colors.red,
         ),
       );
@@ -822,7 +824,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
     );
   }
 
-  /// Completed trips content
+  /// Completed trips content - OPTIMISÉ
   Widget _buildCompletedContent(AppTokens t) {
     final currentUser = _auth.currentUser;
     
@@ -841,7 +843,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
         final isLoading = snapshot.connectionState == ConnectionState.waiting && reservations.isEmpty;
         
         if (isLoading) {
-          return _buildSkeletonList(t);
+          return const TripsSkeleton(itemCount: 5);
         }
         
         if (snapshot.hasError) {
@@ -855,35 +857,14 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
         // Apply sorting if needed
         final sortedReservations = _applySorting(reservations);
         
-        return SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: t.spaceMd),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final reservation = sortedReservations[index];
-                return Padding(
-                  padding: EdgeInsets.only(bottom: t.spaceSm),
-                  child: TripCardV2(
-                    type: reservation.type,
-                    vehicleTitle: reservation.vehicleName,
-                    fromAddress: reservation.departure,
-                    toAddress: reservation.destination,
-                    startAt: reservation.selectedDate,
-                    endAt: reservation.driverProposedDate ?? _calculateEndTime(reservation),
-                    status: _getStatusText(reservation.status),
-                    paymentLabel: reservation.paymentMethod,
-                    priceFormatted: '${reservation.totalPrice.toStringAsFixed(0)}€',
-                    isUpcoming: false,
-                    isSelected: _selection.exportMode && _selection.isSelected(reservation.id),
-                    isSelectionMode: _selection.exportMode,
-                    onSelectionToggle: _selection.exportMode ? () => _toggleReservationSelection(reservation.id) : null,
-                    onTap: () => _handleTripTap(reservation),
-                  ),
-                );
-              },
-              childCount: sortedReservations.length,
-            ),
-          ),
+        return OptimizedTripsList(
+          reservations: sortedReservations,
+          isUpcoming: false,
+          selectionController: _selection,
+          onTripTap: _handleTripTap,
+          onChat: _openChat,
+          onRebook: _rebookTrip,
+          onShowReceipt: _showReceipt,
         );
       },
     );

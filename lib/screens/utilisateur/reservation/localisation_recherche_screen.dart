@@ -11,6 +11,7 @@ import 'package:my_mobility_services/constants.dart';
 import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
 import 'package:my_mobility_services/data/models/favorite_trip.dart' as db_models;
 import 'package:my_mobility_services/data/services/favorite_trip_service.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 class FavoriteTrip {
   final String departure;
@@ -230,11 +231,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     });
     try {
       // Utiliser une clé Web (Places Web Service) non restreinte à un bundle/androidId pour les appels REST
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
+      final webKey = await AppConstants.googlePlacesWebKey;
+      final key = (webKey.isNotEmpty)
+                ? webKey
           : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+                ? await AppConstants.googleMapsApiKeyIOS
+                : await AppConstants.googleMapsApiKeyAndroid);
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
         '?input=${Uri.encodeQueryComponent(query)}'
@@ -384,11 +386,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       _isLoadingDeparture = true;
     });
     try {
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
+      final webKey = await AppConstants.googlePlacesWebKey;
+      final key = (webKey.isNotEmpty)
+                ? webKey
           : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+                ? await AppConstants.googleMapsApiKeyIOS
+                : await AppConstants.googleMapsApiKeyAndroid);
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
         '?input=${Uri.encodeQueryComponent(query)}'
@@ -638,11 +641,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   // Géocoder une adresse pour récupérer ses coordonnées
   Future<LatLng?> _geocodeAddress(String address) async {
     try {
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
+      final webKey = await AppConstants.googlePlacesWebKey;
+      final key = (webKey.isNotEmpty)
+                ? webKey
           : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+                ? await AppConstants.googleMapsApiKeyIOS
+                : await AppConstants.googleMapsApiKeyAndroid);
       
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/geocode/json?address=${Uri.encodeComponent(address)}&key=$key',
@@ -668,11 +672,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   Future<LatLng?> _fetchPlaceDetailsLatLng(String placeId) async {
     try {
-      final key = (AppConstants.googlePlacesWebKey.isNotEmpty)
-          ? AppConstants.googlePlacesWebKey
+      final webKey = await AppConstants.googlePlacesWebKey;
+      final key = (webKey.isNotEmpty)
+                ? webKey
           : (Platform.isIOS
-                ? AppConstants.googleMapsApiKeyIOS
-                : AppConstants.googleMapsApiKeyAndroid);
+                ? await AppConstants.googleMapsApiKeyIOS
+                : await AppConstants.googleMapsApiKeyAndroid);
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&fields=geometry&key=$key',
       );
@@ -1153,7 +1158,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               color: Colors.white, // ✅ Texte blanc
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Destination',
+                              hintText: AppLocalizations.of(context).destination,
                               hintStyle: TextStyle(
                                 color: AppColors.text,
                                 fontSize: 16,

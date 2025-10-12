@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 
 /// Widget pour afficher le sheet de réservation en attente de confirmation
@@ -310,7 +311,7 @@ class PendingReservationSheet extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onMessage,
             icon: const Icon(Icons.chat_bubble, size: 18),
-            label: const Text('Chat'),
+            label: Text(AppLocalizations.of(context).chat),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
               foregroundColor: Colors.white,
