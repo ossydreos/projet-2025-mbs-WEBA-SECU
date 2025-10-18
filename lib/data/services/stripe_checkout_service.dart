@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
@@ -54,8 +53,7 @@ class StripeCheckoutService {
         data: null,
       );
 
-      // ✅ Mettre à jour la base de données après paiement réussi
-      await _updateReservationAfterPaymentStatic(
+      final resultingStatus = await _handleSuccessfulPayment(
         reservationId: reservationId,
         paymentIntentId: paymentResult.id,
         amount: amount,
@@ -63,9 +61,10 @@ class StripeCheckoutService {
       );
 
       return {
-        'success': true,
+        'success': resultingStatus != ReservationStatus.cancelled.name,
         'paymentIntentId': paymentResult.id,
         'status': paymentResult.status,
+        'reservationStatus': resultingStatus,
       };
 
     } catch (e) {
@@ -155,7 +154,7 @@ class StripeCheckoutService {
   }
 
   // ✅ Vérifier le statut du paiement en arrière-plan
-  static void _startPaymentVerification(String reservationId, String sessionId) {
+  static Future<void> _startPaymentVerification(String reservationId, String sessionId) async {
     // Vérifier plus fréquemment pour une mise à jour plus rapide
     Timer.periodic(Duration(seconds: 2), (timer) async {
       try {
@@ -164,18 +163,20 @@ class StripeCheckoutService {
         final sessionStatus = session['status'];
         if (paymentStatus == 'paid' || sessionStatus == 'complete') {
           // ✅ Paiement confirmé, mettre à jour la base de données
-          await _updateReservationAfterPaymentStatic(
+          final resultingStatus = await _handleSuccessfulPayment(
             reservationId: reservationId,
             paymentIntentId: session['payment_intent'],
             amount: (session['amount_total'] / 100).toDouble(),
             currency: session['currency'],
           );
-          // Passer en inProgress
-          final firestore = FirebaseFirestore.instance;
-          await firestore.collection('reservations').doc(reservationId).update({
-            'status': ReservationStatus.inProgress.name,
-            'lastUpdated': Timestamp.now(),
-          });
+          if (resultingStatus == ReservationStatus.confirmed.name) {
+            final firestore = FirebaseFirestore.instance;
+            await firestore.collection('reservations').doc(reservationId).update({
+              'status': ReservationStatus.inProgress.name,
+              'lastUpdated': Timestamp.now(),
+            });
+            await _markCustomOfferAsPaid(reservationId, promoteToInProgress: true);
+          }
           timer.cancel(); // Arrêter la vérification
         } else if (session['payment_status'] == 'unpaid' && 
                    DateTime.now().millisecondsSinceEpoch - session['created'] * 1000 > 300000) {
@@ -206,7 +207,7 @@ class StripeCheckoutService {
   }
 
   // ✅ Finaliser à partir d'un deep link (session_id et reservation_id)
-  static Future<void> finalizePaymentFromDeepLink({
+  static Future<String?> finalizePaymentFromDeepLink({
     required String sessionId,
     required String reservationId,
   }) async {
@@ -214,21 +215,26 @@ class StripeCheckoutService {
       final session = await _getStripeSession(sessionId);
       final paymentStatus = session['payment_status'];
       final sessionStatus = session['status'];
+      String? resultingStatus;
       if (paymentStatus == 'paid' || sessionStatus == 'complete') {
-        await _updateReservationAfterPaymentStatic(
+        resultingStatus = await _handleSuccessfulPayment(
           reservationId: reservationId,
           paymentIntentId: session['payment_intent'],
           amount: (session['amount_total'] / 100).toDouble(),
           currency: session['currency'],
         );
-        // Passer en inProgress immédiatement après confirmation
-        final firestore = FirebaseFirestore.instance;
-        await firestore.collection('reservations').doc(reservationId).update({
-          'status': ReservationStatus.inProgress.name,
-          'lastUpdated': Timestamp.now(),
-        });
+        if (resultingStatus == ReservationStatus.confirmed.name) {
+          final firestore = FirebaseFirestore.instance;
+          await firestore.collection('reservations').doc(reservationId).update({
+            'status': ReservationStatus.inProgress.name,
+            'lastUpdated': Timestamp.now(),
+          });
+          await _markCustomOfferAsPaid(reservationId, promoteToInProgress: true);
+        }
       }
+      return resultingStatus;
     } catch (e) {
+      return null;
     }
   }
 
@@ -242,34 +248,27 @@ class StripeCheckoutService {
     required String destination,
   }) async {
     final url = Uri.parse('https://api.stripe.com/v1/checkout/sessions');
-    
-      final body = {
-        'payment_method_types[0]': 'card',    // Carte bancaire
-        'payment_method_types[1]': 'twint',  // Twint
-        'line_items[0][price_data][currency]': currency.toLowerCase(),
+    final body = {
+      'payment_method_types[0]': 'card',
+      'payment_method_types[1]': 'twint',
+      'line_items[0][price_data][currency]': currency.toLowerCase(),
       'line_items[0][price_data][product_data][name]': 'Réservation $vehicleName',
       'line_items[0][price_data][product_data][description]': 'De $departure vers $destination',
       'line_items[0][price_data][unit_amount]': (amount * 100).toInt().toString(),
       'line_items[0][quantity]': '1',
       'mode': 'payment',
-      // Redirection directe vers l'app via scheme (schéma plus standard)
-      'success_url': 'intent://payment-success?session_id={CHECKOUT_SESSION_ID}&reservation_id=' + reservationId + '#Intent;scheme=my-mobility-services;package=com.example.my_mobility_services;end',
-      'cancel_url': 'intent://payment-cancel#Intent;scheme=my-mobility-services;package=com.example.my_mobility_services;end',
+      'success_url':
+          'intent://payment-success?session_id={CHECKOUT_SESSION_ID}&reservation_id=$reservationId#Intent;scheme=my-mobility-services;package=com.example.my_mobility_services;end',
+      'cancel_url':
+          'intent://payment-cancel#Intent;scheme=my-mobility-services;package=com.example.my_mobility_services;end',
       'metadata[reservation_id]': reservationId,
-      // ✅ Configuration pour Apple Pay et Google Pay
       'payment_method_options[card][request_three_d_secure]': 'automatic',
       'automatic_tax[enabled]': 'false',
-      
-      // 🎨 PERSONNALISATION DE LA PAGE STRIPE CHECKOUT
-      'custom_text[submit][message]': 'Merci de votre confiance ! Votre réservation sera confirmée immédiatement.',
+      'custom_text[submit][message]':
+          'Merci de votre confiance ! Votre réservation sera confirmée immédiatement.',
       'consent_collection[terms_of_service]': 'required',
-      'custom_text[terms_of_service_acceptance][message]': 'En effectuant ce paiement, vous acceptez nos conditions d\'utilisation.',
-      
-      // 🎨 COULEURS ET BRANDING (si configuré dans le dashboard Stripe)
-      // Pas de collecte d'adresse pour Twint
-      
-      // 📱 Configuration mobile optimisée
-      // Pas de collecte de téléphone
+      'custom_text[terms_of_service_acceptance][message]':
+          'En effectuant ce paiement, vous acceptez nos conditions d\'utilisation.',
       'customer_creation': 'always',
     };
 
@@ -290,7 +289,7 @@ class StripeCheckoutService {
   }
 
   // ✅ Mettre à jour la réservation dans Firestore après paiement réussi (méthode statique)
-  static Future<void> _updateReservationAfterPaymentStatic({
+  static Future<String?> _handleSuccessfulPayment({
     required String reservationId,
     required String paymentIntentId,
     required double amount,
@@ -298,212 +297,115 @@ class StripeCheckoutService {
   }) async {
     try {
       final firestore = FirebaseFirestore.instance;
-      await firestore.collection('reservations').doc(reservationId).update({
-        'paymentStatus': 'paid',
-        'paymentIntentId': paymentIntentId,
-        'paymentCompletedAt': Timestamp.now(),
-        'status': ReservationStatus.confirmed.name,
-        'isPaid': true,
-        'waitingForPayment': false, // Plus en attente de paiement
-        'paymentMethod': 'Carte bancaire',
-        'lastUpdated': Timestamp.now(),
-        'paymentAmount': amount,
-        'paymentCurrency': currency,
-      });
-    } catch (e) {
-      // Ne pas faire échouer le paiement pour une erreur de BDD
-    }
-  }
+      final reservationRef = firestore.collection('reservations').doc(reservationId);
+      final reservationSnapshot = await reservationRef.get();
+      if (!reservationSnapshot.exists) {
+        return null;
+      }
 
-  // ✅ Mettre à jour la réservation dans Firestore après paiement réussi (méthode d'instance)
-  Future<void> _updateReservationAfterPayment({
-    required String reservationId,
-    required String paymentIntentId,
-    required double amount,
-    required String currency,
-  }) async {
-    try {
-      await _firestore.collection('reservations').doc(reservationId).update({
-        'paymentStatus': 'paid',
-        'paymentIntentId': paymentIntentId,
-        'paymentCompletedAt': Timestamp.now(),
-        'status': ReservationStatus.confirmed.name,
-        'isPaid': true,
-        'waitingForPayment': false, // Plus en attente de paiement
-        'paymentMethod': 'Carte bancaire',
-        'lastUpdated': Timestamp.now(),
-        'paymentAmount': amount,
-        'paymentCurrency': currency,
-      });
-    } catch (e) {
-      // Ne pas faire échouer le paiement pour une erreur de BDD
-    }
-  }
-}
+      final data = reservationSnapshot.data()!;
+      final currentStatus = data['status'] as String? ?? ReservationStatus.pending.name;
 
-// ✅ Widget de dialog de paiement intégré
-class PaymentDialog extends StatefulWidget {
-  final double amount;
-  final String currency;
-  final String reservationId;
-  final String vehicleName;
-  final String departure;
-  final String destination;
-
-  const PaymentDialog({
-    Key? key,
-    required this.amount,
-    required this.currency,
-    required this.reservationId,
-    required this.vehicleName,
-    required this.departure,
-    required this.destination,
-  }) : super(key: key);
-
-  @override
-  State<PaymentDialog> createState() => _PaymentDialogState();
-}
-
-class _PaymentDialogState extends State<PaymentDialog> {
-  bool _isProcessing = false;
-  String? _errorMessage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      child: GlassContainer(
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.payment,
-                color: AppColors.accent,
-                size: 64,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Paiement sécurisé',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textStrong,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Véhicule: ${widget.vehicleName}',
-                style: TextStyle(color: AppColors.textWeak),
-              ),
-              Text(
-                '${widget.departure} → ${widget.destination}',
-                style: TextStyle(color: AppColors.textWeak),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Total: ${widget.amount.toStringAsFixed(2)} ${widget.currency}',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.accent,
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              if (_errorMessage != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
-                  ),
-                  child: Text(
-                    _errorMessage!,
-                    style: TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 16),
-              ],
-              
-              if (_isProcessing) ...[
-                CircularProgressIndicator(color: AppColors.accent),
-                const SizedBox(height: 16),
-                Text(
-                  'Traitement du paiement...',
-                  style: TextStyle(color: AppColors.textWeak),
-                ),
-                const SizedBox(height: 24),
-              ] else ...[
-                Text(
-                  'Utilisez une carte de test Stripe pour effectuer le paiement.',
-                  style: TextStyle(
-                    color: AppColors.textWeak,
-                    fontSize: 14,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GlassButton(
-                        label: 'Annuler',
-                        onPressed: () => Navigator.pop(context, {'success': false, 'error': 'Paiement annulé'}),
-                        primary: false,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: GlassButton(
-                        label: 'Payer maintenant',
-                        onPressed: _processPayment,
-                        primary: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _processPayment() async {
-    setState(() {
-      _isProcessing = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final result = await StripeCheckoutService.processPayment(
-        amount: widget.amount,
-        currency: widget.currency,
-        reservationId: widget.reservationId,
-        vehicleName: widget.vehicleName,
-        departure: widget.departure,
-        destination: widget.destination,
-      );
-
-      if (result['success']) {
-        Navigator.pop(context, result);
-      } else {
-        setState(() {
-          _errorMessage = result['error'] ?? 'Erreur inconnue';
-          _isProcessing = false;
+      if (currentStatus == ReservationStatus.cancelled.name) {
+        await _refundPaymentIntent(paymentIntentId);
+        await reservationRef.update({
+          'paymentStatus': 'refunded',
+          'refundProcessedAt': Timestamp.now(),
+          'waitingForPayment': false,
+          'lastUpdated': Timestamp.now(),
         });
+        await _markCustomOfferRefunded(reservationId);
+        return ReservationStatus.cancelled.name;
+      }
+
+      final updates = <String, dynamic>{
+        'paymentStatus': 'paid',
+        'paymentIntentId': paymentIntentId,
+        'paymentCompletedAt': Timestamp.now(),
+        'isPaid': true,
+        'waitingForPayment': false,
+        'paymentMethod': 'Carte bancaire',
+        'lastUpdated': Timestamp.now(),
+        'paymentAmount': amount,
+        'paymentCurrency': currency,
+      };
+
+      var resultingStatus = currentStatus;
+      if (currentStatus == ReservationStatus.pending.name ||
+          currentStatus == ReservationStatus.confirmed.name) {
+        resultingStatus = ReservationStatus.confirmed.name;
+        updates['status'] = resultingStatus;
+      }
+
+      await reservationRef.update(updates);
+      await _markCustomOfferAsPaid(reservationId, promoteToInProgress: false);
+      return resultingStatus;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static Future<void> _markCustomOfferAsPaid(String reservationId, {required bool promoteToInProgress}) async {
+    final firestore = FirebaseFirestore.instance;
+    final query = await firestore
+        .collection('custom_offers')
+        .where('reservationId', isEqualTo: reservationId)
+        .limit(1)
+        .get();
+    if (query.docs.isEmpty) {
+      return;
+    }
+    final snapshot = query.docs.first;
+    final data = snapshot.data();
+    if (data['status'] == ReservationStatus.cancelled.name) {
+      return;
+    }
+    final updates = <String, dynamic>{
+      'paymentMethod': 'Carte bancaire',
+      'confirmedAt': Timestamp.now(),
+      'updatedAt': Timestamp.now(),
+    };
+    if (promoteToInProgress && data['status'] == ReservationStatus.confirmed.name) {
+      updates['status'] = ReservationStatus.inProgress.name;
+    }
+    await firestore.collection('custom_offers').doc(snapshot.id).update(updates);
+  }
+
+  static Future<void> _markCustomOfferRefunded(String reservationId) async {
+    final firestore = FirebaseFirestore.instance;
+    final query = await firestore
+        .collection('custom_offers')
+        .where('reservationId', isEqualTo: reservationId)
+        .limit(1)
+        .get();
+    if (query.docs.isEmpty) {
+      return;
+    }
+    final snapshot = query.docs.first;
+    await firestore.collection('custom_offers').doc(snapshot.id).update({
+      'status': ReservationStatus.cancelled.name,
+      'refundStatus': 'refunded',
+      'refundProcessedAt': Timestamp.now(),
+      'updatedAt': Timestamp.now(),
+    });
+  }
+
+  static Future<void> _refundPaymentIntent(String paymentIntentId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.stripe.com/v1/refunds'),
+        headers: {
+          'Authorization': 'Bearer ${await _stripeSecretKey}',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'payment_intent': paymentIntentId,
+        },
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return;
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Erreur: $e';
-        _isProcessing = false;
-      });
     }
   }
 }

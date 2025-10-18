@@ -76,7 +76,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get customOfferCreatedMessage =>
-      'Votre offre a été envoyée aux chauffeurs. Vous recevrez une notification dès qu\'un chauffeur acceptera avec un prix.';
+      'Votre demande a été envoyée aux chauffeurs. Vous recevrez une notification dès qu\'un chauffeur acceptera avec un prix.';
+
+  @override
+  String get customOfferSent =>
+      'Nous avons transmis votre demande aux chauffeurs. Vous serez tenu informé très rapidement.';
+
+  @override
+  String get customOfferPending =>
+      'Nous attendons la confirmation d\'un chauffeur pour votre trajet sur mesure. Vous serez alerté dès qu\'il répond.';
+
+  @override
+  String get customOfferAccepted =>
+      'Un chauffeur a accepté votre demande personnalisée. Consultez les détails et confirmez le paiement.';
 
   @override
   String get proposedPrice => 'Prix proposé';
@@ -89,6 +101,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rejectOffer => 'Rejeter l\'offre';
+
+  @override
+  String get confirmRejectOffer =>
+      'Êtes-vous sûr de vouloir refuser cette offre ?';
+
+  @override
+  String get confirmCancelOffer =>
+      'Êtes-vous sûr de vouloir annuler cette offre en attente ?';
 
   @override
   String get offerAccepted => 'Offre acceptée';
@@ -731,7 +751,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get bookingReference => 'Booking reference';
 
   @override
-  String get driverAssigned => 'Chauffeur assigné';
+  String get driverCancelled => 'Le chauffeur a annulé';
+
+  @override
+  String get driverCancelledRefundTitle => 'Course annulée';
+
+  @override
+  String get driverCancelledRefundSubtitle =>
+      'Le chauffeur a annulé la course. Vous serez remboursé automatiquement.';
 
   @override
   String get cancelReservation => 'Annuler la réservation';

@@ -17,6 +17,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
+import 'package:my_mobility_services/utils/price_calculator.dart';
 
 /// AAA-grade iOS 26 Liquid Glass Trips Screen
 /// Features: Large title, segmented control, glass cards, smooth animations
@@ -163,6 +164,11 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
     }
   }
 
+  String _formatPrice(double price) {
+    final rounded = PriceCalculator.applyBusinessRounding(price);
+    return PriceCalculator.formatPrice(rounded);
+  }
+
   /// Generate and show PDF with selected reservations
   Future<void> _generateAndShowPDF(List<Reservation> reservations) async {
     final pdf = pw.Document();
@@ -279,7 +285,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
                     style: const pw.TextStyle(fontSize: 14),
                   ),
                   pw.Text(
-                    '${reservation.totalPrice.toStringAsFixed(0)}€',
+                    _formatPrice(reservation.totalPrice),
                     style: pw.TextStyle(
                       fontSize: 18,
                       fontWeight: pw.FontWeight.bold,
@@ -804,7 +810,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
                     endAt: reservation.driverProposedDate ?? _calculateEndTime(reservation),
                     status: _getStatusText(reservation.status),
                     paymentLabel: reservation.paymentMethod,
-                    priceFormatted: '${reservation.totalPrice.toStringAsFixed(0)}€',
+                    priceFormatted: _formatPrice(reservation.totalPrice),
                     isUpcoming: true,
                     isSelected: _selection.exportMode && _selection.isSelected(reservation.id),
                     isSelectionMode: _selection.exportMode,

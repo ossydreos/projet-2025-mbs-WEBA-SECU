@@ -62,6 +62,13 @@ class ReservationService {
       );
       final userId = reservationData['userId'] as String;
 
+      if (oldStatus == ReservationStatus.inProgress ||
+          oldStatus == ReservationStatus.completed) {
+        throw Exception(
+          'Impossible d\'annuler: la course est déjà en cours ou terminée.',
+        );
+      }
+
       // Mettre à jour le statut
       await _firestore.collection(_collection).doc(reservationId).update({
         'status': newStatus.name,

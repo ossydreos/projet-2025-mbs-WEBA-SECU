@@ -185,8 +185,17 @@ class _LgDateRangeCalendarState extends State<LgDateRangeCalendar> {
   void _onTapDay(DateTime date) {
     setState(() {
       if (_start == null || (_start != null && _end != null)) {
+        final bool isSameAsCurrentSelection =
+            _start != null && _end != null && _sameDay(date, _start!) && _sameDay(date, _end!);
+        if (isSameAsCurrentSelection) {
+          _start = null;
+          _end = null;
+          widget.onChanged(null);
+          return;
+        }
         _start = date;
-        _end = null;
+        _end = date;
+        widget.onChanged(DateTimeRange(start: _start!, end: _end!));
       } else {
         if (date.isBefore(_start!)) {
           _end = _start;
@@ -194,7 +203,7 @@ class _LgDateRangeCalendarState extends State<LgDateRangeCalendar> {
         } else {
           _end = date;
         }
-        widget.onChanged(_start != null && _end != null ? DateTimeRange(start: _start!, end: _end!) : null);
+        widget.onChanged(DateTimeRange(start: _start!, end: _end!));
       }
     });
   }

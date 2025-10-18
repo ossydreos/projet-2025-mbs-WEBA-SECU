@@ -580,12 +580,16 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   }
 
   DateTime _minimumAllowedStartDateTime() {
+    const tolerance = Duration(minutes: 2);
     try {
       return tz
           .TZDateTime.now(tz.getLocation('Europe/Zurich'))
-          .add(const Duration(minutes: 30));
+          .add(const Duration(minutes: 30))
+          .subtract(tolerance);
     } catch (e) {
-      return DateTime.now().add(const Duration(minutes: 30));
+      return DateTime.now()
+          .add(const Duration(minutes: 30))
+          .subtract(tolerance);
     }
   }
 
@@ -594,9 +598,12 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
       _hasTriedToSubmit = true;
     });
 
-    if (!_isFormValid()) return;
+    if (!_isFormValid()) {
+      return;
+    }
 
     setState(() {
+      _hasTriedToSubmit = false;
       _isCreatingOffer = true;
     });
 

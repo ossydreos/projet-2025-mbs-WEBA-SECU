@@ -279,11 +279,35 @@ class CustomOfferService {
       final offerData = offerDoc.data()!;
       final currentStatus = offerData['status'] as String?;
       
-      // Vérifier que l'offre est toujours en attente (pending) avant de la traiter
-      if (currentStatus != ReservationStatus.pending.name) {
-        throw Exception('Cette offre a déjà été traitée ou annulée');
+      if (currentStatus == null) {
+        throw Exception('Statut actuel introuvable');
       }
-      
+
+      final currentStatusEnum = ReservationStatus.values.firstWhere(
+        (s) => s.name == currentStatus,
+        orElse: () => throw Exception('Statut de l\'offre invalide'),
+      );
+
+      const allowedTransitions = {
+        ReservationStatus.pending: {
+          ReservationStatus.confirmed,
+          ReservationStatus.cancelled,
+        },
+        ReservationStatus.confirmed: {
+          ReservationStatus.inProgress,
+          ReservationStatus.cancelled,
+        },
+        ReservationStatus.inProgress: {
+          ReservationStatus.completed,
+          ReservationStatus.cancelled,
+        },
+      };
+
+      final canTransition = allowedTransitions[currentStatusEnum]?.contains(status) ?? false;
+      if (!canTransition) {
+        throw Exception('Transition de statut non autorisée pour cette offre');
+      }
+
       await _firestore.collection(_collection).doc(offerId).update({
         'status': status.name,
         'updatedAt': Timestamp.fromDate(DateTime.now()),

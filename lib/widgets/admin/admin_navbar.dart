@@ -20,6 +20,7 @@ class AdminBottomNavigationBar extends StatefulWidget {
 
 class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
   static String _lastAcknowledgedSignature = '';
+  static String _lastAcknowledgedDemandSignature = '';
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +104,7 @@ class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
               builder: (context, chatSnapshot) {
                 final chatDocs = chatSnapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
                 var hasUnreadChat = false;
+                final chatSignatureParts = <String>[];
 
                 for (final doc in chatDocs) {
                   final data = doc.data() as Map<String, dynamic>;
@@ -134,15 +136,26 @@ class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
                   if (statusEnum == ReservationStatus.pending ||
                       statusEnum == ReservationStatus.confirmed) {
                     hasUnreadChat = true;
-                    break;
+                    final lastUpdate = _timestampToMillis(
+                      data['lastMessageAt'] ?? data['updatedAt'],
+                    );
+                    chatSignatureParts.add('$reservationId:$unread:$lastUpdate');
                   }
                 }
 
+                chatSignatureParts.sort();
+                final demandChatSignature = chatSignatureParts.join('|');
+
                 if (isActive) {
+                  _lastAcknowledgedDemandSignature = demandChatSignature;
                   return const Icon(Icons.inbox);
                 }
 
-                final showIndicator = (pendingCount > 0 || hasUnreadChat);
+                final hasNewChat = hasUnreadChat &&
+                    demandChatSignature.isNotEmpty &&
+                    demandChatSignature != _lastAcknowledgedDemandSignature;
+
+                final showIndicator = (pendingCount > 0 || hasNewChat);
 
                 return Stack(
                   clipBehavior: Clip.none,
@@ -189,8 +202,14 @@ class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
             final chatDocs =
                 chatSnapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
 
-            final signature = '';
-            final showIndicator = false;
+            final signature = _buildSignature(reservationData, chatDocs);
+
+            if (isActive) {
+              _acknowledgeSignature(signature);
+            }
+
+            final acknowledged = _lastAcknowledgedSignature == signature;
+            final showIndicator = !isActive && signature.isNotEmpty && !acknowledged;
 
             return Stack(
               clipBehavior: Clip.none,

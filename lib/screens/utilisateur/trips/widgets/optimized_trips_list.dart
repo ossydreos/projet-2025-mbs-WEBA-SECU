@@ -4,6 +4,7 @@ import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/widgets/trip_card_v2.dart';
 import 'package:my_mobility_services/screens/utilisateur/trips/state/trip_selection_controller.dart';
+import 'package:my_mobility_services/utils/price_calculator.dart';
 
 /// Liste optimisée des trajets avec pagination et lazy loading
 class OptimizedTripsList extends StatefulWidget {
@@ -39,6 +40,11 @@ class _OptimizedTripsListState extends State<OptimizedTripsList> {
   void initState() {
     super.initState();
     _updateDisplayedReservations();
+  }
+
+  String _formatPrice(double price) {
+    final rounded = PriceCalculator.applyBusinessRounding(price);
+    return PriceCalculator.formatPrice(rounded);
   }
 
   @override
@@ -98,7 +104,7 @@ class _OptimizedTripsListState extends State<OptimizedTripsList> {
                   endAt: reservation.driverProposedDate ?? _calculateEndTime(reservation),
                   status: _getStatusText(reservation.status),
                   paymentLabel: reservation.paymentMethod,
-                  priceFormatted: '${reservation.totalPrice.toStringAsFixed(0)}€',
+                  priceFormatted: _formatPrice(reservation.totalPrice),
                   isUpcoming: widget.isUpcoming,
                   isSelected: widget.selectionController.exportMode && 
                              widget.selectionController.isSelected(reservation.id),

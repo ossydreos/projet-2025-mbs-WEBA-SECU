@@ -79,6 +79,18 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your offer has been sent to drivers. You will receive a notification as soon as a driver accepts with a price.';
 
   @override
+  String get customOfferSent =>
+      'We shared your request with our drivers. You will receive updates shortly.';
+
+  @override
+  String get customOfferPending =>
+      'We are waiting for a driver to confirm your tailored ride. We\'ll notify you instantly.';
+
+  @override
+  String get customOfferAccepted =>
+      'A driver accepted your custom request. Review the details and confirm the payment.';
+
+  @override
   String get proposedPrice => 'Proposed price';
 
   @override
@@ -89,6 +101,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rejectOffer => 'Reject offer';
+
+  @override
+  String get confirmRejectOffer =>
+      'Are you sure you want to refuse this offer?';
+
+  @override
+  String get confirmCancelOffer =>
+      'Are you sure you want to cancel this pending offer?';
 
   @override
   String get offerAccepted => 'Offer accepted';
@@ -721,7 +741,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingReference => 'Booking reference';
 
   @override
-  String get driverAssigned => 'Driver assigned';
+  String get driverCancelled => 'The driver cancelled';
+
+  @override
+  String get driverCancelledRefundTitle => 'Ride cancelled';
+
+  @override
+  String get driverCancelledRefundSubtitle =>
+      'The driver cancelled the ride. You will be refunded automatically.';
 
   @override
   String get cancelReservation => 'Cancel reservation';

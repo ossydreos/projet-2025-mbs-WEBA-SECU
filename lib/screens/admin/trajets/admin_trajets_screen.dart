@@ -33,7 +33,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   ReservationFilter _upcomingFilter = const ReservationFilter(
     isUpcoming: true,
     filterType: ReservationFilterType.all,
-    sortType: ReservationSortType.dateDescending,
+    sortType: ReservationSortType.dateAscending,
   );
   ReservationFilter _completedFilter = const ReservationFilter(
     isUpcoming: false,

@@ -46,6 +46,7 @@ import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'services/maps_initialization_service.dart';
+import 'data/models/reservation.dart';
 
 // Clé globale pour le navigator (pour afficher l'animation depuis n'importe où)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -122,14 +123,29 @@ void _handleDeepLink(Uri uri) {
       debugPrint('✅ Paiement réussi! Session ID: $sessionId, reservation: $reservationId');
 
       if (sessionId != null && reservationId != null) {
-        // Finaliser côté app: maj Firestore + passer en inProgress
         StripeCheckoutService.finalizePaymentFromDeepLink(
           sessionId: sessionId,
           reservationId: reservationId,
-        );
-        
-        // Afficher l'animation de succès
-        _showPaymentSuccessAnimation();
+        ).then((status) {
+          final context = navigatorKey.currentContext;
+          if (context == null) {
+            return;
+          }
+
+          if (status == ReservationStatus.cancelled.name) {
+            _showPaymentCancelledAnimation(context);
+            return;
+          }
+
+          if (status == ReservationStatus.confirmed.name ||
+              status == ReservationStatus.inProgress.name) {
+            _showPaymentSuccessAnimation();
+            return;
+          }
+
+          // Statut inattendu ou inconnu, afficher par défaut le message d'annulation
+          _showPaymentCancelledAnimation(context);
+        });
       }
     } else if (uri.host == 'payment-cancel') {
       // Paiement annulé
@@ -159,6 +175,16 @@ void _showPaymentSuccessAnimation() {
 // ✅ Afficher un message d'annulation de paiement
 void _showPaymentCancelMessage() {
   debugPrint('❌ Paiement annulé par l\'utilisateur');
+}
+
+void _showPaymentCancelledAnimation(BuildContext context) {
+  Future.delayed(const Duration(milliseconds: 300), () {
+    showPaymentCancelledAnimation(
+      context,
+      title: 'Course annulée par le chauffeur',
+      subtitle: 'Vous serez remboursé automatiquement.',
+    );
+  });
 }
 
 

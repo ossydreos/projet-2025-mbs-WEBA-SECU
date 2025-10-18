@@ -236,6 +236,24 @@ abstract class AppLocalizations {
   /// **'Your offer has been sent to drivers. You will receive a notification as soon as a driver accepts with a price.'**
   String get customOfferCreatedMessage;
 
+  /// No description provided for @customOfferSent.
+  ///
+  /// In en, this message translates to:
+  /// **'We shared your request with our drivers. You will receive updates shortly.'**
+  String get customOfferSent;
+
+  /// No description provided for @customOfferPending.
+  ///
+  /// In en, this message translates to:
+  /// **'We are waiting for a driver to confirm your tailored ride. We\'ll notify you instantly.'**
+  String get customOfferPending;
+
+  /// No description provided for @customOfferAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'A driver accepted your custom request. Review the details and confirm the payment.'**
+  String get customOfferAccepted;
+
   /// No description provided for @proposedPrice.
   ///
   /// In en, this message translates to:
@@ -259,6 +277,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reject offer'**
   String get rejectOffer;
+
+  /// No description provided for @confirmRejectOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to refuse this offer?'**
+  String get confirmRejectOffer;
+
+  /// No description provided for @confirmCancelOffer.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this pending offer?'**
+  String get confirmCancelOffer;
 
   /// No description provided for @offerAccepted.
   ///
@@ -1484,11 +1514,23 @@ abstract class AppLocalizations {
   /// **'Booking reference'**
   String get bookingReference;
 
-  /// No description provided for @driverAssigned.
+  /// No description provided for @driverCancelled.
   ///
   /// In en, this message translates to:
-  /// **'Driver assigned'**
-  String get driverAssigned;
+  /// **'The driver cancelled'**
+  String get driverCancelled;
+
+  /// No description provided for @driverCancelledRefundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ride cancelled'**
+  String get driverCancelledRefundTitle;
+
+  /// No description provided for @driverCancelledRefundSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The driver cancelled the ride. You will be refunded automatically.'**
+  String get driverCancelledRefundSubtitle;
 
   /// No description provided for @cancelReservation.
   ///

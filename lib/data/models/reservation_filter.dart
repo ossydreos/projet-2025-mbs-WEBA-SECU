@@ -25,6 +25,7 @@ enum ReservationTypeFilter {
 
 /// Classe pour gérer les filtres de réservation
 class ReservationFilter {
+  static const Object _noValue = Object();
   final ReservationFilterType filterType;
   final ReservationSortType sortType;
   final ReservationTypeFilter typeFilter;
@@ -35,28 +36,32 @@ class ReservationFilter {
 
   const ReservationFilter({
     this.filterType = ReservationFilterType.all,
-    this.sortType = ReservationSortType.dateDescending, // Plus récents en haut par défaut
+    ReservationSortType? sortType,
     this.typeFilter = ReservationTypeFilter.all,
     this.startDate,
     this.endDate,
-    this.isUpcoming = true,
-  });
+    bool isUpcoming = true,
+  })  : isUpcoming = isUpcoming,
+        sortType = sortType ??
+            (isUpcoming
+                ? ReservationSortType.dateAscending
+                : ReservationSortType.dateDescending);
 
   /// Créer une copie avec des modifications
   ReservationFilter copyWith({
     ReservationFilterType? filterType,
     ReservationSortType? sortType,
     ReservationTypeFilter? typeFilter,
-    DateTime? startDate,
-    DateTime? endDate,
+    Object? startDate = _noValue,
+    Object? endDate = _noValue,
     bool? isUpcoming,
   }) {
     return ReservationFilter(
       filterType: filterType ?? this.filterType,
       sortType: sortType ?? this.sortType,
       typeFilter: typeFilter ?? this.typeFilter,
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: startDate == _noValue ? this.startDate : startDate as DateTime?,
+      endDate: endDate == _noValue ? this.endDate : endDate as DateTime?,
       isUpcoming: isUpcoming ?? this.isUpcoming,
     );
   }
@@ -106,9 +111,9 @@ class ReservationFilter {
       // Descriptions pour les courses à venir
       switch (sortType) {
         case ReservationSortType.dateAscending:
-          return 'Création (ancienne → récente)';
+          return 'Départ (proche → lointain)';
         case ReservationSortType.dateDescending:
-          return 'Création (récente → ancienne)';
+          return 'Départ (lointain → proche)';
         case ReservationSortType.priceAscending:
           return 'Prix (bas → élevé)';
         case ReservationSortType.priceDescending:
@@ -220,12 +225,18 @@ class ReservationFilter {
     }
 
     // Appliquer le tri
+    final reference = DateTime.now();
+
     switch (sortType) {
       case ReservationSortType.dateAscending:
-        filtered.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        filtered.sort(
+          (a, b) => _compareReservationStartDateTime(a, b, reference),
+        );
         break;
       case ReservationSortType.dateDescending:
-        filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        filtered.sort(
+          (a, b) => _compareReservationStartDateTime(b, a, reference),
+        );
         break;
       case ReservationSortType.priceAscending:
         filtered.sort((a, b) => a.totalPrice.compareTo(b.totalPrice));
@@ -237,4 +248,115 @@ class ReservationFilter {
 
     return filtered;
   }
+
+  DateTime _reservationStartDateTime(Reservation reservation) {
+    if (reservation.driverProposedDate != null) {
+      return _combineDateWithOptionalTime(
+        reservation.driverProposedDate!,
+        reservation.driverProposedTime,
+      );
+    }
+
+    final DateTime selectedDate = reservation.selectedDate;
+    if (_dateHasTimeComponent(selectedDate)) {
+      return selectedDate;
+    }
+
+    return _combineDateWithOptionalTime(
+      selectedDate,
+      reservation.selectedTime.isNotEmpty ? reservation.selectedTime : null,
+    );
+  }
+
+  int _compareReservationStartDateTime(
+    Reservation a,
+    Reservation b,
+    DateTime reference,
+  ) {
+    final first = _reservationStartDateTime(a);
+    final second = _reservationStartDateTime(b);
+
+    final firstDelta = first.difference(reference);
+    final secondDelta = second.difference(reference);
+
+    final firstIsFuture = firstDelta >= Duration.zero;
+    final secondIsFuture = secondDelta >= Duration.zero;
+
+    if (firstIsFuture && !secondIsFuture) {
+      return -1;
+    }
+    if (!firstIsFuture && secondIsFuture) {
+      return 1;
+    }
+
+    final firstMagnitude = firstDelta.abs();
+    final secondMagnitude = secondDelta.abs();
+
+    final magnitudeComparison = firstMagnitude.compareTo(secondMagnitude);
+    if (magnitudeComparison != 0) {
+      return magnitudeComparison;
+    }
+
+    final startComparison = first.compareTo(second);
+    if (startComparison != 0) {
+      return startComparison;
+    }
+
+    return a.createdAt.compareTo(b.createdAt);
+  }
+
+  DateTime _combineDateWithOptionalTime(DateTime date, String? timeString) {
+    if (timeString == null || timeString.isEmpty) {
+      return date;
+    }
+
+    final _TimeComponents time = _parseTimeString(timeString);
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+      date.second,
+      date.millisecond,
+      date.microsecond,
+    );
+  }
+
+  bool _dateHasTimeComponent(DateTime date) {
+    return date.hour != 0 ||
+        date.minute != 0 ||
+        date.second != 0 ||
+        date.millisecond != 0 ||
+        date.microsecond != 0;
+  }
+
+  _TimeComponents _parseTimeString(String? value) {
+    if (value == null || value.isEmpty) {
+      return const _TimeComponents(hour: 0, minute: 0);
+    }
+
+    final matches = RegExp(r'\d+').allMatches(value).toList();
+    int hour = matches.isNotEmpty ? int.tryParse(matches[0].group(0)!) ?? 0 : 0;
+    int minute = matches.length > 1 ? int.tryParse(matches[1].group(0)!) ?? 0 : 0;
+
+    hour = hour % 24;
+    minute = minute % 60;
+
+    final lower = value.toLowerCase();
+    if (lower.contains('pm') && hour < 12) {
+      hour += 12;
+    } else if (lower.contains('am') && hour == 12) {
+      hour = 0;
+    }
+
+    return _TimeComponents(hour: hour, minute: minute);
+  }
+}
+
+class _TimeComponents {
+  final int hour;
+  final int minute;
+
+  const _TimeComponents({required this.hour, required this.minute});
 }

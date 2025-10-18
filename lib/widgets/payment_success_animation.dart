@@ -243,3 +243,238 @@ void showPaymentSuccessAnimation(BuildContext context, {String? message}) {
     ),
   );
 }
+
+class PaymentCancelledAnimation extends StatefulWidget {
+  final VoidCallback? onAnimationComplete;
+  final String title;
+  final String subtitle;
+
+  const PaymentCancelledAnimation({
+    Key? key,
+    this.onAnimationComplete,
+    required this.title,
+    required this.subtitle,
+  }) : super(key: key);
+
+  @override
+  State<PaymentCancelledAnimation> createState() => _PaymentCancelledAnimationState();
+}
+
+class _PaymentCancelledAnimationState extends State<PaymentCancelledAnimation>
+    with TickerProviderStateMixin {
+  late AnimationController _scaleController;
+  late AnimationController _crossController;
+  late AnimationController _fadeController;
+
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _crossAnimation;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _scaleController,
+      curve: Curves.elasticOut,
+    ));
+
+    _crossController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _crossAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _crossController,
+      curve: Curves.easeInOut,
+    ));
+
+    _fadeController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _fadeController,
+      curve: Curves.easeInOut,
+    ));
+
+    _startAnimations();
+  }
+
+  void _startAnimations() async {
+    await _scaleController.forward();
+    await Future.delayed(const Duration(milliseconds: 100));
+    await _crossController.forward();
+    await Future.delayed(const Duration(milliseconds: 3000));
+    await _fadeController.forward();
+    widget.onAnimationComplete?.call();
+  }
+
+  @override
+  void dispose() {
+    _scaleController.dispose();
+    _crossController.dispose();
+    _fadeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([
+        _scaleAnimation,
+        _crossAnimation,
+        _fadeAnimation,
+      ]),
+      builder: (context, child) {
+        return Opacity(
+          opacity: _fadeAnimation.value,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red.withOpacity(0.2),
+                          border: Border.all(
+                            color: Colors.red,
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Transform.scale(
+                      scale: _scaleAnimation.value * 0.7,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                    Transform.scale(
+                      scale: _crossAnimation.value,
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 50,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  widget.subtitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class PaymentCancelledOverlay extends StatefulWidget {
+  final String title;
+  final String subtitle;
+  final Duration duration;
+
+  const PaymentCancelledOverlay({
+    Key? key,
+    required this.title,
+    required this.subtitle,
+    this.duration = const Duration(seconds: 3),
+  }) : super(key: key);
+
+  @override
+  State<PaymentCancelledOverlay> createState() => _PaymentCancelledOverlayState();
+}
+
+class _PaymentCancelledOverlayState extends State<PaymentCancelledOverlay> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(widget.duration, () {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.black.withOpacity(0.5),
+      child: SizedBox(
+        width: double.infinity,
+        height: double.infinity,
+        child: PaymentCancelledAnimation(
+          title: widget.title,
+          subtitle: widget.subtitle,
+          onAnimationComplete: () {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted) {
+                Navigator.of(context).pop();
+              }
+            });
+          },
+        ),
+      ),
+    );
+  }
+}
+
+void showPaymentCancelledAnimation(
+  BuildContext context, {
+  String? title,
+  String? subtitle,
+  Duration duration = const Duration(seconds: 3),
+}) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => PaymentCancelledOverlay(
+      title: title ?? 'Course annulée',
+      subtitle: subtitle ?? 'Vous serez remboursé automatiquement.',
+      duration: duration,
+    ),
+  );
+}
