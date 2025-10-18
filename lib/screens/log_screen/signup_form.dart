@@ -117,10 +117,6 @@ class SignupFormState extends State<SignupForm> {
     String fullPhone = '${_selectedCountry?.dialCode ?? '+33'}$phone';
     
     // Debug: vérifier la concaténation
-    print('DEBUG - Indicatif: ${_selectedCountry?.dialCode ?? '+33'}');
-    print(AppLocalizations.of(context).debugCountry(_selectedCountry?.name ?? 'France'));
-    print('DEBUG - Numéro: $phone');
-    print('DEBUG - Numéro complet: $fullPhone');
 
     try {
       if (password.length < 8) {
@@ -170,10 +166,6 @@ class SignupFormState extends State<SignupForm> {
         }, SetOptions(merge: true));
         
         // Debug: confirmer la sauvegarde
-        print('DEBUG - Sauvegarde Firestore réussie:');
-        print('  - phone: $fullPhone');
-        print('  - countryCode: ${_selectedCountry?.dialCode ?? '+33'}');
-        print('  - countryName: ${_selectedCountry?.name ?? 'France'}');
       }
 
       if (!mounted) return;

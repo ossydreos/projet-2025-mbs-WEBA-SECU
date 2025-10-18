@@ -203,26 +203,28 @@ class GlassBackground extends StatelessWidget {
           colors: [Color(0xFF05070A), Color(0xFF0A0D12), Color(0xFF05070A)],
         ),
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -120,
-            right: -60,
-            child: _RadialGlow(
-              color: AppColors.accent.withOpacity(0.08),
-              size: 320,
+      child: ClipRect(
+        child: Stack(
+          children: [
+            Positioned(
+              top: -120,
+              right: -60,
+              child: _RadialGlow(
+                color: AppColors.accent.withOpacity(0.08),
+                size: 320,
+              ),
             ),
-          ),
-          Positioned(
-            left: -80,
-            bottom: -100,
-            child: _RadialGlow(
-              color: AppColors.accent2.withOpacity(0.06),
-              size: 380,
+            Positioned(
+              left: -80,
+              bottom: -100,
+              child: _RadialGlow(
+                color: AppColors.accent2.withOpacity(0.06),
+                size: 380,
+              ),
             ),
-          ),
-          if (child != null) child!,
-        ],
+            if (child != null) child!,
+          ],
+        ),
       ),
     );
   }

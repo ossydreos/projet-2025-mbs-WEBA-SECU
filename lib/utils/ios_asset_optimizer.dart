@@ -128,7 +128,6 @@ class IOSAssetOptimizer {
       try {
         await rootBundle.load(asset);
       } catch (e) {
-        print('Erreur préchargement asset iOS: $asset - $e');
       }
     }
   }
@@ -159,7 +158,6 @@ class IOSAssetOptimizer {
       try {
         await rootBundle.load('assets/images/ios-icons/$icon');
       } catch (e) {
-        print('Asset iOS manquant: $icon');
         return false;
       }
     }

@@ -530,7 +530,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         try {
           permission = await Geolocator.requestPermission();
         } catch (e) {
-          print('Erreur lors de la demande de permission dans localisation_recherche: $e');
           setState(() {
             _currentPositionLatLng = null;
           });
@@ -551,7 +550,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           desiredAccuracy: LocationAccuracy.high,
         );
       } catch (e) {
-        print('Erreur lors de l\'obtention de la position dans localisation_recherche: $e');
         setState(() {
           _currentPositionLatLng = null;
         });
@@ -564,7 +562,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         final placemarks = await geocoding.placemarkFromCoordinates(
           position.latitude,
           position.longitude,
-          localeIdentifier: 'fr_FR',
         );
         if (placemarks.isNotEmpty) {
           final p = placemarks.first;

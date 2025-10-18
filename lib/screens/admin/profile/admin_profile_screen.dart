@@ -214,7 +214,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
   void _performLogout() async {
     try {
       await _auth.signOut();
-      print('Admin logout successful');
 
       if (mounted) {
         Navigator.pushAndRemoveUntil(
@@ -224,7 +223,6 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         );
       }
     } catch (e) {
-      print('Error during logout: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

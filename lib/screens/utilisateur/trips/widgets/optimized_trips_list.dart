@@ -90,6 +90,7 @@ class _OptimizedTripsListState extends State<OptimizedTripsList> {
                 child: TripCardV2(
                   key: ValueKey('${reservation.id}_${widget.selectionController.exportMode}'),
                   type: reservation.type,
+                  reservationId: reservation.id,
                   vehicleTitle: reservation.vehicleName,
                   fromAddress: reservation.departure,
                   toAddress: reservation.destination,

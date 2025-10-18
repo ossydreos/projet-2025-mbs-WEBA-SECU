@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
@@ -31,9 +30,6 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
   late Animation<double> _blinkAnimation;
   late Animation<Offset> _slideAnimation;
   late Animation<double> _pulseAnimation;
-
-  Timer? _timeoutTimer;
-  int _remainingSeconds = 30;
 
   @override
   void initState() {
@@ -69,9 +65,6 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
 
     // Démarrer les animations
     _startAnimations();
-
-    // Démarrer le timer de 30 secondes
-    _startTimeoutTimer();
   }
 
   void _startAnimations() {
@@ -85,28 +78,11 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
     _pulseController.repeat(reverse: true);
   }
 
-  void _startTimeoutTimer() {
-    _timeoutTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          _remainingSeconds--;
-        });
-
-        if (_remainingSeconds <= 0) {
-          timer.cancel();
-          // Timeout - fermer automatiquement
-          widget.onClose();
-        }
-      }
-    });
-  }
-
   @override
   void dispose() {
     _blinkController.dispose();
     _slideController.dispose();
     _pulseController.dispose();
-    _timeoutTimer?.cancel();
     super.dispose();
   }
 
@@ -401,8 +377,8 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
 
           const SizedBox(height: 20),
 
-          // Indicateur de temps restant
-          _buildTimeIndicator(),
+          // Espace réservé précédemment au compteur
+          const SizedBox.shrink(),
         ],
       ),
     );
@@ -627,44 +603,6 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
     );
   }
 
-  Widget _buildTimeIndicator() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: _remainingSeconds <= 10
-            ? Colors.red.withOpacity(0.8)
-            : Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(20),
-        border: _remainingSeconds <= 10
-            ? Border.all(color: Colors.red, width: 2)
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.timer,
-            color: _remainingSeconds <= 10 ? Colors.white : Colors.white,
-            size: 16,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            _remainingSeconds <= 10
-                ? 'DERNIÈRES ${_remainingSeconds}s !'
-                : 'Répondez dans ${_remainingSeconds}s',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: _remainingSeconds <= 10
-                  ? FontWeight.bold
-                  : FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildActionButtons() {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
@@ -683,9 +621,6 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                       scale: _pulseAnimation.value,
                       child: GestureDetector(
                         onTap: () {
-                          print(
-                            '🔔 UberStyleNotification: Bouton ACCEPTER touché',
-                          );
                           widget.onAccept();
                         },
                         child: Container(
@@ -730,9 +665,6 @@ class _UberStyleNotificationState extends State<UberStyleNotification>
                       scale: _pulseAnimation.value,
                       child: GestureDetector(
                         onTap: () {
-                          print(
-                            '🔔 UberStyleNotification: Bouton REFUSER touché',
-                          );
                           widget.onDecline();
                         },
                         child: Container(

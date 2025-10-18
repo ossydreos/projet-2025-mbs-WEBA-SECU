@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:my_mobility_services/data/services/ride_chat_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
@@ -338,25 +340,104 @@ class ConfirmedReservationSheet extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         
-        // Bouton Chat
+        // Bouton Chat avec badge
         Align(
           alignment: Alignment.centerRight,
-          child: ElevatedButton.icon(
+          child: _ConfirmedChatButton(
+            reservationId: reservation.id,
+            userId: reservation.userId,
             onPressed: onMessage,
-            icon: const Icon(Icons.chat_bubble, size: 18),
-            label: Text(AppLocalizations.of(context).chat),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent,
-              foregroundColor: Colors.white,
-              side: BorderSide(color: Colors.grey.withOpacity(0.5), width: 1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
-            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ConfirmedChatButton extends StatelessWidget {
+  final String reservationId;
+  final String userId;
+  final VoidCallback? onPressed;
+
+  const _ConfirmedChatButton({
+    required this.reservationId,
+    required this.userId,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final baseButton = ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: const Icon(Icons.chat_bubble, size: 18),
+      label: Text(AppLocalizations.of(context).chat),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.white,
+        side: BorderSide(color: Colors.grey.withOpacity(0.5), width: 1),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+      ),
+    );
+
+    if (onPressed == null || userId.isEmpty) {
+      return baseButton;
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection(RideChatService.threadsCollection)
+          .where('reservationId', isEqualTo: reservationId)
+          .where('userId', isEqualTo: userId)
+          .limit(1)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final docs = snapshot.data?.docs ?? const [];
+        final data = docs.isNotEmpty
+            ? docs.first.data() as Map<String, dynamic>
+            : null;
+        final unreadRaw = data?['unreadForUser'];
+        final unreadCount = unreadRaw is int ? unreadRaw : 0;
+
+        if (unreadCount <= 0) {
+          return baseButton;
+        }
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            baseButton,
+            Positioned(
+              right: -6,
+              top: -6,
+              child: _buildUnreadBadge(unreadCount),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildUnreadBadge(int count) {
+    final display = count > 9 ? '9+' : '$count';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white, width: 1.5),
+      ),
+      child: Text(
+        display,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 }

@@ -216,7 +216,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
           });
         }
       } catch (e) {
-        print(AppLocalizations.of(context).errorCalculatingArrivalTime);
         // Garder l'heure d'arrivée par défaut
       }
     }
@@ -224,14 +223,9 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
   // Utiliser le prix transmis depuis booking_screen
   void _setCalculatedPrice() {
-    print('🔥 DEBUG: Prix reçu = ${widget.calculatedPrice}');
     // ✅ Arrondir à 0.05 CHF près
     _calculatedPrice = (widget.calculatedPrice * 20).round() / 20;
     _totalPrice = '${_calculatedPrice.toStringAsFixed(2)} CHF';
-    print(
-      '🔥 DEBUG: Prix final arrondi = ${_calculatedPrice.toStringAsFixed(2)} CHF',
-    );
-    print('🔥 DEBUG: Prix affiché = $_totalPrice');
   }
 
   Future<void> _applyPromo() async {
@@ -282,7 +276,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
 
     try {
       // ✅ LE PRIX EST DÉJÀ CALCULÉ DANS initState
-      print('🔥 DEBUG RESERVATION: Prix utilisé = $_calculatedPrice');
 
       // Obtenir l'ID utilisateur (connecté ou temporaire)
       String userId;
@@ -340,9 +333,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       );
 
       // Sauvegarder dans Firebase
-      print(
-        AppLocalizations.of(context).reservationSavedWithVehicle(_currentVehicleName),
-      );
       if (_appliedPromo != null) {
         try {
           await _promoService.applyPromoCode(_appliedPromo!.id);
@@ -354,7 +344,6 @@ class _TripSummaryScreenState extends State<TripSummaryScreen> {
       final reservationId = await _reservationService.createReservation(
         reservation,
       );
-      print(AppLocalizations.of(context).reservationCreatedWithId(reservationId));
 
       // Afficher le succès (ajoute le code promo s'il est utilisé)
       if (mounted) {

@@ -1,15 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
-import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
+import 'package:my_mobility_services/data/models/custom_offer.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/data/models/reservation_filter.dart';
-import 'package:my_mobility_services/data/services/reservation_service.dart';
-import 'package:my_mobility_services/data/services/pdf_export_service.dart';
 import 'package:my_mobility_services/data/services/custom_offer_service.dart';
-import 'package:my_mobility_services/data/models/custom_offer.dart';
-import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
+import 'package:my_mobility_services/data/services/pdf_export_service.dart';
+import 'package:my_mobility_services/data/services/reservation_service.dart';
+import 'package:my_mobility_services/data/services/ride_chat_service.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
+import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
+import 'package:my_mobility_services/widgets/admin/admin_navbar.dart';
+import 'package:my_mobility_services/widgets/admin/reservation_filter_widget.dart';
 import 'package:my_mobility_services/widgets/widget_navTrajets.dart';
 
 class AdminTrajetsScreen extends StatefulWidget {
@@ -50,6 +52,87 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  Widget _buildChatButton(Reservation reservation) {
+    final baseButton = OutlinedButton.icon(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RideChatScreen(
+              reservationId: reservation.id,
+              isAdmin: true,
+              userIdForAdmin: reservation.userId,
+              clientName: reservation.userName,
+            ),
+          ),
+        );
+      },
+      icon: const Icon(Icons.chat_bubble, size: 18),
+      label: Text(AppLocalizations.of(context).chat),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.accent,
+        side: BorderSide(color: AppColors.accent),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+      ),
+    );
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection(RideChatService.threadsCollection)
+          .where('reservationId', isEqualTo: reservation.id)
+          .where('userId', isEqualTo: reservation.userId)
+          .limit(1)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final docs = snapshot.data?.docs ?? <QueryDocumentSnapshot>[];
+        final data = docs.isNotEmpty
+            ? docs.first.data() as Map<String, dynamic>
+            : null;
+        final unreadRaw = data?['unreadForAdmin'];
+        final unreadCount = unreadRaw is int ? unreadRaw : 0;
+
+        if (unreadCount <= 0) {
+          return baseButton;
+        }
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            baseButton,
+            Positioned(
+              right: -6,
+              top: -6,
+              child: _buildUnreadBadge(unreadCount),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildUnreadBadge(int count) {
+    final display = count > 9 ? '9+' : '$count';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white, width: 1.5),
+      ),
+      child: Text(
+        display,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   @override
@@ -106,7 +189,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
     try {
       return await _customOfferService.getCustomOfferById(offerId);
     } catch (e) {
-      print('Erreur lors de la récupération de l\'offre personnalisée: $e');
       return null;
     }
   }
@@ -468,30 +550,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                       ],
                       // Pour les trajets à venir: afficher uniquement la bulle Chat (remplace statut + i)
                       if (isUpcoming) ...[
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => RideChatScreen(
-                                  reservationId: reservation.id,
-                                  isAdmin: true,
-                                  userIdForAdmin: reservation.userId,
-                                  clientName: reservation.userName,
-                                ),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.chat_bubble, size: 18),
-                          label: Text(AppLocalizations.of(context).chat),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.accent,
-                            side: BorderSide(color: AppColors.accent),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
+                        _buildChatButton(reservation),
                       ] else ...[
                         // Pour les terminées: conserver le statut et ajouter la bulle Chat à droite, sans l'icône i
                         if (reservation.type == ReservationType.reservation) ...[
@@ -522,30 +581,7 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
                           ),
                         ],
                         const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => RideChatScreen(
-                                  reservationId: reservation.id,
-                                  isAdmin: true,
-                                  userIdForAdmin: reservation.userId,
-                                  clientName: reservation.userName,
-                                ),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.chat_bubble, size: 18),
-                          label: Text(AppLocalizations.of(context).chat),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.accent,
-                            side: BorderSide(color: AppColors.accent),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
+                        _buildChatButton(reservation),
                       ],
                     ],
                   ),
@@ -1202,8 +1238,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   }
 
   Future<void> _cancelConfirmedReservation(Reservation reservation) async {
-    print('🚫 Annulation de la course: ${reservation.id}');
-    print('🚫 Statut actuel: ${reservation.status}');
 
     try {
       // Marquer la course comme annulée (disparaît de la liste des courses à venir)
@@ -1211,13 +1245,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         reservation.id,
         ReservationStatus.cancelled,
       );
-      print('✅ Course marquée comme annulée avec succès');
 
       if (mounted) {
         _showSuccessMessage('Course annulée et retirée de la liste !');
       }
     } catch (e) {
-      print('❌ Erreur lors de l\'annulation: $e');
       if (mounted) {
         _showErrorMessage('Erreur: $e');
       }
@@ -1420,11 +1452,9 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   }
 
   Future<void> _deleteReservation(Reservation reservation) async {
-    print('🗑️ Tentative de suppression de la réservation: ${reservation.id}');
 
     try {
       await _reservationService.deleteReservation(reservation.id);
-      print('✅ Réservation supprimée avec succès');
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1439,7 +1469,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         );
       }
     } catch (e) {
-      print('❌ Erreur lors de la suppression: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1799,13 +1828,11 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         .where((r) => _selectedReservations.contains(r.id))
         .toList();
 
-    print('🗑️ Suppression en lot de ${selectedReservations.length} courses');
 
     try {
       // Supprimer toutes les courses sélectionnées
       for (final reservation in selectedReservations) {
         await _reservationService.deleteReservation(reservation.id);
-        print('✅ Course ${reservation.id} supprimée');
       }
 
       if (mounted) {
@@ -1824,7 +1851,6 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         _cancelSelection();
       }
     } catch (e) {
-      print('❌ Erreur lors de la suppression en lot: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -7,7 +7,6 @@ import 'firebase/firebase_options.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('🔔 BACKGROUND HANDLER DÉCLENCHÉ: ${message.data}');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 

@@ -36,12 +36,10 @@ class NotificationManager {
       context,
       reservation,
       onAccept: () {
-        print('🔔 NotificationManager: Bouton ACCEPTER cliqué');
         _closeCurrentNotification();
         onAccept();
       },
       onDecline: () {
-        print('🔔 NotificationManager: Bouton REFUSER cliqué');
         _closeCurrentNotification();
         onDecline();
       },
@@ -65,13 +63,9 @@ class NotificationManager {
     required VoidCallback onDecline,
     VoidCallback? onCounterOffer,
   }) {
-    print('🔔 NotificationManager: showGlobalNotification appelé');
-    print('🔔 NotificationManager: Contexte monté: ${context.mounted}');
-    print('🔔 NotificationManager: Réservation: ${reservation.id}');
 
     // Si une notification est déjà affichée, la fermer
     if (_currentNotificationReservation != null) {
-      print('🔔 NotificationManager: Fermeture de la notification existante');
       _closeCurrentNotification();
     }
 
@@ -79,9 +73,6 @@ class NotificationManager {
     _currentContext = context;
     _currentNotificationReservation = reservation;
 
-    print(
-      '🔔 NotificationManager: Appel de NotificationService.showUberStyleNotification',
-    );
 
     // Afficher la nouvelle notification
     try {
@@ -89,12 +80,10 @@ class NotificationManager {
         context,
         reservation,
         onAccept: () {
-          print('🔔 NotificationManager: Bouton ACCEPTER cliqué');
           _closeCurrentNotification();
           onAccept();
         },
         onDecline: () {
-          print('🔔 NotificationManager: Bouton REFUSER cliqué');
           _closeCurrentNotification();
           onDecline();
         },
@@ -104,8 +93,10 @@ class NotificationManager {
                 onCounterOffer();
               }
             : null,
+        onClose: () {
+          _closeCurrentNotification();
+        },
         onPending: () {
-          print('🔔 NotificationManager: Croix (X) cliquée - Mise en attente');
           _closeCurrentNotification();
           _handlePendingReservation(reservation);
         },
@@ -114,43 +105,26 @@ class NotificationManager {
       // Démarrer le timer de 30 secondes
       _startNotificationTimer(reservation);
     } catch (e) {
-      print(
-        '🔔 NotificationManager: ERREUR lors de l\'affichage de la notification: $e',
-      );
     }
   }
 
   void _startNotificationTimer(Reservation reservation) {
     _currentNotificationTimer?.cancel();
-    print(
-      '🔔 NotificationManager: Démarrage du timer de 30 secondes pour la réservation ${reservation.id}',
-    );
     _currentNotificationTimer = Timer(const Duration(seconds: 30), () {
-      print('🔔 NotificationManager: Timer de 30 secondes terminé');
       if (_currentNotificationReservation?.id == reservation.id) {
         _handleTimeout(reservation);
       } else {
-        print('🔔 NotificationManager: Réservation différente, timeout ignoré');
       }
     });
   }
 
   void _handleTimeout(Reservation reservation) {
-    print(
-      '🔔 NotificationManager: TIMEOUT de 30 secondes atteint pour la réservation ${reservation.id}',
-    );
-    print(
-      '🔔 NotificationManager: Mise en attente de la réservation (pas de refus)',
-    );
     // Timeout - mettre automatiquement en attente
     _handlePendingReservation(reservation);
   }
 
   Future<void> _handlePendingReservation(Reservation reservation) async {
     try {
-      print(
-        '🔔 NotificationManager: Mise en attente de la réservation ${reservation.id}',
-      );
 
       // Mettre la réservation en attente (statut pending mais avec un flag spécial)
       await _reservationService.updateReservationStatus(
@@ -158,7 +132,6 @@ class NotificationManager {
         ReservationStatus.pending,
       );
 
-      print('🔔 NotificationManager: Statut mis à jour vers pending');
 
       // Ajouter un champ pour indiquer qu'elle est en attente d'action admin
       await _reservationService.updateReservationField(
@@ -167,7 +140,6 @@ class NotificationManager {
         true,
       );
 
-      print('🔔 NotificationManager: Flag adminPending ajouté');
 
       await _reservationService.updateReservationField(
         reservation.id,
@@ -189,7 +161,6 @@ class NotificationManager {
         );
       }
     } catch (e) {
-      print('Erreur lors de la mise en attente: $e');
     }
   }
 

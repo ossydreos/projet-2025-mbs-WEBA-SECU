@@ -1,9 +1,23 @@
 import * as functions from "firebase-functions";
 import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 initializeApp();
 // Récupération sécurisée des secrets OneSignal
 const APP_ID = functions.config().onesignal.app_id;
 const REST_KEY = functions.config().onesignal.rest_key;
+function buildMessagePreview(text, maxLength = 100) {
+    if (!text) {
+        return "";
+    }
+    const trimmed = text.trim();
+    if (trimmed.length <= maxLength) {
+        return trimmed;
+    }
+    return `${trimmed.slice(0, maxLength - 1)}…`;
+}
+function composeLines(lines) {
+    return lines.filter(Boolean).join("\n");
+}
 async function sendToOneSignalByTag(params) {
     const payload = {
         app_id: APP_ID,
@@ -248,6 +262,149 @@ export const onReservationConfirmedReminders = functions.firestore
     }
     catch (error) {
         console.error("❌ Erreur programmation rappels:", error);
+    }
+});
+export const onRideChatMessageCreate = functions.firestore
+    .document("ride_chat_threads/{threadId}/messages/{messageId}")
+    .onCreate(async (snap, ctx) => {
+    const message = snap.data();
+    if (!message) {
+        return;
+    }
+    const senderRole = message.senderRole;
+    if (!senderRole) {
+        return;
+    }
+    const text = message.text?.trim();
+    if (!text) {
+        return;
+    }
+    if (message.senderId === "admin_auto") {
+        return;
+    }
+    const firestore = getFirestore();
+    const threadSnap = await firestore
+        .collection("ride_chat_threads")
+        .doc(ctx.params.threadId)
+        .get();
+    if (!threadSnap.exists) {
+        return;
+    }
+    const thread = threadSnap.data();
+    let departure = thread.departure;
+    let destination = thread.destination;
+    let clientName = thread.userName;
+    if (thread.reservationId) {
+        try {
+            const reservationSnap = await firestore
+                .collection("reservations")
+                .doc(thread.reservationId)
+                .get();
+            if (reservationSnap.exists) {
+                const reservation = reservationSnap.data();
+                departure = reservation.departure ?? departure;
+                destination = reservation.destination ?? destination;
+                clientName = reservation.userName ?? clientName;
+            }
+        }
+        catch (error) {
+            console.error("❌ Impossible de récupérer la réservation pour la notif chat:", error);
+        }
+    }
+    const preview = buildMessagePreview(text, 140);
+    const client = clientName ?? "Client";
+    const itinerary = departure && destination
+        ? `${departure} → ${destination}`
+        : undefined;
+    const adminTitle = itinerary ? `[Course] ${itinerary}` : "[Course] Nouveau message";
+    const adminBody = composeLines([
+        client ? `Client: ${client}` : undefined,
+        itinerary ? `Trajet: ${itinerary}` : undefined,
+        preview ? `Message: « ${preview} »` : undefined,
+    ]);
+    const userTitle = itinerary ? `[Course] ${itinerary}` : "[Course] Réponse du chauffeur";
+    const userBody = composeLines([
+        itinerary ? `Trajet: ${itinerary}` : undefined,
+        preview ? `Message: « ${preview} »` : undefined,
+    ]);
+    if (senderRole === "user") {
+        await sendToOneSignalByTag({
+            title: adminTitle,
+            body: adminBody,
+            data: {
+                type: "ride_chat",
+                threadId: ctx.params.threadId,
+                reservationId: thread.reservationId ?? "",
+                route: `/ride-chat/${ctx.params.threadId}`,
+            },
+        });
+        return;
+    }
+    if (senderRole === "admin" && thread.userId) {
+        await sendToOneSignalByUserId({
+            userId: thread.userId,
+            title: userTitle,
+            body: userBody,
+            data: {
+                type: "ride_chat",
+                threadId: ctx.params.threadId,
+                reservationId: thread.reservationId ?? "",
+                route: `/ride-chat/${ctx.params.threadId}`,
+            },
+        });
+    }
+});
+export const onSupportChatMessageCreate = functions.firestore
+    .document("support_threads/{threadId}/messages/{messageId}")
+    .onCreate(async (snap, ctx) => {
+    const message = snap.data();
+    if (!message) {
+        return;
+    }
+    const senderRole = message.senderRole;
+    if (!senderRole) {
+        return;
+    }
+    const text = message.text?.trim();
+    if (!text) {
+        return;
+    }
+    if (message.senderId === "admin_auto") {
+        return;
+    }
+    const firestore = getFirestore();
+    const threadSnap = await firestore
+        .collection("support_threads")
+        .doc(ctx.params.threadId)
+        .get();
+    if (!threadSnap.exists) {
+        return;
+    }
+    const thread = threadSnap.data();
+    const preview = buildMessagePreview(text);
+    if (senderRole === "user") {
+        await sendToOneSignalByTag({
+            title: "[Support] Nouveau message",
+            body: preview,
+            data: {
+                type: "support_chat",
+                threadId: ctx.params.threadId,
+                route: `/support/${ctx.params.threadId}`,
+            },
+        });
+        return;
+    }
+    if (senderRole === "admin" && thread.userId) {
+        await sendToOneSignalByUserId({
+            userId: thread.userId,
+            title: "[Support] Réponse admin",
+            body: preview,
+            data: {
+                type: "support_chat",
+                threadId: ctx.params.threadId,
+                route: `/support/${ctx.params.threadId}`,
+            },
+        });
     }
 });
 // 🔐 Function pour exposer les clés API de manière sécurisée

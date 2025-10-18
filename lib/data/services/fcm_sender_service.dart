@@ -16,10 +16,8 @@ class FCMSenderService {
     try {
       // Pour l'API V1, on utilise Firebase Functions ou un service account
       // Pour l'instant, on retourne null car on va utiliser Firebase Functions
-      print('🔔 FCMSenderService: Token d\'accès non implémenté (utilise Firebase Functions)');
       return null;
     } catch (e) {
-      print('🔔 FCMSenderService: Erreur obtention token: $e');
       return null;
     }
   }
@@ -30,11 +28,9 @@ class FCMSenderService {
     required String reservationId,
     String? adminToken,
   }) async {
-    print('🔔 FCMSenderService: Envoi notification via Firebase Functions');
     
     // Si pas de token admin, on ne peut pas envoyer
     if (adminToken == null || adminToken.isEmpty) {
-      print('🔔 FCMSenderService: Pas de token admin disponible');
       return;
     }
 
@@ -58,14 +54,9 @@ class FCMSenderService {
       );
 
       if (response.statusCode == 200) {
-        print('🔔 FCMSenderService: Notification envoyée avec succès via Firebase Functions');
-        print('🔔 FCMSenderService: Réponse: ${response.body}');
       } else {
-        print('🔔 FCMSenderService: Erreur envoi notification: ${response.statusCode}');
-        print('🔔 FCMSenderService: Réponse: ${response.body}');
       }
     } catch (e) {
-      print('🔔 FCMSenderService: Erreur lors de l\'envoi: $e');
     }
   }
 
@@ -74,13 +65,11 @@ class FCMSenderService {
     // Pour l'instant, on retourne null
     // Tu devras implémenter la logique pour récupérer le token de l'admin
     // depuis Firestore ou une autre source
-    print('🔔 FCMSenderService: Récupération token admin (non implémenté)');
     return null;
   }
 
   // Méthode de test pour envoyer une notification
   Future<void> sendTestNotification() async {
-    print('🔔 FCMSenderService: Envoi notification de test');
     
     final adminToken = await getAdminToken();
     if (adminToken != null) {
@@ -90,7 +79,6 @@ class FCMSenderService {
         adminToken: adminToken,
       );
     } else {
-      print('🔔 FCMSenderService: Impossible d\'envoyer la notification de test - pas de token admin');
     }
   }
 }

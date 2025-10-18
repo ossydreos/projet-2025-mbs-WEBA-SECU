@@ -83,7 +83,6 @@ class ReservationService {
           await _chatService.deleteThreadForReservation(reservationId);
         } catch (e) {
           // Log l'erreur mais ne pas faire échouer la mise à jour du statut
-          print('Erreur lors de la suppression du thread de chat: $e');
         }
       }
     } catch (e) {
@@ -120,6 +119,20 @@ class ReservationService {
     } catch (e) {
       throw Exception('Erreur lors de la mise à jour du champ $fieldName: $e');
     }
+  }
+
+  Future<void> markAdminDismissed(String reservationId) async {
+    await _firestore.collection(_collection).doc(reservationId).update({
+      'adminDismissed': true,
+      'lastUpdated': Timestamp.now(),
+    });
+  }
+
+  Future<void> clearAdminDismissed(String reservationId) async {
+    await _firestore.collection(_collection).doc(reservationId).update({
+      'adminDismissed': false,
+      'lastUpdated': Timestamp.now(),
+    });
   }
 
   // Obtenir les réservations en attente (pour les conducteurs/admin) avec pagination
@@ -167,6 +180,38 @@ class ReservationService {
         .collection(_collection)
         .orderBy('createdAt', descending: true)
         .snapshots();
+  }
+
+  Future<List<Reservation>> fetchReservationsByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return [];
+    }
+
+    final chunks = <List<String>>[];
+    const chunkSize = 10;
+    for (var i = 0; i < ids.length; i += chunkSize) {
+      chunks.add(ids.sublist(i, i + chunkSize > ids.length ? ids.length : i + chunkSize));
+    }
+
+    final futures = chunks.map((chunk) {
+      return _firestore
+          .collection(_collection)
+          .where(FieldPath.documentId, whereIn: chunk)
+          .get();
+    });
+
+    final snapshots = await Future.wait(futures);
+    final reservations = <Reservation>[];
+    for (final snapshot in snapshots) {
+      for (final doc in snapshot.docs) {
+        reservations.add(Reservation.fromMap({
+          ...doc.data() as Map<String, dynamic>,
+          'id': doc.id,
+        }));
+      }
+    }
+
+    return reservations;
   }
 
   // Stream des réservations d'un utilisateur (pour les mises à jour en temps réel)
@@ -347,14 +392,9 @@ class ReservationService {
 
   // Supprimer une réservation
   Future<void> deleteReservation(String reservationId) async {
-    print(
-      '🗑️ ReservationService: Suppression de la réservation $reservationId',
-    );
     try {
       await _firestore.collection(_collection).doc(reservationId).delete();
-      print('✅ ReservationService: Réservation supprimée avec succès');
     } catch (e) {
-      print('❌ ReservationService: Erreur lors de la suppression: $e');
       throw Exception('Erreur lors de la suppression de la réservation: $e');
     }
   }
@@ -435,7 +475,6 @@ class ReservationService {
       }
       return null;
     } catch (e) {
-      print('Erreur lors de la récupération de la réservation: $e');
       return null;
     }
   }

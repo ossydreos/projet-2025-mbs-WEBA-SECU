@@ -81,7 +81,6 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
   /// Toggle Export Mode for PDF export
   void _toggleSelectionMode() {
     _selection.toggleExportMode();
-    print('Export Mode toggled: ${_selection.exportMode}');
   }
 
   /// Toggle selection of a reservation
@@ -160,7 +159,6 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
           .where((reservation) => ids.contains(reservation.id))
           .toList();
     } catch (e) {
-      print('Error fetching selected reservations: $e');
       return [];
     }
   }
@@ -798,6 +796,7 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
                   padding: EdgeInsets.only(bottom: t.spaceSm),
                   child: TripCardV2(
                     type: reservation.type,
+                    reservationId: reservation.id,
                     vehicleTitle: reservation.vehicleName,
                     fromAddress: reservation.departure,
                     toAddress: reservation.destination,

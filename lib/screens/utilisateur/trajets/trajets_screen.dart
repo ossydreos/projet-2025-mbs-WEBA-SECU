@@ -120,14 +120,15 @@ class _TrajetsScreenState extends State<TrajetsScreen>
             // Filtrage/tri déclenchés depuis le menu (comme admin)
             // Contenu des onglets
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  // Onglet "À venir"
-                  _buildUpcomingTab(),
-                  // Onglet "Terminés"
-                  _buildCompletedTab(),
-                ],
+              child: ScrollConfiguration(
+                behavior: const _NoStretchScrollBehavior(),
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildUpcomingTab(),
+                    _buildCompletedTab(),
+                  ],
+                ),
               ),
             ),
           ],
@@ -151,7 +152,6 @@ class _TrajetsScreenState extends State<TrajetsScreen>
     try {
       return await _customOfferService.getCustomOfferById(offerId);
     } catch (e) {
-      print('Erreur lors de la récupération de l\'offre personnalisée: $e');
       return null;
     }
   }
@@ -180,7 +180,6 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
         if (snapshot.hasError) {
           // ignore: avoid_print
-          print('Erreur dans trajets_screen: ${snapshot.error}');
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -225,6 +224,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
+          physics: const ClampingScrollPhysics(),
           itemCount: reservations.length,
           itemBuilder: (context, index) {
             final reservation = reservations[index];
@@ -294,6 +294,7 @@ class _TrajetsScreenState extends State<TrajetsScreen>
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
+          physics: const ClampingScrollPhysics(),
           itemCount: reservations.length,
           itemBuilder: (context, index) {
             final reservation = reservations[index];
@@ -1230,6 +1231,28 @@ class _TrajetsScreenState extends State<TrajetsScreen>
         ],
       ),
     );
+  }
+}
+
+class _NoStretchScrollBehavior extends MaterialScrollBehavior {
+  const _NoStretchScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
+
+  @override
+  Widget buildStretchingOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
   }
 }
 

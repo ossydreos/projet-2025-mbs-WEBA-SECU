@@ -1033,10 +1033,6 @@ class _BookingScreenState extends State<BookingScreen>
                                               );
                                               // ✅ Arrondir à 0.05 CHF près
                                               final roundedPrice = (calculatedPrice * 20).round() / 20;
-                                              print('🔥 DEBUG BOOKING: Prix calculé = $calculatedPrice');
-                                              print('🔥 DEBUG BOOKING: Prix arrondi = $roundedPrice');
-                                              print('🔥 DEBUG BOOKING: Véhicule = ${_selectedVehicle!.name}');
-                                              print('🔥 DEBUG BOOKING: Distance = $_estimatedDistance');
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(

@@ -1,25 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:my_mobility_services/data/services/ride_chat_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
-import '../../data/services/reservation_service.dart';
 import '../../data/models/reservation.dart';
 
-class AdminBottomNavigationBar extends StatelessWidget {
+class AdminBottomNavigationBar extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTap;
-  final ReservationService _reservationService = ReservationService(); // AJOUT
 
-  AdminBottomNavigationBar({
-    // Suppression du const
+  const AdminBottomNavigationBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
   });
 
   @override
+  State<AdminBottomNavigationBar> createState() => _AdminBottomNavigationBarState();
+}
+
+class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
+  static String _lastAcknowledgedSignature = '';
+
+  @override
   Widget build(BuildContext context) {
     final bar = BottomNavigationBar(
-      currentIndex: currentIndex,
-      onTap: onTap,
+      currentIndex: widget.currentIndex,
+      onTap: widget.onTap,
       type: BottomNavigationBarType.fixed,
       backgroundColor: Colors.transparent,
       selectedItemColor: AppColors.accent,
@@ -36,48 +42,13 @@ class AdminBottomNavigationBar extends StatelessWidget {
       enableFeedback: true,
       items: [
         BottomNavigationBarItem(
-          icon: StreamBuilder<List<Reservation>>(
-            stream: Stream.fromFuture(_reservationService.getPendingReservations()),
-            builder: (context, snapshot) {
-              final pendingCount = snapshot.hasData ? snapshot.data!.length : 0;
-              return Stack(
-                children: [
-                  const Icon(Icons.inbox_outlined),
-                  if (pendingCount > 0)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          pendingCount.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-          activeIcon: const Icon(Icons.inbox),
+          icon: _buildDemandesIcon(isActive: widget.currentIndex == 0),
+          activeIcon: _buildDemandesIcon(isActive: true),
           label: 'Demandes',
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.schedule_outlined),
-          activeIcon: Icon(Icons.schedule),
+        BottomNavigationBarItem(
+          icon: _buildCoursesIcon(isActive: widget.currentIndex == 1),
+          activeIcon: _buildCoursesIcon(isActive: true),
           label: 'Courses',
         ),
         const BottomNavigationBarItem(
@@ -110,4 +81,228 @@ class AdminBottomNavigationBar extends StatelessWidget {
     );
   }
 
+  Widget _buildDemandesIcon({required bool isActive}) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _pendingReservationsStream(),
+      builder: (context, pendingSnapshot) {
+        final pendingCount = pendingSnapshot.hasData ? pendingSnapshot.data!.docs.length : 0;
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: _trackedReservationsStream(),
+          builder: (context, reservationsSnapshot) {
+            final reservationDocs =
+                reservationsSnapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
+
+            final reservationData = <String, Map<String, dynamic>>{};
+            for (final doc in reservationDocs) {
+              reservationData[doc.id] = doc.data() as Map<String, dynamic>;
+            }
+
+            return StreamBuilder<QuerySnapshot>(
+              stream: _unreadRideChatThreadsStream(),
+              builder: (context, chatSnapshot) {
+                final chatDocs = chatSnapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
+                var hasUnreadChat = false;
+
+                for (final doc in chatDocs) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final reservationId = data['reservationId'] as String?;
+                  if (reservationId == null) {
+                    continue;
+                  }
+
+                  final unread = data['unreadForAdmin'];
+                  if (unread is! int || unread <= 0) {
+                    continue;
+                  }
+
+                  final reservationInfo = reservationData[reservationId];
+                  if (reservationInfo == null) {
+                    continue;
+                  }
+
+                  final statusRaw = reservationInfo['status'];
+                  if (statusRaw is! String) {
+                    continue;
+                  }
+
+                  final statusEnum = ReservationStatus.values.firstWhere(
+                    (s) => s.name == statusRaw,
+                    orElse: () => ReservationStatus.pending,
+                  );
+
+                  if (statusEnum == ReservationStatus.pending ||
+                      statusEnum == ReservationStatus.confirmed) {
+                    hasUnreadChat = true;
+                    break;
+                  }
+                }
+
+                if (isActive) {
+                  return const Icon(Icons.inbox);
+                }
+
+                final showIndicator = (pendingCount > 0 || hasUnreadChat);
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.inbox_outlined),
+                    if (showIndicator)
+                      Positioned(
+                        right: -2,
+                        top: -2,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildCoursesIcon({required bool isActive}) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _trackedReservationsStream(),
+      builder: (context, reservationsSnapshot) {
+        final reservationDocs =
+            reservationsSnapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
+
+        final reservationData = <String, Map<String, dynamic>>{};
+        for (final doc in reservationDocs) {
+          reservationData[doc.id] = doc.data() as Map<String, dynamic>;
+        }
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: _unreadRideChatThreadsStream(),
+          builder: (context, chatSnapshot) {
+            final chatDocs =
+                chatSnapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
+
+            final signature = '';
+            final showIndicator = false;
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(isActive ? Icons.schedule : Icons.schedule_outlined),
+                if (showIndicator)
+                  Positioned(
+                    right: -2,
+                    top: -2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Stream<QuerySnapshot> _pendingReservationsStream() {
+    return FirebaseFirestore.instance
+        .collection('reservations')
+        .where('status', isEqualTo: ReservationStatus.pending.name)
+        .snapshots();
+  }
+
+  Stream<QuerySnapshot> _trackedReservationsStream() {
+    return FirebaseFirestore.instance
+        .collection('reservations')
+        .where('status', whereIn: [
+          ReservationStatus.pending.name,
+          ReservationStatus.confirmed.name,
+          ReservationStatus.inProgress.name,
+        ])
+        .snapshots();
+  }
+
+  Stream<QuerySnapshot> _unreadRideChatThreadsStream() {
+    return FirebaseFirestore.instance
+        .collection(RideChatService.threadsCollection)
+        .where('unreadForAdmin', isGreaterThan: 0)
+        .snapshots();
+  }
+
+  String _buildSignature(
+    Map<String, Map<String, dynamic>> reservations,
+    List<QueryDocumentSnapshot> chatDocs,
+  ) {
+    const trackedStatuses = {
+      ReservationStatus.pending,
+      ReservationStatus.confirmed,
+      ReservationStatus.inProgress,
+    };
+
+    final reservationParts = <String>[];
+    reservations.forEach((id, data) {
+      final statusRaw = data['status'];
+      if (statusRaw is String) {
+        final statusEnum = ReservationStatus.values.firstWhere(
+          (s) => s.name == statusRaw,
+          orElse: () => ReservationStatus.pending,
+        );
+        if (trackedStatuses.contains(statusEnum)) {
+          final updatedAt = _timestampToMillis(data['updatedAt']);
+          reservationParts.add('$id:$statusRaw:$updatedAt');
+        }
+      }
+    });
+    reservationParts.sort();
+
+    final chatParts = <String>[];
+    for (final doc in chatDocs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final reservationId = data['reservationId'] as String?;
+      if (reservationId == null) continue;
+
+      final reservationStatusRaw = reservations[reservationId]?['status'];
+      if (reservationStatusRaw is String && reservationStatusRaw == ReservationStatus.pending.name) {
+        continue;
+      }
+
+      final unread = data['unreadForAdmin'] ?? 0;
+      final updatedAt = _timestampToMillis(data['updatedAt'] ?? data['lastMessageAt']);
+      chatParts.add('${doc.id}:$unread:$updatedAt');
+    }
+    chatParts.sort();
+
+    if (reservationParts.isEmpty && chatParts.isEmpty) {
+      return '';
+    }
+
+    return '${reservationParts.join(',')}|${chatParts.join(',')}';
+  }
+
+  void _acknowledgeSignature(String signature) {
+    _lastAcknowledgedSignature = signature;
+  }
+
+  int _timestampToMillis(dynamic value) {
+    if (value is Timestamp) {
+      return value.millisecondsSinceEpoch;
+    }
+    if (value is DateTime) {
+      return value.millisecondsSinceEpoch;
+    }
+    return 0;
+  }
 }

@@ -335,14 +335,9 @@ class ReservationService {
 
   // Supprimer une réservation
   Future<void> deleteReservation(String reservationId) async {
-    print(
-      '🗑️ ReservationService: Suppression de la réservation $reservationId',
-    );
     try {
       await _firestore.collection(_collection).doc(reservationId).delete();
-      print('✅ ReservationService: Réservation supprimée avec succès');
     } catch (e) {
-      print('❌ ReservationService: Erreur lors de la suppression: $e');
       throw Exception('Erreur lors de la suppression de la réservation: $e');
     }
   }
@@ -423,7 +418,6 @@ class ReservationService {
       }
       return null;
     } catch (e) {
-      print('Erreur lors de la récupération de la réservation: $e');
       return null;
     }
   }
@@ -756,7 +750,6 @@ class ReservationService {
     ReservationFilter filter,
   ) async* {
     try {
-      print('🔍 Récupération des réservations pour userId: $userId');
       
       // Récupérer toutes les réservations de l'utilisateur (tous types)
       final reservationsSnapshot = await FirebaseFirestore.instance
@@ -764,7 +757,6 @@ class ReservationService {
           .where('userId', isEqualTo: userId)
           .get();
 
-      print('🔍 Total réservations trouvées: ${reservationsSnapshot.docs.length}');
       
       // Convertir en objets Reservation
       final reservations = reservationsSnapshot.docs
@@ -774,9 +766,7 @@ class ReservationService {
               }))
           .toList();
 
-      print('🔍 Réservations converties: ${reservations.length}');
       for (var r in reservations) {
-        print('🔍 Reservation: ${r.id}, type: ${r.type.name}, status: ${r.status.name}');
       }
 
       // Enrichir avec les noms d'utilisateurs
@@ -788,11 +778,9 @@ class ReservationService {
 
       // Appliquer le filtre
       final filtered = filter.applyFilter(enrichedReservations);
-      print('🔍 Après filtrage: ${filtered.length} réservations');
       
       yield filtered;
     } catch (e) {
-      print('❌ Erreur lors de la récupération des réservations: $e');
       yield [];
     }
   }

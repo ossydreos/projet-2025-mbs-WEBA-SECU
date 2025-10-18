@@ -571,12 +571,8 @@ class _VehicleManagementScreenState extends State<VehicleManagementScreen> {
                               .map(
                                 (icon) => GestureDetector(
                                   onTap: () {
-                                    print('Icon tapped: $icon');
                                     setState(() {
                                       selectedIcon = icon;
-                                      print(
-                                        'Selected icon updated to: $selectedIcon',
-                                      );
                                     });
                                   },
                                   child: Container(

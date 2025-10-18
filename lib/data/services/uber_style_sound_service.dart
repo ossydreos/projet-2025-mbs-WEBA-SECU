@@ -25,7 +25,6 @@ class UberStyleSoundService {
 
   // Initialiser le service
   Future<void> initialize() async {
-    print('🔊 UberStyleSoundService: Initialisation...');
     
     try {
       // Demander les permissions
@@ -37,15 +36,12 @@ class UberStyleSoundService {
       // Démarrer l'écoute des réservations en arrière-plan
       _startBackgroundListening();
       
-      print('🔊 UberStyleSoundService: Initialisé avec succès');
     } catch (e) {
-      print('🔊 UberStyleSoundService: Erreur initialisation: $e');
     }
   }
   
   // Démarrer l'écoute en arrière-plan
   void _startBackgroundListening() {
-    print('🔊 UberStyleSoundService: Démarrage de l\'écoute en arrière-plan');
     // Le service écoute déjà via AdminGlobalNotificationService
     // On s'assure juste qu'il est prêt
   }
@@ -55,15 +51,12 @@ class UberStyleSoundService {
     if (Platform.isAndroid) {
       // Permission pour les notifications (Android 13+)
       final notificationStatus = await Permission.notification.request();
-      print('🔊 Permission notification: $notificationStatus');
       
       // Permission pour les sons
       final audioStatus = await Permission.audio.request();
-      print('🔊 Permission audio: $audioStatus');
       
       // Permission pour ignorer l'optimisation de la batterie
       final batteryStatus = await Permission.ignoreBatteryOptimizations.request();
-      print('🔊 Permission batterie: $batteryStatus');
     }
   }
 
@@ -113,7 +106,6 @@ class UberStyleSoundService {
     
     if (androidImplementation != null) {
       await androidImplementation.createNotificationChannel(channel);
-      print('🔊 Canal de notification créé: uber_reservations');
     }
   }
 
@@ -125,7 +117,6 @@ class UberStyleSoundService {
     required String to,
     required String price,
   }) {
-    print('🔊 UberStyleSoundService: Démarrage notification pour $reservationId');
     
     // Arrêter toute notification en cours
     stopNotification();
@@ -143,12 +134,10 @@ class UberStyleSoundService {
     // Démarrer le timer de notification locale répétée
     _startNotificationLoop(clientName, from, to, price);
     
-    print('🔊 UberStyleSoundService: Notification démarrée avec succès');
   }
 
   // Démarrer la boucle de son
   void _startSoundLoop() {
-    print('🔊 UberStyleSoundService: Démarrage de la boucle de son');
     
     // Jouer le premier son immédiatement
     _playNotificationSound();
@@ -156,20 +145,17 @@ class UberStyleSoundService {
     
     _soundTimer = Timer.periodic(_soundInterval, (timer) {
       if (_soundCount >= _maxSounds || !_isPlaying) {
-        print('🔊 UberStyleSoundService: Arrêt de la boucle de son (count: $_soundCount, playing: $_isPlaying)');
         timer.cancel();
         return;
       }
       
       _playNotificationSound();
       _soundCount++;
-      print('🔊 UberStyleSoundService: Son #$_soundCount joué');
     });
   }
 
   // Jouer le son de notification
   void _playNotificationSound() {
-    print('🔊 UberStyleSoundService: Jouer son système');
     // Utiliser directement le son système pour l'instant
     SystemSound.play(SystemSoundType.alert);
   }
@@ -232,7 +218,6 @@ class UberStyleSoundService {
 
   // Arrêter la notification
   void stopNotification() {
-    print('🔊 UberStyleSoundService: Arrêt de la notification');
     
     _isPlaying = false;
     _soundTimer?.cancel();
@@ -254,7 +239,6 @@ class UberStyleSoundService {
 
   // Gérer le tap sur la notification
   void _onNotificationTapped(NotificationResponse response) {
-    print('🔊 UberStyleSoundService: Notification tapée: ${response.payload}');
     
     // Arrêter la notification sonore
     stopNotification();

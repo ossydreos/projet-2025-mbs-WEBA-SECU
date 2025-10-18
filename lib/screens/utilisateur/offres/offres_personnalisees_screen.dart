@@ -330,9 +330,6 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
 
   Future<void> _cancelPendingOffer(CustomOffer offer) async {
     try {
-      print('=== ANNULATION DIRECTE FIREBASE ===');
-      print('Offre ID: ${offer.id}');
-      print('Statut actuel: ${offer.status.name}');
       
       // Utiliser directement Firebase
       await FirebaseFirestore.instance
@@ -346,7 +343,6 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
         'cancellationReason': 'Annulé par le client',
       });
       
-      print('=== MISE À JOUR FIREBASE RÉUSSIE ===');
 
       // Si une réservation liée existe déjà, la supprimer pour éviter les doublons
       if (offer.reservationId != null && offer.reservationId!.isNotEmpty) {
@@ -369,8 +365,6 @@ class _OffresPersonnaliseesScreenState extends State<OffresPersonnaliseesScreen>
         );
       }
     } catch (e) {
-      print('=== ERREUR FIREBASE ===');
-      print('Erreur: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

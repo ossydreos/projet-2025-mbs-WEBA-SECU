@@ -1,14 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:my_mobility_services/data/services/ride_chat_service.dart';
 import 'package:my_mobility_services/design/tokens/app_tokens.dart';
-import 'package:my_mobility_services/design/widgets/primitives/glass_container.dart';
 import 'package:my_mobility_services/design/widgets/primitives/custom_badge.dart';
+import 'package:my_mobility_services/design/widgets/primitives/glass_container.dart';
 import 'package:my_mobility_services/data/models/reservation.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 
 /// Trip Card V2 with improved layout and custom reservation support
 class TripCardV2 extends StatefulWidget {
   final ReservationType type; // Type de réservation (reservation ou offer)
+  final String reservationId;
   final String vehicleTitle;
   final String fromAddress;
   final String toAddress;
@@ -27,6 +31,7 @@ class TripCardV2 extends StatefulWidget {
   const TripCardV2({
     super.key,
     required this.type,
+    required this.reservationId,
     required this.vehicleTitle,
     required this.fromAddress,
     required this.toAddress,
@@ -90,7 +95,6 @@ class _TripCardV2State extends State<TripCardV2>
           
           // In selection mode, always toggle selection
           if (widget.isSelectionMode) {
-            print('Card tapped in selection mode!'); // Debug
             if (widget.onSelectionToggle != null) {
               widget.onSelectionToggle!();
             }
@@ -448,13 +452,9 @@ class _TripCardV2State extends State<TripCardV2>
           children: [
             // Custom badge on the left
             CustomBadge.personalisee(),
-            
+
             // Chat button on the right
-            _AppButton.tinted(
-              label: AppLocalizations.of(context).chat,
-              icon: Icons.chat_rounded,
-              onPressed: widget.onChat,
-            ),
+            _buildChatButton(t),
           ],
         );
       } else {
@@ -462,11 +462,7 @@ class _TripCardV2State extends State<TripCardV2>
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            _AppButton.tinted(
-              label: AppLocalizations.of(context).chat,
-              icon: Icons.chat_rounded,
-              onPressed: widget.onChat,
-            ),
+            _buildChatButton(t),
           ],
         );
       }
@@ -482,6 +478,74 @@ class _TripCardV2State extends State<TripCardV2>
         ],
       );
     }
+  }
+
+  Widget _buildChatButton(AppTokens t) {
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    final baseButton = _AppButton.tinted(
+      label: AppLocalizations.of(context).chat,
+      icon: Icons.chat_rounded,
+      onPressed: widget.onChat,
+    );
+
+    if (userId == null || widget.onChat == null) {
+      return baseButton;
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection(RideChatService.threadsCollection)
+          .where('reservationId', isEqualTo: widget.reservationId)
+          .where('userId', isEqualTo: userId)
+          .limit(1)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final docs = snapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
+        final data = docs.isNotEmpty
+            ? docs.first.data() as Map<String, dynamic>
+            : null;
+        final unreadRaw = data?['unreadForUser'];
+        final unreadCount = unreadRaw is int ? unreadRaw : 0;
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            baseButton,
+            if (unreadCount > 0)
+              Positioned(
+                right: -6,
+                top: -6,
+                child: _buildUnreadBadge(t, unreadCount),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildUnreadBadge(AppTokens t, int count) {
+    final display = count > 9 ? '9+' : '$count';
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: count > 9 ? t.spaceXxs : t.spaceXxs,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white, width: 1.5),
+      ),
+      child: Text(
+        display,
+        style: t.caption.copyWith(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   Color _getStatusColor(AppTokens t) {

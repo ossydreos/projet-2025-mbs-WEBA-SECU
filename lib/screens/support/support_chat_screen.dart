@@ -38,7 +38,6 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
   }
 
   Future<void> _initThread() async {
-    print('_initThread démarré - isAdmin: ${widget.isAdmin}, userIdForAdmin: ${widget.userIdForAdmin}');
     try {
       if (widget.threadId != null) {
         final d = await FirebaseFirestore.instance
@@ -67,7 +66,6 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       } else if (widget.isAdmin) {
         if (widget.userIdForAdmin != null) {
           // L'admin ouvre un thread sur un user précis
-          print('Admin cherche thread pour user: ${widget.userIdForAdmin}');
           final q = await FirebaseFirestore.instance
               .collection(SupportChatService.threadsCollection)
               .where('userId', isEqualTo: widget.userIdForAdmin)
@@ -75,25 +73,21 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               .get();
           if (q.docs.isNotEmpty) {
             final d = q.docs.first;
-            print('Thread trouvé: ${d.id}');
             final t = SupportThread.fromMap(d.data(), d.id);
             setState(() => _thread = t);
             await _loadUserNameForAdmin(t.userId);
             await _service.markAsReadForAdmin(t.id);
             await _service.markMessagesAsReadForAdmin(t.id);
           } else {
-            print('Aucun thread trouvé pour cet user');
           }
         } else {
           // Admin sans user spécifique - prendre le premier thread disponible
-          print('Admin cherche le premier thread disponible');
           final q = await FirebaseFirestore.instance
               .collection(SupportChatService.threadsCollection)
               .limit(1)
               .get();
           if (q.docs.isNotEmpty) {
             final d = q.docs.first;
-            print('Premier thread trouvé: ${d.id}');
             final t = SupportThread.fromMap(d.data(), d.id);
             setState(() => _thread = t);
             await _loadUserNameForAdmin(t.userId);
@@ -101,7 +95,6 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             await _service.markMessagesAsReadForAdmin(t.id);
           } else {
             // Aucun thread existant - créer un thread de démonstration
-            print('Aucun thread existant, création d\'un thread demo');
             final ref = FirebaseFirestore.instance.collection(SupportChatService.threadsCollection).doc();
             final now = DateTime.now();
             final thread = SupportThread(
@@ -114,21 +107,17 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               isClosed: false,
             );
             await ref.set(thread.toMap());
-            print('Thread demo créé: ${ref.id}');
             setState(() => _thread = thread);
           }
         }
       } else {
         // Client
-        print('Client - création/récupération du thread');
         final t = await _service.openOrCreateThreadForCurrentUser();
-        print('Thread client: ${t.id}');
         setState(() => _thread = t);
         await _service.markAsReadForUser(t.id);
         await _service.markMessagesAsReadForUser(t.id);
       }
     } catch (e) {
-      print('Erreur initThread: $e');
       // En cas d'erreur, créer un thread de secours
       final ref = FirebaseFirestore.instance.collection(SupportChatService.threadsCollection).doc();
       final now = DateTime.now();
@@ -142,7 +131,6 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
         isClosed: false,
       );
       await ref.set(thread.toMap());
-      print('Thread de secours créé: ${ref.id}');
       setState(() => _thread = thread);
     }
   }
@@ -218,9 +206,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                         child: StreamBuilder<List<SupportMessage>>(
                           stream: _service.watchMessages(currentThread.id),
                           builder: (context, snapshot) {
-                        print('StreamBuilder - hasData: ${snapshot.hasData}, hasError: ${snapshot.hasError}');
                         if (snapshot.hasError) {
-                          print('Erreur stream: ${snapshot.error}');
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -246,7 +232,6 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                           return const Center(child: CircularProgressIndicator());
                         }
                         final messages = snapshot.data!;
-                        print('Messages reçus: ${messages.length}');
                         
                         if (messages.isEmpty) {
                           return Center(

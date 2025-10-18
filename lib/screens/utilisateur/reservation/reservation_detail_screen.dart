@@ -27,11 +27,20 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
   final ReservationService _reservationService = ReservationService();
   final CustomOfferService _customOfferService = CustomOfferService();
   String _paymentMethod = 'Espèces';
+  bool _hasInitializedLocalization = false;
 
   @override
   void initState() {
     super.initState();
-    _paymentMethod = AppLocalizations.of(context).cash;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasInitializedLocalization) {
+      _paymentMethod = AppLocalizations.of(context).cash;
+      _hasInitializedLocalization = true;
+    }
   }
 
   Future<void> _confirmPayment() async {

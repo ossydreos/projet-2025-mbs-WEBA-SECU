@@ -24,7 +24,6 @@ class StripeCheckoutService {
       Stripe.publishableKey = await _stripePublishableKey;
       await Stripe.instance.applySettings();
     } catch (e) {
-      print('Erreur initialisation Stripe: $e');
       rethrow;
     }
   }
@@ -184,7 +183,6 @@ class StripeCheckoutService {
           timer.cancel();
         }
       } catch (e) {
-        print('Erreur vérification paiement: $e');
       }
     });
   }
@@ -231,7 +229,6 @@ class StripeCheckoutService {
         });
       }
     } catch (e) {
-      print('Erreur finalisation deep link: $e');
     }
   }
 
@@ -314,7 +311,6 @@ class StripeCheckoutService {
         'paymentCurrency': currency,
       });
     } catch (e) {
-      print('Erreur lors de la mise à jour de la réservation: $e');
       // Ne pas faire échouer le paiement pour une erreur de BDD
     }
   }
@@ -340,7 +336,6 @@ class StripeCheckoutService {
         'paymentCurrency': currency,
       });
     } catch (e) {
-      print('Erreur lors de la mise à jour de la réservation: $e');
       // Ne pas faire échouer le paiement pour une erreur de BDD
     }
   }

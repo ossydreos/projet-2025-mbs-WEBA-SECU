@@ -29,7 +29,6 @@ class ClientNotificationService {
         'createdAt': Timestamp.now(),
       });
     } catch (e) {
-      print('Erreur lors de la création de la notification: $e');
       throw Exception('Erreur lors de la création de la notification: $e');
     }
   }
@@ -157,7 +156,6 @@ class ClientNotificationService {
         'readAt': Timestamp.now(),
       });
     } catch (e) {
-      print('Erreur lors du marquage de la notification comme lue: $e');
     }
   }
 
@@ -179,9 +177,6 @@ class ClientNotificationService {
       }
       await batch.commit();
     } catch (e) {
-      print(
-        'Erreur lors du marquage de toutes les notifications comme lues: $e',
-      );
     }
   }
 
@@ -190,7 +185,6 @@ class ClientNotificationService {
     try {
       await _firestore.collection(_collection).doc(notificationId).delete();
     } catch (e) {
-      print('Erreur lors de la suppression de la notification: $e');
     }
   }
 
@@ -208,7 +202,6 @@ class ClientNotificationService {
       }
       await batch.commit();
     } catch (e) {
-      print('Erreur lors de la suppression de toutes les notifications: $e');
     }
   }
 

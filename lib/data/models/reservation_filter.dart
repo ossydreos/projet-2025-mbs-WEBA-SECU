@@ -147,18 +147,11 @@ class ReservationFilter {
     // Filtrer selon la nouvelle logique métier (isPaid/isCompleted)
     if (isUpcoming) {
       // Pour les courses à venir : SEULEMENT les courses avec paiement confirmé (inProgress)
-      print(
-        '🔍 Filtrage des courses à venir - Total avant filtre: ${filtered.length}',
-      );
       filtered = filtered
           .where(
             (r) => r.status == ReservationStatus.inProgress && !r.isCompleted,
           )
           .toList();
-      print('🔍 Courses à venir après filtre: ${filtered.length}');
-      print(
-        '🔍 Statuts des courses filtrées: ${filtered.map((r) => r.status.name).toList()}',
-      );
     } else {
       // Pour les courses terminées : SEULEMENT les courses terminées (pas les annulées)
       filtered = filtered

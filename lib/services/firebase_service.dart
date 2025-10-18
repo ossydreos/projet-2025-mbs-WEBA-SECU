@@ -136,7 +136,6 @@ class FirebaseService {
     final token = await messaging.getToken();
     if (token != null) {
       // Envoyer le token au serveur si nécessaire
-      print('FCM Token iOS: $token');
     }
 
     // Gestionnaire de messages en arrière-plan pour iOS
@@ -150,7 +149,6 @@ class FirebaseService {
     // Initialiser Firebase si nécessaire
     // await Firebase.initializeApp();
 
-    print('Message reçu en arrière-plan iOS: ${message.messageId}');
   }
 
   /// Listener de messages optimisé pour iOS

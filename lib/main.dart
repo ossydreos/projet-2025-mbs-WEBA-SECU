@@ -174,6 +174,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'My Mobility Services',
       theme: AppTheme.glassDark,
+      scrollBehavior: const _NoStretchScrollBehavior(),
 
       // Configuration de l'internationalisation
       localizationsDelegates: const [
@@ -276,5 +277,27 @@ class MyApp extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+class _NoStretchScrollBehavior extends MaterialScrollBehavior {
+  const _NoStretchScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
+  }
+
+  @override
+  Widget buildStretchingOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    return child;
   }
 }

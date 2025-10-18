@@ -21,7 +21,6 @@ class PaymentService {
       Stripe.publishableKey = await _stripePublishableKey;
       await Stripe.instance.applySettings();
     } catch (e) {
-      print('Stripe initialization failed: $e');
       // Continuer sans Stripe
     }
   }

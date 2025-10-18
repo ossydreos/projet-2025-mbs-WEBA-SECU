@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart' as gmaps;
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+import 'dart:async';
+
 import 'package:my_mobility_services/screens/utilisateur/reservation/localisation_recherche_screen.dart';
+
 import 'package:my_mobility_services/screens/utilisateur/reservation/booking_screen.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import 'package:my_mobility_services/theme/google_map_styles.dart';
@@ -27,15 +30,29 @@ import 'package:my_mobility_services/data/services/support_chat_service.dart';
 import 'package:my_mobility_services/data/models/support_thread.dart';
 import 'package:my_mobility_services/screens/support/support_home_screen.dart';
 import 'package:my_mobility_services/services/custom_marker_service.dart';
+import 'package:my_mobility_services/data/services/ride_chat_service.dart';
 
 class AccueilScreen extends StatefulWidget {
   final Function(int)? onNavigate;
   final bool showBottomBar;
+  final ValueChanged<bool>? onHomeBadgeChanged;
 
-  const AccueilScreen({super.key, this.onNavigate, this.showBottomBar = true});
+  const AccueilScreen({
+    super.key,
+    this.onNavigate,
+    this.showBottomBar = true,
+    this.onHomeBadgeChanged,
+  });
 
   @override
   State<AccueilScreen> createState() => _AccueilScreenState();
+}
+
+class _ChatBadgeInfo {
+  final int unread;
+  final int lastUpdate;
+
+  const _ChatBadgeInfo({required this.unread, required this.lastUpdate});
 }
 
 class _AccueilScreenState extends State<AccueilScreen>
@@ -57,6 +74,10 @@ class _AccueilScreenState extends State<AccueilScreen>
 
   final Set<gmaps.Marker> _gmMarkers = <gmaps.Marker>{};
 
+  StreamSubscription<QuerySnapshot>? _pendingChatsSub;
+  String _pendingChatSignature = '';
+  bool _pendingChatAcknowledged = true;
+
   @override
   void initState() {
     super.initState();
@@ -64,7 +85,21 @@ class _AccueilScreenState extends State<AccueilScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _getUserLocation();
       _listenToNotifications();
+      _watchPendingChatThreads();
     });
+  }
+
+  int _timestampToMillis(dynamic value) {
+    if (value is Timestamp) {
+      return value.millisecondsSinceEpoch;
+    }
+    if (value is DateTime) {
+      return value.millisecondsSinceEpoch;
+    }
+    if (value is num) {
+      return value.toInt();
+    }
+    return 0;
   }
 
   Future<void> _initializeCustomIcons() async {
@@ -83,13 +118,106 @@ class _AccueilScreenState extends State<AccueilScreen>
     // L'utilisateur verra directement le changement dans l'interface
   }
 
+  @override
+  void dispose() {
+    _pendingChatsSub?.cancel();
+    _googleMapController?.dispose();
+    super.dispose();
+  }
+
+  void _watchPendingChatThreads() {
+    final user = FirebaseAuth.instance.currentUser;
+    _pendingChatsSub?.cancel();
+    if (user == null) {
+      _updatePendingState('', false);
+      return;
+    }
+
+    _pendingChatsSub = FirebaseFirestore.instance
+        .collection(RideChatService.threadsCollection)
+        .where('userId', isEqualTo: user.uid)
+        .where('unreadForUser', isGreaterThan: 0)
+        .snapshots()
+        .listen((snapshot) async {
+      if (snapshot.docs.isEmpty) {
+        _updatePendingState('', false);
+        return;
+      }
+
+      final chatInfos = <String, _ChatBadgeInfo>{};
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final reservationId = data['reservationId'];
+        final unread = data['unreadForUser'];
+        if (reservationId is! String || unread is! int || unread <= 0) {
+          continue;
+        }
+
+        final timestampValue = data['lastMessageAt'] ?? data['updatedAt'];
+        final lastUpdate = _timestampToMillis(timestampValue);
+        chatInfos[reservationId] = _ChatBadgeInfo(unread: unread, lastUpdate: lastUpdate);
+      }
+
+      if (chatInfos.isEmpty) {
+        _updatePendingState('', false);
+        return;
+      }
+
+      final reservations = await _reservationService.fetchReservationsByIds(chatInfos.keys.toList());
+      final signatureParts = <String>[];
+      for (final reservation in reservations) {
+        final info = chatInfos[reservation.id];
+        if (info == null) continue;
+
+        if (reservation.status == ReservationStatus.pending ||
+            reservation.status == ReservationStatus.confirmed) {
+          signatureParts.add(
+            '${reservation.id}:${reservation.status.name}:${info.unread}:${info.lastUpdate}',
+          );
+        }
+      }
+
+      signatureParts.sort();
+      final signature = signatureParts.join('|');
+      final hasUnread = signatureParts.isNotEmpty;
+      _updatePendingState(signature, hasUnread);
+    });
+  }
+
+  void _updatePendingState(String signature, bool hasUnread) {
+    if (!mounted) return;
+    setState(() {
+      _pendingChatSignature = signature;
+      _pendingChatAcknowledged = !hasUnread;
+    });
+    _notifyHomeBadge();
+  }
+
+  void _notifyHomeBadge() {
+    widget.onHomeBadgeChanged?.call(
+      !_pendingChatAcknowledged && _pendingChatSignature.isNotEmpty,
+    );
+  }
+
 
   @override
   bool get wantKeepAlive => true;
 
   void _onItemTapped(int index) {
+    if (index == 0) {
+      _acknowledgeHomeBadge();
+    }
     setState(() => _selectedIndex = index);
     widget.onNavigate?.call(index);
+  }
+
+  void _acknowledgeHomeBadge() {
+    if (_pendingChatAcknowledged) return;
+    if (!mounted) return;
+    setState(() {
+      _pendingChatAcknowledged = true;
+    });
+    _notifyHomeBadge();
   }
 
   Future<void> _getUserLocation() async {

@@ -464,7 +464,6 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
         _lastPositionFetch = DateTime.now();
       } catch (e) {
         // Ignorer les erreurs de géolocalisation
-        print(AppLocalizations.of(context).backgroundGeolocationFailed);
       }
     });
   }
@@ -570,32 +569,23 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
   bool _isDateTimeValid() {
     if (_startTime == null) return false;
 
+    final startDateTime = DateTime(
+      _startDate.year,
+      _startDate.month,
+      _startDate.day,
+      _startTime!.hour,
+      _startTime!.minute,
+    );
+    return startDateTime.isAfter(_minimumAllowedStartDateTime());
+  }
+
+  DateTime _minimumAllowedStartDateTime() {
     try {
-      // Utiliser l'heure de Zurich pour la validation
-      final zurichTime = tz.TZDateTime.now(tz.getLocation('Europe/Zurich'));
-      final startDateTime = DateTime(
-        _startDate.year,
-        _startDate.month,
-        _startDate.day,
-        _startTime!.hour,
-        _startTime!.minute,
-      );
-      // Ajouter 30 minutes de marge pour la préparation
-      final minimumDateTime = zurichTime.add(const Duration(minutes: 30));
-      return startDateTime.isAfter(minimumDateTime);
+      return tz
+          .TZDateTime.now(tz.getLocation('Europe/Zurich'))
+          .add(const Duration(minutes: 30));
     } catch (e) {
-      // Fallback vers l'heure locale
-      final now = DateTime.now();
-      final startDateTime = DateTime(
-        _startDate.year,
-        _startDate.month,
-        _startDate.day,
-        _startTime!.hour,
-        _startTime!.minute,
-      );
-      // Ajouter 30 minutes de marge pour la préparation
-      final minimumDateTime = now.add(const Duration(minutes: 30));
-      return startDateTime.isAfter(minimumDateTime);
+      return DateTime.now().add(const Duration(minutes: 30));
     }
   }
 
@@ -713,6 +703,24 @@ class _CustomOfferCreationScreenState extends State<CustomOfferCreationScreen> {
     }
 
     if (time != null) {
+      final proposedStart = DateTime(
+        _startDate.year,
+        _startDate.month,
+        _startDate.day,
+        time.hour,
+        time.minute,
+      );
+      if (!proposedStart.isAfter(_minimumAllowedStartDateTime())) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('La date/heure doit être ≥ 30 min dans le futur.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
       setState(() {
         _startTime = time;
       });

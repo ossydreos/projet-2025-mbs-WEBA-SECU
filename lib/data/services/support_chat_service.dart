@@ -213,21 +213,16 @@ class SupportChatService {
 
     // Message automatique différé (5s) si c'était le premier message d'un ticket client
     if (senderRole == SupportSenderRole.user) {
-      print('🔍 Vérification message auto pour thread: $threadId');
       final allMessagesSnap = await _firestore
           .collection(threadsCollection)
           .doc(threadId)
           .collection(messagesSubcollection)
           .get();
-      print('📊 Nombre total de messages dans le thread: ${allMessagesSnap.docs.length}');
       
       final isFirst = allMessagesSnap.docs.length == 1;
-      print('🎯 Premier message? $isFirst');
       
       if (isFirst) {
-        print('⏰ Démarrage timer 5s pour message auto...');
         Future.delayed(const Duration(seconds: 5), () async {
-          print('🚀 Timer écoulé, envoi du message auto...');
           
           // Vérifier si un admin a répondu entre-temps
           final adminMessages = await _firestore
@@ -237,14 +232,11 @@ class SupportChatService {
               .where('senderRole', isEqualTo: SupportSenderRole.admin.name)
               .get();
           
-          print('👨‍💼 Messages admin trouvés: ${adminMessages.docs.length}');
           
           if (adminMessages.docs.isNotEmpty) {
-            print('❌ Admin a déjà répondu, annulation message auto');
             return;
           }
 
-          print('✅ Envoi du message automatique...');
           final autoRef = _firestore
               .collection(threadsCollection)
               .doc(threadId)
@@ -273,9 +265,7 @@ class SupportChatService {
                 'unreadForUser': FieldValue.increment(1),
               });
             });
-            print('✅ Message automatique envoyé avec succès!');
           } catch (e) {
-            print('❌ Erreur envoi message auto: $e');
           }
         });
       }

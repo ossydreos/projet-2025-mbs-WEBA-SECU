@@ -21,6 +21,7 @@ class _HomeShellState extends State<HomeShell> {
   late int _currentIndex;
   bool _navLocked = false;
   final PageStorageBucket _bucket = PageStorageBucket();
+  bool _showHomeBadge = false;
 
   @override
   void initState() {
@@ -57,6 +58,13 @@ class _HomeShellState extends State<HomeShell> {
                     key: const PageStorageKey('tab-home'),
                     onNavigate: (index) => _onTap(index),
                     showBottomBar: false,
+                    onHomeBadgeChanged: (value) {
+                      if (_showHomeBadge != value) {
+                        setState(() {
+                          _showHomeBadge = value;
+                        });
+                      }
+                    },
                   ),
                   OffresPersonnaliseesScreen(
                     key: const PageStorageKey('tab-offers'),
@@ -80,7 +88,15 @@ class _HomeShellState extends State<HomeShell> {
         ),
         bottomNavigationBar: CustomBottomNavigationBar(
           currentIndex: _currentIndex,
-          onTap: _onTap,
+          onTap: (index) {
+            if (index == 0) {
+              setState(() {
+                _showHomeBadge = false;
+              });
+            }
+            _onTap(index);
+          },
+          showHomeIndicator: _showHomeBadge,
         ),
       ),
     );

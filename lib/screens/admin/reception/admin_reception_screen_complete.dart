@@ -15,6 +15,7 @@ import 'package:my_mobility_services/screens/support/support_chat_screen.dart';
 import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/data/services/payment_service.dart';
+import 'package:my_mobility_services/data/services/ride_chat_service.dart';
 
 class AdminReceptionScreen extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -49,6 +50,83 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         _processingReservations.remove(reservationId);
       });
     }
+  }
+
+  Widget _buildContactClientButton(Reservation reservation) {
+    Widget buildBaseButton() {
+      return ElevatedButton.icon(
+        onPressed: () => _contactClient(reservation),
+        icon: const Icon(Icons.message, size: 16),
+        label: Text(AppLocalizations.of(context).contactClient),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.accent,
+          foregroundColor: AppColors.bg,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
+
+    final userId = reservation.userId;
+    if (userId == null || userId.isEmpty) {
+      return SizedBox(width: double.infinity, child: buildBaseButton());
+    }
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection(RideChatService.threadsCollection)
+          .where('reservationId', isEqualTo: reservation.id)
+          .where('userId', isEqualTo: userId)
+          .limit(1)
+          .snapshots(),
+      builder: (context, snapshot) {
+        final docs = snapshot.data?.docs ?? const [];
+        final data = docs.isNotEmpty
+            ? docs.first.data() as Map<String, dynamic>
+            : null;
+        final unreadRaw = data?['unreadForAdmin'];
+        final unreadCount = unreadRaw is int ? unreadRaw : 0;
+
+        if (unreadCount <= 0) {
+          return SizedBox(width: double.infinity, child: buildBaseButton());
+        }
+
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            SizedBox(width: double.infinity, child: buildBaseButton()),
+            Positioned(
+              right: 12,
+              top: -6,
+              child: _buildUnreadBadge(unreadCount),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildUnreadBadge(int count) {
+    final display = count > 9 ? '9+' : '$count';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white, width: 1.5),
+      ),
+      child: Text(
+        display,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   int _selectedIndex = 0;
@@ -180,7 +258,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
 
   Future<void> _testNotification() async {
     try {
-      print('🧪 Test de notification démarré');
 
       // Créer une réservation de test
       final testReservation = Reservation(
@@ -201,14 +278,12 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             'Test de notification - Cette réservation est créée pour tester le système',
       );
 
-      print('🧪 Création de la réservation de test...');
 
       // Créer la réservation dans Firebase
       final reservationId = await _reservationService.createReservation(
         testReservation,
       );
 
-      print('🧪 Réservation créée avec l\'ID: $reservationId');
 
       // Forcer l'affichage de la notification via le service global
       _notificationService.updateContext(context);
@@ -227,7 +302,6 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
         );
       }
     } catch (e) {
-      print('🧪 Erreur lors du test: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -359,7 +433,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
                 return reservation.status == ReservationStatus.pending ||
                     reservation.status == ReservationStatus.confirmed;
               }).map((reservation) => {
-                'type': AppLocalizations.of(context).reservation,
+                'type': 'reservation',
                 'data': reservation,
               }).toList();
               allRequests.addAll(reservations);
@@ -368,7 +442,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
             // Ajouter les offres personnalisées en attente
             if (offerSnapshot.hasData) {
               final offers = offerSnapshot.data!.map((offer) => {
-                'type': AppLocalizations.of(context).customOffer,
+                'type': 'customOffer',
                 'data': offer,
               }).toList();
               allRequests.addAll(offers);
@@ -412,7 +486,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
     final type = request['type'] as String;
     final data = request['data'];
 
-    if (type == AppLocalizations.of(context).reservation) {
+    if (type == 'reservation') {
       return _buildReservationCard(data as Reservation);
     } else {
       return _buildCustomOfferCard(data as CustomOffer);
@@ -1108,19 +1182,7 @@ class _AdminReceptionScreenState extends State<AdminReceptionScreen> {
               Container(
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 12),
-                child: ElevatedButton.icon(
-                  onPressed: () => _contactClient(reservation),
-                  icon: const Icon(Icons.message, size: 16),
-                  label: Text(AppLocalizations.of(context).contactClient),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    foregroundColor: AppColors.bg,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
+                child: _buildContactClientButton(reservation),
               ),
 
               // Boutons d'action

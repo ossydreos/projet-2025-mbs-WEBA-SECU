@@ -12,7 +12,6 @@ class ReservationTimeoutService {
   
   // Démarrer le service de timeout
   void startTimeoutService() {
-    print('🕐 Démarrage du service de timeout des réservations');
     
     // Vérifier toutes les 5 minutes
     _timeoutTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
@@ -25,7 +24,6 @@ class ReservationTimeoutService {
   
   // Arrêter le service de timeout
   void stopTimeoutService() {
-    print('🛑 Arrêt du service de timeout des réservations');
     _timeoutTimer?.cancel();
     _timeoutTimer = null;
   }
@@ -33,7 +31,6 @@ class ReservationTimeoutService {
   // Vérifier et refuser les réservations en timeout
   Future<void> _checkAndTimeoutReservations() async {
     try {
-      print('🔍 Vérification des réservations en timeout...');
       
       final now = DateTime.now();
       final timeoutThreshold = now.subtract(_timeoutDuration);
@@ -46,11 +43,9 @@ class ReservationTimeoutService {
           .get();
       
       if (querySnapshot.docs.isEmpty) {
-        print('✅ Aucune réservation en timeout trouvée');
         return;
       }
       
-      print('⚠️ ${querySnapshot.docs.length} réservation(s) en timeout trouvée(s)');
       
       // Traiter chaque réservation en timeout
       for (final doc in querySnapshot.docs) {
@@ -59,7 +54,6 @@ class ReservationTimeoutService {
           final reservationId = doc.id;
           final createdAt = (reservationData['createdAt'] as Timestamp).toDate();
           
-          print('⏰ Timeout réservation $reservationId créée à ${createdAt.toIso8601String()}');
           
           // Refuser la réservation avec notification
           await _reservationService.refuseReservation(
@@ -67,15 +61,12 @@ class ReservationTimeoutService {
             reason: 'Demande automatiquement refusée après 30 minutes d\'attente',
           );
           
-          print('✅ Réservation $reservationId refusée automatiquement');
           
         } catch (e) {
-          print('❌ Erreur lors du refus automatique de la réservation ${doc.id}: $e');
         }
       }
       
     } catch (e) {
-      print('❌ Erreur lors de la vérification des timeouts: $e');
     }
   }
   
@@ -98,14 +89,12 @@ class ReservationTimeoutService {
         final timeSinceCreation = now.difference(createdAt);
         
         if (timeSinceCreation >= _timeoutDuration) {
-          print('⏰ Réservation $reservationId en timeout depuis ${timeSinceCreation.inMinutes} minutes');
           return true;
         }
       }
       
       return false;
     } catch (e) {
-      print('❌ Erreur lors de la vérification du timeout de la réservation $reservationId: $e');
       return false;
     }
   }
@@ -118,9 +107,7 @@ class ReservationTimeoutService {
         reason: 'Demande automatiquement refusée après 30 minutes d\'attente',
       );
       
-      print('✅ Réservation $reservationId refusée automatiquement pour timeout');
     } catch (e) {
-      print('❌ Erreur lors du refus automatique de la réservation $reservationId: $e');
     }
   }
   
@@ -147,7 +134,6 @@ class ReservationTimeoutService {
       
       return timeUntilTimeout.isNegative ? Duration.zero : timeUntilTimeout;
     } catch (e) {
-      print('❌ Erreur lors du calcul du temps restant pour la réservation $reservationId: $e');
       return null;
     }
   }
@@ -171,7 +157,6 @@ class ReservationTimeoutService {
         ...doc.data(),
       }).toList();
     } catch (e) {
-      print('❌ Erreur lors de la récupération des réservations proches du timeout: $e');
       return [];
     }
   }
@@ -193,7 +178,6 @@ class ReservationTimeoutService {
         ...doc.data(),
       }).toList();
     } catch (e) {
-      print('❌ Erreur lors de la récupération des réservations en timeout: $e');
       return [];
     }
   }

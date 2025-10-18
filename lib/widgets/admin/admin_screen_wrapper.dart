@@ -31,7 +31,6 @@ class _AdminScreenWrapperState extends State<AdminScreenWrapper> {
     //   _notificationService.initialize(context);
     //   print('🔔 AdminScreenWrapper: Service initialisé');
     // });
-    print('🔔 AdminScreenWrapper: Ancien système désactivé - Test OneSignal uniquement');
   }
 
   @override
