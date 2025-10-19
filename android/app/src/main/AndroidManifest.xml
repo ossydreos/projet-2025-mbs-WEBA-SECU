@@ -74,11 +74,7 @@
             android:resource="@mipmap/ic_launcher" />
             
         <!-- Service de notification en arrière-plan -->
-        <service
-            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
-            android:enabled="true"
-            android:exported="false" />
-            
+        
         <receiver 
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
             android:exported="false" />

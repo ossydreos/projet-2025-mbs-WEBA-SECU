@@ -2037,12 +2037,19 @@ class _AdminTicketsList extends StatelessWidget {
             ),
           );
         }
+        final threads = docs
+            .map((d) => SupportThread.fromMap(d.data() as Map<String, dynamic>, d.id))
+            .toList()
+          ..sort((a, b) {
+            final aDate = a.lastMessageAt ?? a.updatedAt;
+            final bDate = b.lastMessageAt ?? b.updatedAt;
+            return bDate.compareTo(aDate);
+          });
         return ListView.builder(
-          itemCount: docs.length,
+          itemCount: threads.length,
           padding: const EdgeInsets.all(16),
           itemBuilder: (context, i) {
-            final d = docs[i];
-            final t = SupportThread.fromMap(d.data() as Map<String, dynamic>, d.id);
+            final t = threads[i];
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -2084,9 +2091,22 @@ class _AdminTicketsList extends StatelessWidget {
                       );
                     },
                   ),
-                  subtitle: Text(
-                    'Mis à jour • ${_formatAdmin(t.lastMessageAt ?? t.updatedAt)}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if ((t.lastMessage ?? '').isNotEmpty)
+                        Text(
+                          t.lastMessage!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        ),
+                      Text(
+                        'Mis à jour • ${_formatAdmin(t.lastMessageAt ?? t.updatedAt)}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
                   ),
                   trailing: t.unreadForAdmin > 0
                       ? Container(

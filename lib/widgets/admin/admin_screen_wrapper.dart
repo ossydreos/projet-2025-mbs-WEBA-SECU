@@ -24,13 +24,13 @@ class _AdminScreenWrapperState extends State<AdminScreenWrapper> {
     super.initState();
     // ❌ DÉSACTIVÉ TEMPORAIREMENT - Test OneSignal uniquement
     // Initialiser le service de notifications globales
-    // WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //   // Initialiser d'abord le service global (pour les notifications locales)
-    //   await _notificationService.initializeGlobal();
-    //   // Puis mettre à jour le contexte (pour l'interface admin)
-    //   _notificationService.initialize(context);
-    //   print('🔔 AdminScreenWrapper: Service initialisé');
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Initialiser d'abord le service global (pour les notifications locales)
+      await _notificationService.initializeGlobal();
+      // Puis mettre à jour le contexte (pour l'interface admin)
+      _notificationService.initialize(context);
+      print('🔔 AdminScreenWrapper: Service initialisé');
+    });
   }
 
   @override

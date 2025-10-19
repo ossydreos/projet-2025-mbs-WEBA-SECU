@@ -375,9 +375,22 @@ class _SupportThreadsListScreen extends StatelessWidget {
                         AppLocalizations.of(context).support,
                         style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                       ),
-                      subtitle: Text(
-                        'Mis à jour • ${_format(t.lastMessageAt ?? t.updatedAt)}',
-                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if ((t.lastMessage ?? '').isNotEmpty)
+                            Text(
+                              t.lastMessage!,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Colors.white70, fontSize: 13),
+                            ),
+                          Text(
+                            'Mis à jour • ${_format(t.lastMessageAt ?? t.updatedAt)}',
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          ),
+                        ],
                       ),
                       trailing: hasUnread
                           ? const Icon(Icons.brightness_1, color: Colors.red, size: 10)

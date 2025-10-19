@@ -30,7 +30,10 @@ class ReservationService {
       // dans le scheduling screen, pas besoin de la refaire ici
       
       final docRef = _firestore.collection(_collection).doc();
-      final reservationWithId = reservation.copyWith(id: docRef.id);
+      final reservationWithId = reservation.copyWith(
+        id: docRef.id,
+        adminDismissed: false,
+      );
       await docRef.set(reservationWithId.toMap());
       return docRef.id;
     } catch (e) {
@@ -62,16 +65,23 @@ class ReservationService {
       );
       final userId = reservationData['userId'] as String;
 
-      if (oldStatus == ReservationStatus.inProgress ||
-          oldStatus == ReservationStatus.completed) {
+      if (oldStatus == ReservationStatus.completed ||
+          oldStatus == ReservationStatus.cancelledAfterPayment) {
         throw Exception(
-          'Impossible d\'annuler: la course est déjà en cours ou terminée.',
+          'Impossible d\'annuler: la course est déjà terminée ou remboursée.',
         );
+      }
+
+      var effectiveStatus = newStatus;
+      if (newStatus == ReservationStatus.cancelled &&
+          (oldStatus == ReservationStatus.confirmed ||
+              (reservationData['isPaid'] ?? false))) {
+        effectiveStatus = ReservationStatus.cancelledAfterPayment;
       }
 
       // Mettre à jour le statut
       await _firestore.collection(_collection).doc(reservationId).update({
-        'status': newStatus.name,
+        'status': effectiveStatus.name,
         'updatedAt': Timestamp.now(),
       });
 
@@ -80,12 +90,14 @@ class ReservationService {
         userId: userId,
         reservationId: reservationId,
         oldStatus: oldStatus,
-        newStatus: newStatus,
+        newStatus: effectiveStatus,
         reason: reason,
       );
 
       // Supprimer le thread de chat si la réservation est terminée ou annulée
-      if (newStatus == ReservationStatus.completed || newStatus == ReservationStatus.cancelled) {
+      if (effectiveStatus == ReservationStatus.completed ||
+          effectiveStatus == ReservationStatus.cancelled ||
+          effectiveStatus == ReservationStatus.cancelledAfterPayment) {
         try {
           await _chatService.deleteThreadForReservation(reservationId);
         } catch (e) {

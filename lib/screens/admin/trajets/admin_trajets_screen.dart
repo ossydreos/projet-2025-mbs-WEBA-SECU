@@ -7,6 +7,7 @@ import 'package:my_mobility_services/data/services/custom_offer_service.dart';
 import 'package:my_mobility_services/data/services/pdf_export_service.dart';
 import 'package:my_mobility_services/data/services/reservation_service.dart';
 import 'package:my_mobility_services/data/services/ride_chat_service.dart';
+import 'package:my_mobility_services/data/services/admin_global_notification_service.dart';
 import 'package:my_mobility_services/l10n/generated/app_localizations.dart';
 import 'package:my_mobility_services/screens/ride_chat/ride_chat_screen.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
@@ -28,6 +29,8 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
   int _selectedIndex = 1;
   late TabController _tabController;
+  final AdminGlobalNotificationService _notificationService =
+      AdminGlobalNotificationService();
 
   // Variables pour le filtrage avancé - séparés pour chaque onglet
   ReservationFilter _upcomingFilter = const ReservationFilter(
@@ -52,6 +55,12 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    AdminGlobalNotificationService.setReservationProcessingCallback(
+      _handleReservationAcceptedFromNotification,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notificationService.updateContext(context);
+    });
   }
 
   Widget _buildChatButton(Reservation reservation) {
@@ -137,8 +146,57 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
 
   @override
   void dispose() {
+    AdminGlobalNotificationService.setReservationProcessingCallback(null);
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleReservationAcceptedFromNotification(
+    String reservationId,
+  ) async {
+    try {
+      final reservation = await _reservationService.getReservationById(
+        reservationId,
+      );
+      if (reservation == null) {
+        return;
+      }
+
+      await _reservationService.updateReservationStatus(
+        reservationId,
+        ReservationStatus.confirmed,
+      );
+
+      final userId = reservation.userId;
+      if (userId != null && userId.isNotEmpty) {
+        await _notificationService.sendPaymentRequestNotification(
+          userId,
+          reservationId,
+          reservation.totalPrice,
+        );
+      }
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Demande de paiement envoyée au client'),
+          backgroundColor: AppColors.accent,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -1187,6 +1245,8 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         return Colors.green;
       case ReservationStatus.cancelled:
         return AppColors.hot;
+      case ReservationStatus.cancelledAfterPayment:
+        return Colors.deepOrange;
     }
   }
 
@@ -1203,6 +1263,8 @@ class _AdminTrajetsScreenState extends State<AdminTrajetsScreen>
         return 'Terminée';
       case ReservationStatus.cancelled:
         return 'Annulée';
+      case ReservationStatus.cancelledAfterPayment:
+        return 'Annulée après paiement';
     }
   }
 

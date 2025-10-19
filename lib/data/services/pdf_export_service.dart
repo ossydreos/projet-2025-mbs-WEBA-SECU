@@ -279,6 +279,8 @@ class PdfExportService {
         return 'Terminée';
       case ReservationStatus.cancelled:
         return 'Annulée';
+      case ReservationStatus.cancelledAfterPayment:
+        return 'Annulée après paiement';
     }
   }
 
@@ -295,6 +297,8 @@ class PdfExportService {
         return PdfColors.green;
       case ReservationStatus.cancelled:
         return PdfColors.red;
+      case ReservationStatus.cancelledAfterPayment:
+        return PdfColors.deepOrange;
     }
   }
 

@@ -385,6 +385,8 @@ class _ExportSelectionWidgetState extends State<ExportSelectionWidget> {
         return 'Terminée';
       case ReservationStatus.cancelled:
         return 'Annulée';
+      case ReservationStatus.cancelledAfterPayment:
+        return 'Annulée après paiement';
     }
   }
 
@@ -400,6 +402,8 @@ class _ExportSelectionWidgetState extends State<ExportSelectionWidget> {
         return Colors.green;
       case ReservationStatus.cancelled:
         return Colors.red;
+      case ReservationStatus.cancelledAfterPayment:
+        return Colors.deepOrange;
     }
   }
 

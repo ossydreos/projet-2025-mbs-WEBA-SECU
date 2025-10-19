@@ -32,6 +32,15 @@ async function sendToOneSignalByTag(params) {
     if (params.sendAfterGMT) {
         payload.send_after = params.sendAfterGMT;
     }
+    if (params.androidChannelId) {
+        payload.android_channel_id = params.androidChannelId;
+    }
+    if (params.androidSound) {
+        payload.android_sound = params.androidSound;
+    }
+    if (params.iosSound) {
+        payload.ios_sound = params.iosSound;
+    }
     const res = await fetch("https://api.onesignal.com/notifications", {
         method: "POST",
         headers: {
@@ -58,6 +67,15 @@ async function sendToOneSignalByUserId(params) {
     };
     if (params.sendAfterGMT) {
         payload.send_after = params.sendAfterGMT;
+    }
+    if (params.androidChannelId) {
+        payload.android_channel_id = params.androidChannelId;
+    }
+    if (params.androidSound) {
+        payload.android_sound = params.androidSound;
+    }
+    if (params.iosSound) {
+        payload.ios_sound = params.iosSound;
     }
     const res = await fetch("https://api.onesignal.com/notifications", {
         method: "POST",
@@ -105,6 +123,7 @@ export const onReservationCreate = functions.firestore
             title: "Nouvelle réservation ⏳",
             body,
             data: { route: `/reservations/${ctx.params.resId}` },
+            androidChannelId: "b842a17b-cf2b-42d9-8830-08405eeb4f3d",
         });
         console.log("✅ OneSignal result:", result);
     }
@@ -318,14 +337,12 @@ export const onRideChatMessageCreate = functions.firestore
         : undefined;
     const adminTitle = itinerary ? `[Course] ${itinerary}` : "[Course] Nouveau message";
     const adminBody = composeLines([
-        client ? `Client: ${client}` : undefined,
-        itinerary ? `Trajet: ${itinerary}` : undefined,
-        preview ? `Message: « ${preview} »` : undefined,
+        client && preview ? `${client} — ${preview}` : undefined,
+        !client && preview ? preview : undefined,
     ]);
     const userTitle = itinerary ? `[Course] ${itinerary}` : "[Course] Réponse du chauffeur";
     const userBody = composeLines([
-        itinerary ? `Trajet: ${itinerary}` : undefined,
-        preview ? `Message: « ${preview} »` : undefined,
+        preview ? `Chauffeur — ${preview}` : undefined,
     ]);
     if (senderRole === "user") {
         await sendToOneSignalByTag({

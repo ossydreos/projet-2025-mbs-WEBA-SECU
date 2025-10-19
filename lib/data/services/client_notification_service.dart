@@ -114,6 +114,12 @@ class ClientNotificationService {
             ? 'Votre course a été annulée. Raison: $reason'
             : 'Votre course a été annulée.';
         break;
+      case ReservationStatus.cancelledAfterPayment:
+        title = 'Course annulée';
+        message = reason != null
+            ? 'Votre course payée a été annulée. Raison: $reason'
+            : 'Votre course payée a été annulée.';
+        break;
       case ReservationStatus.pending:
         title = 'Demande en attente';
         message = 'Votre demande de course est en attente de confirmation.';

@@ -47,7 +47,10 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
               reservationData[doc.id] = doc.data() as Map<String, dynamic>;
             }
 
-            final signature = _buildSignature(reservationData, chatDocs);
+            final signature = _buildSignature(
+              reservationData,
+              chatDocs,
+            );
             _updateTripsSignature(signature);
 
             if (widget.currentIndex == 2) {

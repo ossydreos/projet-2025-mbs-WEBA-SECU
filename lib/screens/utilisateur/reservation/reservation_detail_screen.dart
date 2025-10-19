@@ -218,7 +218,7 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Cash',
+                                  AppLocalizations.of(context).cash,
                                   style: TextStyle(
                                     color: tempPaymentMethod == AppLocalizations.of(context).cash
                                         ? AppColors.accent
@@ -247,18 +247,18 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                   GestureDetector(
                     onTap: () {
                       setDialogState(() {
-                        tempPaymentMethod = 'Paiement en ligne';
+                        tempPaymentMethod = AppLocalizations.of(context).onlinePayment;
                       });
                     },
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: tempPaymentMethod == 'Paiement en ligne'
+                        color: tempPaymentMethod == AppLocalizations.of(context).onlinePayment
                             ? AppColors.accent.withOpacity(0.2)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: tempPaymentMethod == 'Paiement en ligne'
+                          color: tempPaymentMethod == AppLocalizations.of(context).onlinePayment
                               ? AppColors.accent
                               : Colors.grey.withOpacity(0.5),
                           width: 2,
@@ -271,17 +271,17 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                             height: 24,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: tempPaymentMethod == 'Paiement en ligne'
+                              color: tempPaymentMethod == AppLocalizations.of(context).onlinePayment
                                   ? AppColors.accent
                                   : Colors.transparent,
                               border: Border.all(
-                                color: tempPaymentMethod == 'Paiement en ligne'
+                                color: tempPaymentMethod == AppLocalizations.of(context).onlinePayment
                                     ? AppColors.accent
                                     : Colors.grey,
                                 width: 2,
                               ),
                             ),
-                            child: tempPaymentMethod == 'Paiement en ligne'
+                            child: tempPaymentMethod == AppLocalizations.of(context).onlinePayment
                                 ? const Icon(
                                     Icons.check,
                                     color: Colors.white,
@@ -295,10 +295,10 @@ class _ReservationDetailScreenState extends State<ReservationDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Paiement en ligne',
+                                  AppLocalizations.of(context).onlinePayment,
                                   style: TextStyle(
                                     color:
-                                        tempPaymentMethod == 'Paiement en ligne'
+                                        tempPaymentMethod == AppLocalizations.of(context).onlinePayment
                                         ? AppColors.accent
                                         : Colors.white,
                                     fontSize: 16,

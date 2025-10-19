@@ -130,6 +130,7 @@ class AdminGlobalNotificationService {
           .collection('reservations')
           .where('status', isEqualTo: ReservationStatus.pending.name)
           .where('adminDismissed', isEqualTo: false)
+          .where('adminPending', isEqualTo: false)
           .get();
 
 
@@ -241,6 +242,7 @@ class AdminGlobalNotificationService {
           .collection('reservations')
           .where('status', isEqualTo: ReservationStatus.pending.name)
           .where('adminDismissed', isEqualTo: false)
+          .where('adminPending', isEqualTo: false)
           .orderBy('createdAt', descending: true)
           .limit(5)
           .get();
@@ -252,6 +254,11 @@ class AdminGlobalNotificationService {
 
         // Vérifier si cette réservation a déjà été traitée
         if (_processedReservations.contains(reservationId)) {
+          continue;
+        }
+
+        final adminDismissed = data['adminDismissed'] as bool? ?? false;
+        if (adminDismissed) {
           continue;
         }
 
@@ -338,6 +345,16 @@ class AdminGlobalNotificationService {
 
                 // Vérifier si cette réservation a déjà été traitée
                 if (_processedReservations.contains(reservationId)) {
+                  continue;
+                }
+
+                final adminDismissed = data['adminDismissed'] as bool? ?? false;
+                if (adminDismissed) {
+                  continue;
+                }
+
+                final adminPending = data['adminPending'] as bool? ?? false;
+                if (adminPending) {
                   continue;
                 }
 
@@ -662,9 +679,18 @@ class AdminGlobalNotificationService {
         return;
       }
 
-      // Utiliser le callback pour faire exactement la même chose que la liste des demandes en attente
-      // Cela garantit que la réservation est ajoutée à _processingReservations et gérée correctement
-      _notifyReservationProcessing(reservationId);
+      final callback = _onReservationProcessing;
+
+      if (callback != null) {
+        try {
+          callback(reservationId);
+          return;
+        } catch (e) {
+          _onReservationProcessing = null;
+        }
+      }
+
+      await _confirmReservationDirectly(reservation);
     } catch (e) {
       _showStatusError('Erreur lors de la vérification du statut');
     }
@@ -1149,13 +1175,37 @@ class AdminGlobalNotificationService {
   // Callback pour notifier qu'une réservation est en cours de traitement
   static void Function(String)? _onReservationProcessing;
 
-  static void setReservationProcessingCallback(void Function(String) callback) {
+  static void setReservationProcessingCallback(void Function(String)? callback) {
     _onReservationProcessing = callback;
   }
 
-  void _notifyReservationProcessing(String reservationId) {
-    if (_onReservationProcessing != null) {
-      _onReservationProcessing!(reservationId);
+  Future<void> _confirmReservationDirectly(Reservation reservation) async {
+    try {
+      await _reservationService.updateReservationStatus(
+        reservation.id,
+        ReservationStatus.confirmed,
+      );
+
+      final userId = reservation.userId;
+      if (userId != null && userId.isNotEmpty) {
+        await sendPaymentRequestNotification(
+          userId,
+          reservation.id,
+          reservation.totalPrice,
+        );
+      }
+
+      if (_globalContext != null && _globalContext!.mounted) {
+        ScaffoldMessenger.of(_globalContext!).showSnackBar(
+          SnackBar(
+            content: const Text('Demande de paiement envoyée au client'),
+            backgroundColor: AppColors.accent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      _showStatusError('Erreur lors de la confirmation de la réservation');
     }
   }
 

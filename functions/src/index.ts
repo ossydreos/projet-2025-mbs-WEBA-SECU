@@ -50,12 +50,17 @@ function composeLines(lines: Array<string | undefined>) {
   return lines.filter(Boolean).join("\n");
 }
 
-async function sendToOneSignalByTag(params: {
+type BaseOneSignalParams = {
   title: string;
   body: string;
   data?: Record<string, string>;
   sendAfterGMT?: string;      // "Fri, 24 Oct 2025 16:30:00 GMT" (optionnel)
-}) {
+  androidChannelId?: string;
+  androidSound?: string;
+  iosSound?: string;
+};
+
+async function sendToOneSignalByTag(params: BaseOneSignalParams) {
   const payload: any = {
     app_id: APP_ID,
     // ✅ Ciblage par tag "role: admin"
@@ -68,6 +73,15 @@ async function sendToOneSignalByTag(params: {
   };
   if (params.sendAfterGMT) {
     payload.send_after = params.sendAfterGMT;
+  }
+  if (params.androidChannelId) {
+    payload.android_channel_id = params.androidChannelId;
+  }
+  if (params.androidSound) {
+    payload.android_sound = params.androidSound;
+  }
+  if (params.iosSound) {
+    payload.ios_sound = params.iosSound;
   }
 
   const res = await fetch("https://api.onesignal.com/notifications", {
@@ -87,13 +101,7 @@ async function sendToOneSignalByTag(params: {
 }
 
 // Fonction pour envoyer à un utilisateur spécifique par userId
-async function sendToOneSignalByUserId(params: {
-  userId: string;
-  title: string;
-  body: string;
-  data?: Record<string, string>;
-  sendAfterGMT?: string;
-}) {
+async function sendToOneSignalByUserId(params: BaseOneSignalParams & { userId: string; }) {
   const payload: any = {
     app_id: APP_ID,
     // ✅ Ciblage par external_user_id (userId du client)
@@ -105,6 +113,15 @@ async function sendToOneSignalByUserId(params: {
   
   if (params.sendAfterGMT) {
     payload.send_after = params.sendAfterGMT;
+  }
+  if (params.androidChannelId) {
+    payload.android_channel_id = params.androidChannelId;
+  }
+  if (params.androidSound) {
+    payload.android_sound = params.androidSound;
+  }
+  if (params.iosSound) {
+    payload.ios_sound = params.iosSound;
   }
 
   const res = await fetch("https://api.onesignal.com/notifications", {
@@ -158,6 +175,7 @@ export const onReservationCreate = functions.firestore
         title: "Nouvelle réservation ⏳",
         body,
         data: { route: `/reservations/${ctx.params.resId}` },
+        androidChannelId: "b842a17b-cf2b-42d9-8830-08405eeb4f3d",
       });
 
       console.log("✅ OneSignal result:", result);
@@ -405,14 +423,12 @@ export const onRideChatMessageCreate = functions.firestore
       : undefined;
     const adminTitle = itinerary ? `[Course] ${itinerary}` : "[Course] Nouveau message";
     const adminBody = composeLines([
-      client ? `Client: ${client}` : undefined,
-      itinerary ? `Trajet: ${itinerary}` : undefined,
-      preview ? `Msg: ${preview}` : undefined,
+      client && preview ? `${client} — ${preview}` : undefined,
+      !client && preview ? preview : undefined,
     ]);
     const userTitle = itinerary ? `[Course] ${itinerary}` : "[Course] Réponse du chauffeur";
     const userBody = composeLines([
-      itinerary ? `Trajet: ${itinerary}` : undefined,
-      preview ? `Message chauffeur: ${preview}` : undefined,
+      preview ? `Chauffeur — ${preview}` : undefined,
     ]);
 
     if (senderRole === "user") {

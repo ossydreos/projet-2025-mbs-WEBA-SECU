@@ -80,23 +80,28 @@ class NotificationManager {
         context,
         reservation,
         onAccept: () {
+          _markReservationDismissed(reservation.id);
           _closeCurrentNotification();
           onAccept();
         },
         onDecline: () {
+          _markReservationDismissed(reservation.id);
           _closeCurrentNotification();
           onDecline();
         },
         onCounterOffer: onCounterOffer != null
             ? () {
+                _markReservationDismissed(reservation.id);
                 _closeCurrentNotification();
                 onCounterOffer();
               }
             : null,
         onClose: () {
+          _markReservationDismissed(reservation.id);
           _closeCurrentNotification();
         },
         onPending: () {
+          _markReservationDismissed(reservation.id);
           _closeCurrentNotification();
           _handlePendingReservation(reservation);
         },
@@ -147,6 +152,8 @@ class NotificationManager {
         DateTime.now().toIso8601String(),
       );
 
+      await _reservationService.markAdminDismissed(reservation.id);
+
       _closeCurrentNotification();
 
       if (_currentContext != null && _currentContext!.mounted) {
@@ -169,6 +176,13 @@ class NotificationManager {
     _currentNotificationTimer = null;
     _currentNotificationReservation = null;
     _currentContext = null;
+  }
+
+  Future<void> _markReservationDismissed(String reservationId) async {
+    try {
+      await _reservationService.markAdminDismissed(reservationId);
+    } catch (_) {
+    }
   }
 
   // Vérifier s'il y a une notification active

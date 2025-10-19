@@ -437,6 +437,8 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
         return PdfColors.green600;
       case ReservationStatus.cancelled:
         return PdfColors.red600;
+      case ReservationStatus.cancelledAfterPayment:
+        return PdfColors.deepOrange600;
     }
   }
 
@@ -1043,6 +1045,8 @@ class _TripsScreenRefinedState extends State<TripsScreenRefined>
         return 'Terminé';
       case ReservationStatus.cancelled:
         return 'Annulé';
+      case ReservationStatus.cancelledAfterPayment:
+        return 'Annulé après paiement';
     }
   }
 

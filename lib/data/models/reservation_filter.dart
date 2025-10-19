@@ -42,10 +42,7 @@ class ReservationFilter {
     this.endDate,
     bool isUpcoming = true,
   })  : isUpcoming = isUpcoming,
-        sortType = sortType ??
-            (isUpcoming
-                ? ReservationSortType.dateAscending
-                : ReservationSortType.dateDescending);
+        sortType = sortType ?? ReservationSortType.dateDescending;
 
   /// Créer une copie avec des modifications
   ReservationFilter copyWith({
@@ -151,17 +148,21 @@ class ReservationFilter {
 
     // Filtrer selon la nouvelle logique métier (isPaid/isCompleted)
     if (isUpcoming) {
-      // Pour les courses à venir : SEULEMENT les courses avec paiement confirmé (inProgress)
       filtered = filtered
           .where(
-            (r) => r.status == ReservationStatus.inProgress && !r.isCompleted,
+            (r) =>
+                (r.status == ReservationStatus.pending ||
+                    r.status == ReservationStatus.confirmed ||
+                    r.status == ReservationStatus.inProgress) &&
+                !r.isCompleted,
           )
           .toList();
     } else {
-      // Pour les courses terminées : SEULEMENT les courses terminées (pas les annulées)
       filtered = filtered
           .where(
-            (r) => r.isCompleted || r.status == ReservationStatus.completed,
+            (r) =>
+                r.isCompleted ||
+                r.status == ReservationStatus.completed,
           )
           .toList();
     }
@@ -225,17 +226,17 @@ class ReservationFilter {
     }
 
     // Appliquer le tri
-    final reference = DateTime.now();
-
     switch (sortType) {
       case ReservationSortType.dateAscending:
         filtered.sort(
-          (a, b) => _compareReservationStartDateTime(a, b, reference),
+          (a, b) => a.effectiveStartDateTime
+              .compareTo(b.effectiveStartDateTime),
         );
         break;
       case ReservationSortType.dateDescending:
         filtered.sort(
-          (a, b) => _compareReservationStartDateTime(b, a, reference),
+          (a, b) => b.effectiveStartDateTime
+              .compareTo(a.effectiveStartDateTime),
         );
         break;
       case ReservationSortType.priceAscending:

@@ -647,6 +647,8 @@ class AdminUserDetailScreen extends StatelessWidget {
         return Colors.green;
       case ReservationStatus.cancelled:
         return Colors.red;
+      case ReservationStatus.cancelledAfterPayment:
+        return Colors.deepOrange;
     }
   }
 
@@ -663,6 +665,8 @@ class AdminUserDetailScreen extends StatelessWidget {
         return 'Terminée';
       case ReservationStatus.cancelled:
         return 'Annulée';
+      case ReservationStatus.cancelledAfterPayment:
+        return 'Annulée après paiement';
     }
   }
 

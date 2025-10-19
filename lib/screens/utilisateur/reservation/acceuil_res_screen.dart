@@ -67,6 +67,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   String? _selectedDestination;
   LatLng? _destinationCoordinates;
   LatLng? _userLocation;
+  bool _hasValidUserLocation = false;
   bool _isLoadingLocation = true;
   gmaps.BitmapDescriptor? _userLocationIcon;
   gmaps.BitmapDescriptor? _destinationIcon;
@@ -75,6 +76,9 @@ class _AccueilScreenState extends State<AccueilScreen>
   final Set<gmaps.Marker> _gmMarkers = <gmaps.Marker>{};
 
   StreamSubscription<QuerySnapshot>? _pendingChatsSub;
+  StreamSubscription<QuerySnapshot>? _supportThreadsSub;
+  String _rideChatSignature = '';
+  String _supportSignature = '';
   String _pendingChatSignature = '';
   bool _pendingChatAcknowledged = true;
 
@@ -86,6 +90,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       _getUserLocation();
       _listenToNotifications();
       _watchPendingChatThreads();
+      _watchSupportThreads();
     });
   }
 
@@ -121,6 +126,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   @override
   void dispose() {
     _pendingChatsSub?.cancel();
+    _supportThreadsSub?.cancel();
     _googleMapController?.dispose();
     super.dispose();
   }
@@ -129,7 +135,8 @@ class _AccueilScreenState extends State<AccueilScreen>
     final user = FirebaseAuth.instance.currentUser;
     _pendingChatsSub?.cancel();
     if (user == null) {
-      _updatePendingState('', false);
+      _rideChatSignature = '';
+      _updateBadgeSignatures();
       return;
     }
 
@@ -140,7 +147,8 @@ class _AccueilScreenState extends State<AccueilScreen>
         .snapshots()
         .listen((snapshot) async {
       if (snapshot.docs.isEmpty) {
-        _updatePendingState('', false);
+        _rideChatSignature = '';
+        _updateBadgeSignatures();
         return;
       }
 
@@ -159,7 +167,8 @@ class _AccueilScreenState extends State<AccueilScreen>
       }
 
       if (chatInfos.isEmpty) {
-        _updatePendingState('', false);
+        _rideChatSignature = '';
+        _updateBadgeSignatures();
         return;
       }
 
@@ -179,16 +188,88 @@ class _AccueilScreenState extends State<AccueilScreen>
 
       signatureParts.sort();
       final signature = signatureParts.join('|');
-      final hasUnread = signatureParts.isNotEmpty;
-      _updatePendingState(signature, hasUnread);
+      _rideChatSignature = signature;
+      _updateBadgeSignatures();
     });
   }
 
-  void _updatePendingState(String signature, bool hasUnread) {
-    if (!mounted) return;
+  void _watchSupportThreads() {
+    final user = FirebaseAuth.instance.currentUser;
+    _supportThreadsSub?.cancel();
+    if (user == null) {
+      _supportSignature = '';
+      _updateBadgeSignatures();
+      return;
+    }
+
+    _supportThreadsSub = FirebaseFirestore.instance
+        .collection(SupportChatService.threadsCollection)
+        .where('userId', isEqualTo: user.uid)
+        .where('unreadForUser', isGreaterThan: 0)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.docs.isEmpty) {
+        _supportSignature = '';
+        _updateBadgeSignatures();
+        return;
+      }
+
+      final parts = <String>[];
+      for (final doc in snapshot.docs) {
+        final data = doc.data();
+        final unread = data['unreadForUser'];
+        if (unread is! int || unread <= 0) {
+          continue;
+        }
+
+        final updatedAt = _timestampToMillis(data['updatedAt'] ?? data['lastMessageAt']);
+        parts.add('${doc.id}:$unread:$updatedAt');
+      }
+
+      if (parts.isEmpty) {
+        _supportSignature = '';
+        _updateBadgeSignatures();
+        return;
+      }
+
+      parts.sort();
+      _supportSignature = parts.join('|');
+      _updateBadgeSignatures();
+    });
+  }
+
+  void _updateBadgeSignatures() {
+    final previousSignature = _pendingChatSignature;
+    final previousAck = _pendingChatAcknowledged;
+
+    final combinedParts = <String>[];
+    if (_rideChatSignature.isNotEmpty) {
+      combinedParts.add('ride:${_rideChatSignature}');
+    }
+    if (_supportSignature.isNotEmpty) {
+      combinedParts.add('support:${_supportSignature}');
+    }
+
+    final combinedSignature = combinedParts.join('||');
+    final hasUnread = combinedSignature.isNotEmpty;
+    final bool acknowledged = !hasUnread
+        ? true
+        : (combinedSignature == previousSignature ? previousAck : false);
+
+    if (!mounted) {
+      _pendingChatSignature = combinedSignature;
+      _pendingChatAcknowledged = acknowledged;
+      return;
+    }
+
+    if (combinedSignature == previousSignature && acknowledged == previousAck) {
+      _notifyHomeBadge();
+      return;
+    }
+
     setState(() {
-      _pendingChatSignature = signature;
-      _pendingChatAcknowledged = !hasUnread;
+      _pendingChatSignature = combinedSignature;
+      _pendingChatAcknowledged = acknowledged;
     });
     _notifyHomeBadge();
   }
@@ -216,6 +297,9 @@ class _AccueilScreenState extends State<AccueilScreen>
     if (!mounted) return;
     setState(() {
       _pendingChatAcknowledged = true;
+      _pendingChatSignature = '';
+      _rideChatSignature = '';
+      _supportSignature = '';
     });
     _notifyHomeBadge();
   }
@@ -297,6 +381,7 @@ class _AccueilScreenState extends State<AccueilScreen>
       if (!mounted) return;
       setState(() {
         _userLocation = LatLng(position!.latitude, position!.longitude);
+        _hasValidUserLocation = true;
         _isLoadingLocation = false;
       });
 
@@ -336,6 +421,7 @@ class _AccueilScreenState extends State<AccueilScreen>
   void _addDefaultLocationMarker() {
     setState(() {
       _userLocation = LatLng(46.183355, 6.09998); // 106 Bois de la Chapelle, Onex, Suisse
+      _hasValidUserLocation = false;
     });
     _addUserLocationMarker();
   }
@@ -382,8 +468,32 @@ class _AccueilScreenState extends State<AccueilScreen>
     );
   }
 
-  void _centerOnUser() {
-    if (_userLocation != null) {
+  void _centerOnUser() async {
+    if (_isLoadingLocation) return;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        if (!mounted) return;
+        setState(() {
+          _locationError = AppLocalizations.of(context).locationPermissionDenied;
+        });
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
+      setState(() {
+        _locationError = AppLocalizations.of(context).locationPermissionDeniedPermanently;
+      });
+      await _showLocationPermissionDialog();
+      return;
+    }
+
+    if (_userLocation != null && _hasValidUserLocation) {
       _googleMapController?.animateCamera(
         gmaps.CameraUpdate.newLatLngZoom(
           gmaps.LatLng(_userLocation!.latitude, _userLocation!.longitude),
@@ -391,7 +501,34 @@ class _AccueilScreenState extends State<AccueilScreen>
         ),
       );
     } else {
-      _getUserLocation();
+      await _getUserLocation();
+    }
+  }
+
+  Future<void> _showLocationPermissionDialog() async {
+    if (!mounted) return;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(dialogContext).location),
+          content: Text(AppLocalizations.of(dialogContext).locationPermissionDeniedPermanently),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(AppLocalizations.of(dialogContext).cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(AppLocalizations.of(dialogContext).settings),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      await Geolocator.openAppSettings();
     }
   }
 

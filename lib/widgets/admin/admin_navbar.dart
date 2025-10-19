@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:my_mobility_services/data/services/ride_chat_service.dart';
+import 'package:my_mobility_services/data/services/support_chat_service.dart';
 import 'package:my_mobility_services/theme/glassmorphism_theme.dart';
 import '../../data/models/reservation.dart';
 
@@ -103,7 +104,6 @@ class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
               stream: _unreadRideChatThreadsStream(),
               builder: (context, chatSnapshot) {
                 final chatDocs = chatSnapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
-                var hasUnreadChat = false;
                 final chatSignatureParts = <String>[];
 
                 for (final doc in chatDocs) {
@@ -135,7 +135,6 @@ class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
 
                   if (statusEnum == ReservationStatus.pending ||
                       statusEnum == ReservationStatus.confirmed) {
-                    hasUnreadChat = true;
                     final lastUpdate = _timestampToMillis(
                       data['lastMessageAt'] ?? data['updatedAt'],
                     );
@@ -144,37 +143,70 @@ class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
                 }
 
                 chatSignatureParts.sort();
-                final demandChatSignature = chatSignatureParts.join('|');
+                final rideSignature = chatSignatureParts.isEmpty
+                    ? ''
+                    : 'ride:${chatSignatureParts.join('|')}';
 
-                if (isActive) {
-                  _lastAcknowledgedDemandSignature = demandChatSignature;
-                  return const Icon(Icons.inbox);
-                }
+                return StreamBuilder<QuerySnapshot>(
+                  stream: _unreadSupportThreadsStream(),
+                  builder: (context, supportSnapshot) {
+                    final supportDocs =
+                        supportSnapshot.data?.docs ?? const <QueryDocumentSnapshot>[];
+                    final supportSignatureParts = <String>[];
 
-                final hasNewChat = hasUnreadChat &&
-                    demandChatSignature.isNotEmpty &&
-                    demandChatSignature != _lastAcknowledgedDemandSignature;
+                    for (final doc in supportDocs) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      final unread = data['unreadForAdmin'];
+                      if (unread is! int || unread <= 0) {
+                        continue;
+                      }
 
-                final showIndicator = (pendingCount > 0 || hasNewChat);
+                      final updatedAt = _timestampToMillis(
+                        data['updatedAt'] ?? data['lastMessageAt'],
+                      );
+                      supportSignatureParts.add('${doc.id}:$unread:$updatedAt');
+                    }
 
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.inbox_outlined),
-                    if (showIndicator)
-                      Positioned(
-                        right: -2,
-                        top: -2,
-                        child: Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
+                    supportSignatureParts.sort();
+                    final supportSignature = supportSignatureParts.isEmpty
+                        ? ''
+                        : 'support:${supportSignatureParts.join('|')}';
+
+                    final combinedParts = <String>[];
+                    if (rideSignature.isNotEmpty) combinedParts.add(rideSignature);
+                    if (supportSignature.isNotEmpty) combinedParts.add(supportSignature);
+                    final combinedSignature = combinedParts.join('||');
+
+                    if (isActive) {
+                      _lastAcknowledgedDemandSignature = combinedSignature;
+                      return const Icon(Icons.inbox);
+                    }
+
+                    final hasNewAlert = combinedSignature.isNotEmpty &&
+                        combinedSignature != _lastAcknowledgedDemandSignature;
+
+                    final showIndicator = pendingCount > 0 || hasNewAlert;
+
+                    return Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        const Icon(Icons.inbox_outlined),
+                        if (showIndicator)
+                          Positioned(
+                            right: -2,
+                            top: -2,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                  ],
+                      ],
+                    );
+                  },
                 );
               },
             );
@@ -257,6 +289,13 @@ class _AdminBottomNavigationBarState extends State<AdminBottomNavigationBar> {
   Stream<QuerySnapshot> _unreadRideChatThreadsStream() {
     return FirebaseFirestore.instance
         .collection(RideChatService.threadsCollection)
+        .where('unreadForAdmin', isGreaterThan: 0)
+        .snapshots();
+  }
+
+  Stream<QuerySnapshot> _unreadSupportThreadsStream() {
+    return FirebaseFirestore.instance
+        .collection(SupportChatService.threadsCollection)
         .where('unreadForAdmin', isGreaterThan: 0)
         .snapshots();
   }

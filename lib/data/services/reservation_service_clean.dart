@@ -28,7 +28,10 @@ class ReservationService {
       // dans le scheduling screen, pas besoin de la refaire ici
       
       final docRef = _firestore.collection(_collection).doc();
-      final reservationWithId = reservation.copyWith(id: docRef.id);
+      final reservationWithId = reservation.copyWith(
+        id: docRef.id,
+        adminDismissed: false,
+      );
       await docRef.set(reservationWithId.toMap());
       return docRef.id;
     } catch (e) {

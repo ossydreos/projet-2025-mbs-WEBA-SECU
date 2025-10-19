@@ -7,6 +7,7 @@ enum ReservationStatus {
   inProgress, // En cours
   completed, // Terminée
   cancelled, // Annulée
+  cancelledAfterPayment, // Annulée après paiement
 }
 
 enum ReservationType {
@@ -29,6 +30,8 @@ extension ReservationStatusExtension on ReservationStatus {
         return localizations.reservationStatusCompleted;
       case ReservationStatus.cancelled:
         return localizations.reservationStatusCancelled;
+      case ReservationStatus.cancelledAfterPayment:
+        return localizations.reservationStatusCancelled;
     }
   }
 
@@ -45,6 +48,8 @@ extension ReservationStatusExtension on ReservationStatus {
         return 'Terminée';
       case ReservationStatus.cancelled:
         return 'Annulée';
+      case ReservationStatus.cancelledAfterPayment:
+        return 'Annulée après paiement';
     }
   }
 }
@@ -78,6 +83,10 @@ class Reservation {
   final bool? waitingForPayment; // en attente de paiement
   final bool isPaid; // Course payée par le client
   final bool isCompleted; // Course terminée (bouton terminer appuyé)
+  final bool adminDismissed; // Notification admin déjà masquée
+  final bool adminPending; // Réservation mise en attente par l'admin
+  final DateTime? customStartDate; // Date effective pour les offres perso
+  final String? customStartTime; // Heure effective pour les offres perso
 
   Reservation({
     required this.id,
@@ -107,6 +116,10 @@ class Reservation {
     this.waitingForPayment,
     this.isPaid = false, // Valeur par défaut : false
     this.isCompleted = false, // Valeur par défaut : false
+    this.adminDismissed = false, // Valeur par défaut : false
+    this.adminPending = false, // Valeur par défaut : false
+    this.customStartDate,
+    this.customStartTime,
   });
 
   // Convertir en Map pour Firebase
@@ -141,6 +154,12 @@ class Reservation {
       'waitingForPayment': waitingForPayment,
       'isPaid': isPaid,
       'isCompleted': isCompleted,
+      'adminDismissed': adminDismissed,
+      'adminPending': adminPending,
+      'customStartDate': customStartDate != null
+          ? Timestamp.fromDate(customStartDate!)
+          : null,
+      'customStartTime': customStartTime,
     };
   }
 
@@ -194,7 +213,79 @@ class Reservation {
       waitingForPayment: map['waitingForPayment'],
       isPaid: map['isPaid'] ?? false,
       isCompleted: map['isCompleted'] ?? false,
+      adminDismissed: map['adminDismissed'] ?? false,
+      adminPending: map['adminPending'] ?? false,
+      customStartDate: map['customStartDate'] != null
+          ? (map['customStartDate'] is Timestamp
+                ? (map['customStartDate'] as Timestamp).toDate()
+                : map['customStartDate'] as DateTime)
+          : null,
+      customStartTime: map['customStartTime'],
     );
+  }
+
+  DateTime get effectiveStartDateTime {
+    if (type == ReservationType.offer && customStartDate != null) {
+      return _combineDateWithOptionalTime(
+        customStartDate!,
+        customStartTime ?? _extractTimeFromDate(selectedDate) ?? selectedTime,
+      );
+    }
+
+    return _combineDateWithOptionalTime(
+      selectedDate,
+      _extractTimeFromDate(selectedDate) ?? selectedTime,
+    );
+  }
+
+  bool get isFutureRide => effectiveStartDateTime.isAfter(DateTime.now());
+
+  DateTime _combineDateWithOptionalTime(DateTime date, String? timeString) {
+    if (timeString == null || timeString.isEmpty) {
+      return date;
+    }
+
+    final matches = RegExp(r'\d+').allMatches(timeString).toList();
+    int hour = matches.isNotEmpty ? int.tryParse(matches[0].group(0)!) ?? 0 : 0;
+    int minute = matches.length > 1 ? int.tryParse(matches[1].group(0)!) ?? 0 : 0;
+
+    hour = hour % 24;
+    minute = minute % 60;
+
+    final lower = timeString.toLowerCase();
+    if (lower.contains('pm') && hour < 12) {
+      hour += 12;
+    } else if (lower.contains('am') && hour == 12) {
+      hour = 0;
+    }
+
+    return DateTime(
+      date.year,
+      date.month,
+      date.day,
+      hour,
+      minute,
+      date.second,
+      date.millisecond,
+      date.microsecond,
+    );
+  }
+
+  String? _extractTimeFromDate(DateTime date) {
+    if (date.hour == 0 && date.minute == 0) {
+      return null;
+    }
+    final hour = date.hour.toString().padLeft(2, '0');
+    final minute = date.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  bool _dateHasTimeComponent(DateTime date) {
+    return date.hour != 0 ||
+        date.minute != 0 ||
+        date.second != 0 ||
+        date.millisecond != 0 ||
+        date.microsecond != 0;
   }
 
   // Copier avec modifications
@@ -226,6 +317,10 @@ class Reservation {
     bool? waitingForPayment,
     bool? isPaid,
     bool? isCompleted,
+    bool? adminDismissed,
+    bool? adminPending,
+    DateTime? customStartDate,
+    String? customStartTime,
   }) {
     return Reservation(
       id: id ?? this.id,
@@ -256,6 +351,10 @@ class Reservation {
       waitingForPayment: waitingForPayment ?? this.waitingForPayment,
       isPaid: isPaid ?? this.isPaid,
       isCompleted: isCompleted ?? this.isCompleted,
+      adminDismissed: adminDismissed ?? this.adminDismissed,
+      adminPending: adminPending ?? this.adminPending,
+      customStartDate: customStartDate ?? this.customStartDate,
+      customStartTime: customStartTime ?? this.customStartTime,
     );
   }
 
@@ -272,6 +371,8 @@ class Reservation {
         return 'Terminée';
       case ReservationStatus.cancelled:
         return 'Annulée';
+      case ReservationStatus.cancelledAfterPayment:
+        return 'Annulée après paiement';
     }
   }
 }
