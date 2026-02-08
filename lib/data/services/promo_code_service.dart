@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/promo_code.dart';
 
@@ -12,8 +13,16 @@ class PromoCodeService {
           .collection(_collection)
           .add(promoCode.toMap());
       return docRef.id;
-    } catch (e) {
-      throw Exception('Erreur lors de la création du code promo: $e');
+    } catch (e, stackTrace) {
+      // Log serveur pour debug
+      developer.log(
+        'Error creating promo code',
+        name: 'PromoCodeService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Message générique
+      throw Exception('Impossible de créer le code promo');
     }
   }
 
@@ -28,8 +37,16 @@ class PromoCodeService {
       return querySnapshot.docs
           .map((doc) => PromoCode.fromMap({...doc.data(), 'id': doc.id}))
           .toList();
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération des codes promo: $e');
+    } catch (e, stackTrace) {
+      // Log serveur
+      developer.log(
+        'Error fetching all promo codes',
+        name: 'PromoCodeService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Message générique
+      throw Exception('Impossible de récupérer les codes promo');
     }
   }
 
@@ -49,8 +66,16 @@ class PromoCodeService {
 
       final doc = querySnapshot.docs.first;
       return PromoCode.fromMap({...doc.data(), 'id': doc.id});
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération du code promo: $e');
+    } catch (e, stackTrace) {
+      // Log serveur
+      developer.log(
+        'Error fetching promo code by code',
+        name: 'PromoCodeService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Retourne null au lieu d'exposer l'erreur
+      return null;
     }
   }
 
@@ -62,28 +87,46 @@ class PromoCodeService {
     try {
       final promoCode = await getPromoCodeByCode(code);
 
+      // CWE-209 CORRIGÉ : Message unifié pour tous les cas d'invalidité
+      // Empêche l'énumération des codes promo existants
+      
       if (promoCode == null) {
+        // Log serveur pour debug
+        developer.log(
+          'Promo code not found: $code',
+          name: 'PromoCodeService',
+        );
         return PromoCodeValidationResult(
           isValid: false,
-          message: 'Code promo introuvable',
+          message: 'Code promo invalide',
         );
       }
 
       // Vérifier si le code a expiré
       if (promoCode.expiresAt != null &&
           DateTime.now().isAfter(promoCode.expiresAt!)) {
+        // Log serveur
+        developer.log(
+          'Promo code expired: $code',
+          name: 'PromoCodeService',
+        );
         return PromoCodeValidationResult(
           isValid: false,
-          message: 'Ce code promo a expiré',
+          message: 'Code promo invalide',
         );
       }
 
       // Vérifier si le code a atteint sa limite d'utilisation
       if (promoCode.maxUsers != null &&
           promoCode.usedCount >= promoCode.maxUsers!) {
+        // Log serveur
+        developer.log(
+          'Promo code usage limit reached: $code',
+          name: 'PromoCodeService',
+        );
         return PromoCodeValidationResult(
           isValid: false,
-          message: 'Ce code promo a atteint sa limite d\'utilisation',
+          message: 'Code promo invalide',
         );
       }
 
@@ -106,10 +149,18 @@ class PromoCodeService {
         discountAmount: discountAmount,
         message: 'Code promo valide',
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Log complet côté serveur
+      developer.log(
+        'Error validating promo code',
+        name: 'PromoCodeService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Message générique pour l'utilisateur
       return PromoCodeValidationResult(
         isValid: false,
-        message: 'Erreur lors de la validation: $e',
+        message: 'Code promo invalide',
       );
     }
   }
@@ -121,8 +172,16 @@ class PromoCodeService {
         'usedCount': FieldValue.increment(1),
         'updatedAt': Timestamp.now(),
       });
-    } catch (e) {
-      throw Exception('Erreur lors de l\'application du code promo: $e');
+    } catch (e, stackTrace) {
+      // Log serveur
+      developer.log(
+        'Error applying promo code',
+        name: 'PromoCodeService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Message générique
+      throw Exception('Impossible d\'appliquer le code promo');
     }
   }
 
@@ -133,8 +192,16 @@ class PromoCodeService {
           .collection(_collection)
           .doc(promoCode.id)
           .update(promoCode.copyWith(updatedAt: DateTime.now()).toMap());
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du code promo: $e');
+    } catch (e, stackTrace) {
+      // Log serveur
+      developer.log(
+        'Error updating promo code',
+        name: 'PromoCodeService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Message générique
+      throw Exception('Impossible de mettre à jour le code promo');
     }
   }
 
@@ -142,8 +209,16 @@ class PromoCodeService {
   Future<void> deletePromoCode(String promoCodeId) async {
     try {
       await _firestore.collection(_collection).doc(promoCodeId).delete();
-    } catch (e) {
-      throw Exception('Erreur lors de la suppression du code promo: $e');
+    } catch (e, stackTrace) {
+      // Log serveur
+      developer.log(
+        'Error deleting promo code',
+        name: 'PromoCodeService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Message générique
+      throw Exception('Impossible de supprimer le code promo');
     }
   }
 
@@ -154,8 +229,16 @@ class PromoCodeService {
         'isActive': isActive,
         'updatedAt': Timestamp.now(),
       });
-    } catch (e) {
-      throw Exception('Erreur lors de la modification du statut: $e');
+    } catch (e, stackTrace) {
+      // Log serveur
+      developer.log(
+        'Error toggling promo code status',
+        name: 'PromoCodeService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Message générique
+      throw Exception('Impossible de modifier le statut du code promo');
     }
   }
 

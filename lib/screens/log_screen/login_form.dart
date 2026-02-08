@@ -125,7 +125,7 @@ class LoginFormState extends State<LoginForm> {
         Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       }
       } on FirebaseAuthException catch (e) {
-        // ✅ CWE-209 CORRIGÉ : Messages unifiés pour empêcher l'énumération
+        // CWE-209 CORRIGÉ : Messages unifiés pour empêcher l'énumération
         String msg;
         
         // Log côté serveur uniquement pour le debug (pas affiché à l'utilisateur)
@@ -136,7 +136,7 @@ class LoginFormState extends State<LoginForm> {
         );
         
         switch (e.code) {
-          // ✅ CRITIQUE : Ces 3 cas retournent le MÊME message
+          // CRITIQUE : Ces 3 cas retournent le MÊME message
           // Impossible de savoir si l'email existe ou si le password est faux
           case 'user-not-found':
           case 'wrong-password':
@@ -168,7 +168,7 @@ class LoginFormState extends State<LoginForm> {
               error: e,
               stackTrace: e.stackTrace,
             );
-            // ✅ Même message générique que les autres erreurs de login
+            // Même message générique que les autres erreurs de login
             msg = AppLocalizations.of(context).incorrectPassword;
         }
         
@@ -178,7 +178,7 @@ class LoginFormState extends State<LoginForm> {
           ).showSnackBar(SnackBar(content: Text(msg)));
         }
       } catch (e, stackTrace) {
-        // ✅ Log complet côté serveur pour debug
+        // Log complet côté serveur pour debug
         developer.log(
           'Unexpected login error',
           name: 'LoginForm',
@@ -186,7 +186,7 @@ class LoginFormState extends State<LoginForm> {
           stackTrace: stackTrace,
         );
         
-        // ✅ Même message générique que les erreurs de login
+        // Même message générique que les erreurs de login
         if (mounted) {
           ScaffoldMessenger.of(
             context,
