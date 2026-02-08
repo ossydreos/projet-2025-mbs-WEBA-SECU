@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -123,64 +124,78 @@ class LoginFormState extends State<LoginForm> {
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil('/home', (route) => false);
       }
-    } on FirebaseAuthException catch (e) {
-      String msg;
-      switch (e.code) {
-        case 'invalid-email':
-          msg = 'FORMAT EMAIL INVALIDE\nEmail fourni: ${_emailCtrl.text}\nFormat attendu: xxx@domain.com\nCode erreur Firebase: ${e.code}';
-          break;
-        case 'user-disabled':
-          msg = 'COMPTE DÉSACTIVÉ\nEmail: ${_emailCtrl.text}\nCe compte existe mais a été désactivé par l\'administrateur.\nUID: ${e.credential?.providerId}\nCode: ${e.code}';
-          break;
-        case 'user-not-found':
-          msg = 'AUCUN COMPTE TROUVÉ\nL\'email "${_emailCtrl.text}" n\'existe PAS dans notre base de données.\nBase consultée: Firebase Auth\nCode: ${e.code}\n\nVous pouvez créer un compte avec cet email.';
-          break;
-        case 'wrong-password':
-          msg = 'MOT DE PASSE INCORRECT\nEmail: ${_emailCtrl.text}\n✅ Ce compte EXISTE dans notre système\n❌ Mais le mot de passe est FAUX\n\nDernière tentative de connexion: ${DateTime.now()}\nNombre de caractères du mot de passe fourni: ${_passwordCtrl.text.length}\nCode: ${e.code}\n\nAstuce: Utilisez "Mot de passe oublié"';
-          break;
-        case 'weak-password':
-          msg = 'MOT DE PASSE TROP FAIBLE\nLongueur: ${_passwordCtrl.text.length} caractères\nMinimum requis: 8 caractères\nCode: ${e.code}';
-          break;
-        case 'network-request-failed':
-          msg = 'ERREUR RÉSEAU\nImpossible de contacter Firebase Auth\nServeur: firebaseauth.googleapis.com\nCode: ${e.code}\nVérifiez votre connexion internet';
-          break;
-        case 'too-many-requests':
-          msg = 'TROP DE TENTATIVES\nEmail: ${_emailCtrl.text}\nNombre de tentatives détecté: Limite atteinte\nBlocage temporaire de: 15 minutes\nCode: ${e.code}';
-          break;
-        default:
-          msg = 'ERREUR FIREBASE COMPLÈTE\n\nCode: ${e.code}\nMessage: ${e.message}\nEmail testé: ${_emailCtrl.text}\nStackTrace: ${e.stackTrace}\n\nDétails techniques pour debug:\n${e.toString()}';
-      }
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(
-            content: Text(msg),
-            duration: Duration(seconds: 10),  // Plus long pour lire
-            backgroundColor: Colors.red.shade900,
-          ),
+      } on FirebaseAuthException catch (e) {
+        // ✅ CWE-209 CORRIGÉ : Messages unifiés pour empêcher l'énumération
+        String msg;
+        
+        // Log côté serveur uniquement pour le debug (pas affiché à l'utilisateur)
+        developer.log(
+          'Login attempt failed - Code: ${e.code}',
+          name: 'LoginForm',
+          error: e,
         );
-      }
-    } catch (e, stackTrace) {
-      // ⚠️ EXPOSITION MAXIMALE DE L'ERREUR ⚠️
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
-          SnackBar(
-            content: Text(
-              '💥 ERREUR SYSTÈME COMPLÈTE\n\n'
-              'Type: ${e.runtimeType}\n'
-              'Message: $e\n'
-              'Email: ${_emailCtrl.text}\n'
-              'Password length: ${_passwordCtrl.text.length}\n\n'
-              'STACK TRACE:\n$stackTrace'
+        
+        switch (e.code) {
+          // ✅ CRITIQUE : Ces 3 cas retournent le MÊME message
+          // Impossible de savoir si l'email existe ou si le password est faux
+          case 'user-not-found':
+          case 'wrong-password':
+          case 'invalid-email':
+            msg = AppLocalizations.of(context).incorrectPassword;
+            break;
+            
+          case 'user-disabled':
+            msg = AppLocalizations.of(context).accountDisabled;
+            break;
+            
+          case 'weak-password':
+            msg = AppLocalizations.of(context).weakPassword;
+            break;
+            
+          case 'network-request-failed':
+            msg = AppLocalizations.of(context).noNetworkConnection;
+            break;
+            
+          case 'too-many-requests':
+            msg = 'Trop de tentatives, réessaie plus tard';
+            break;
+            
+          default:
+            // Log détails pour debug serveur
+            developer.log(
+              'Unhandled Firebase error',
+              name: 'LoginForm',
+              error: e,
+              stackTrace: e.stackTrace,
+            );
+            // ✅ Même message générique que les autres erreurs de login
+            msg = AppLocalizations.of(context).incorrectPassword;
+        }
+        
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(msg)));
+        }
+      } catch (e, stackTrace) {
+        // ✅ Log complet côté serveur pour debug
+        developer.log(
+          'Unexpected login error',
+          name: 'LoginForm',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        
+        // ✅ Même message générique que les erreurs de login
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context).incorrectPassword),
             ),
-            duration: Duration(seconds: 15),
-            backgroundColor: Colors.red.shade900,
-          ),
-        );
-      }
+          );
+        }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
