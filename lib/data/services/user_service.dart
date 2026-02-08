@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_model.dart';
@@ -18,13 +19,15 @@ class UserService {
           .doc(user.uid)
           .set(user.toMap());
     } catch (e, stackTrace) {
-      final exception = FirestoreException(
-        'Erreur lors de la création/mise à jour de l\'utilisateur',
-        originalError: e,
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error creating/updating user',
+        name: 'UserService',
+        error: e,
         stackTrace: stackTrace,
       );
-      exception.logError('UserService');
-      throw exception;
+      // Message générique pour l'utilisateur
+      throw Exception('Impossible de sauvegarder les informations utilisateur');
     }
   }
 
@@ -38,13 +41,15 @@ class UserService {
       }
       return null;
     } catch (e, stackTrace) {
-      final exception = FirestoreException(
-        'Erreur lors de la récupération de l\'utilisateur',
-        originalError: e,
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error fetching user',
+        name: 'UserService',
+        error: e,
         stackTrace: stackTrace,
       );
-      exception.logError('UserService');
-      throw exception;
+      // Retourne null au lieu d'exposer l'erreur
+      return null;
     }
   }
 

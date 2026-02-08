@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -64,8 +65,15 @@ class FavoriteTripService {
           .add(favoriteTrip.toFirestore());
 
       return docRef.id;
-    } catch (e) {
-      throw Exception('Erreur lors de l\'ajout du trajet favori: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error adding favorite trip',
+        name: 'FavoriteTripService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible d\'ajouter le trajet favori');
     }
   }
 
@@ -99,8 +107,15 @@ class FavoriteTripService {
           'longitude': arrivalCoordinates.longitude,
         } : null,
       });
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du trajet favori: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error updating favorite trip',
+        name: 'FavoriteTripService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de mettre à jour le trajet favori');
     }
   }
 
@@ -123,8 +138,15 @@ class FavoriteTripService {
       }
 
       await _firestore.collection(_collection).doc(id).delete();
-    } catch (e) {
-      throw Exception('Erreur lors de la suppression du trajet favori: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error deleting favorite trip',
+        name: 'FavoriteTripService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de supprimer le trajet favori');
     }
   }
 
@@ -146,8 +168,15 @@ class FavoriteTripService {
       }
 
       return FavoriteTrip.fromFirestore(doc);
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération du trajet favori: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error fetching favorite trip',
+        name: 'FavoriteTripService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de récupérer le trajet favori');
     }
   }
 
@@ -176,8 +205,15 @@ class FavoriteTripService {
       }
       
       return snapshot.docs.isNotEmpty;
-    } catch (e) {
-      throw Exception('Erreur lors de la vérification du trajet: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error checking trip existence',
+        name: 'FavoriteTripService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return false;
     }
   }
 
@@ -194,8 +230,15 @@ class FavoriteTripService {
           .get();
 
       return snapshot.docs.length;
-    } catch (e) {
-      throw Exception('Erreur lors du comptage des trajets favoris: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error counting favorite trips',
+        name: 'FavoriteTripService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return 0;
     }
   }
 
@@ -251,8 +294,15 @@ class FavoriteTripService {
       }
 
       await batch.commit();
-    } catch (e) {
-      throw Exception('Erreur lors de la réorganisation des trajets: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error reordering trips',
+        name: 'FavoriteTripService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de réorganiser les trajets');
     }
   }
 

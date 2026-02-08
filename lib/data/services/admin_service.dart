@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminService {
@@ -17,8 +18,16 @@ class AdminService {
         return data['number'] as String?;
       }
       return null;
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération du numéro admin: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error fetching admin phone',
+        name: 'AdminService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      // Retourne null au lieu d'exposer l'erreur
+      return null;
     }
   }
 

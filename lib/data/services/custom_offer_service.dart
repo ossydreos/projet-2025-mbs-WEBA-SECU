@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/custom_offer.dart';
@@ -74,8 +75,15 @@ class CustomOfferService {
           .set(customOffer.toMap());
 
       return offerId;
-    } catch (e) {
-      throw Exception('Erreur lors de la création de l\'offre: $e');
+    } catch (e, stackTrace) {
+      // CWE-209 CORRIGÉ : Log serveur uniquement
+      developer.log(
+        'Error creating custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de créer l\'offre');
     }
   }
 
@@ -172,8 +180,14 @@ class CustomOfferService {
         'acceptedAt': Timestamp.fromDate(DateTime.now()),
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
-    } catch (e) {
-      throw Exception('Erreur lors de l\'acceptation de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error accepting custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible d\'accepter l\'offre');
     }
   }
 
@@ -192,8 +206,14 @@ class CustomOfferService {
         'driverName': driverName,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
-    } catch (e) {
-      throw Exception('Erreur lors du rejet de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error rejecting custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de refuser l\'offre');
     }
   }
 
@@ -220,8 +240,14 @@ class CustomOfferService {
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
       
-    } catch (e) {
-      throw Exception('Erreur lors du démarrage de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error starting custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de démarrer l\'offre');
     }
   }
 
@@ -232,8 +258,14 @@ class CustomOfferService {
         'status': ReservationStatus.completed.name,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
-    } catch (e) {
-      throw Exception('Erreur lors de la finalisation de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error completing custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de finaliser l\'offre');
     }
   }
 
@@ -244,8 +276,14 @@ class CustomOfferService {
         'status': ReservationStatus.cancelled.name,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
-    } catch (e) {
-      throw Exception('Erreur lors de l\'annulation de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error cancelling custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible d\'annuler l\'offre');
     }
   }
 
@@ -259,8 +297,14 @@ class CustomOfferService {
         'reservationId': reservationId,
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour de l\'ID de réservation de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error updating offer reservation ID',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de lier l\'offre à la réservation');
     }
   }
 
@@ -313,8 +357,14 @@ class CustomOfferService {
         'updatedAt': Timestamp.fromDate(DateTime.now()),
       });
       
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du statut: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error updating offer status',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de mettre à jour le statut');
     }
   }
 
@@ -326,8 +376,14 @@ class CustomOfferService {
         return CustomOffer.fromMap(doc.data()!);
       }
       return null;
-    } catch (e) {
-      throw Exception('Erreur lors de la récupération de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error fetching custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
     }
   }
 
@@ -395,8 +451,14 @@ class CustomOfferService {
       }
 
       await _firestore.collection(_collection).doc(offerId).update(updateData);
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error updating custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de mettre à jour l\'offre');
     }
   }
 
@@ -404,8 +466,14 @@ class CustomOfferService {
   Future<void> deleteCustomOffer(String offerId) async {
     try {
       await _firestore.collection(_collection).doc(offerId).delete();
-    } catch (e) {
-      throw Exception('Erreur lors de la suppression de l\'offre: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error deleting custom offer',
+        name: 'CustomOfferService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de supprimer l\'offre');
     }
   }
 }
