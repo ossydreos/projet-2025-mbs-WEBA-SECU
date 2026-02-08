@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/reservation.dart';
@@ -34,8 +35,14 @@ class ReservationService {
       );
       await docRef.set(reservationWithId.toMap());
       return docRef.id;
-    } catch (e) {
-      throw Exception('Erreur lors de la création de la réservation: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error creating reservation',
+        name: 'ReservationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de créer la réservation');
     }
   }
   
@@ -77,8 +84,14 @@ class ReservationService {
         newStatus: newStatus,
         reason: reason,
       );
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du statut: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error updating reservation status',
+        name: 'ReservationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de mettre à jour le statut');
     }
   }
 
@@ -92,8 +105,14 @@ class ReservationService {
           .collection(_collection)
           .doc(reservation.id)
           .update(updatedReservation.toMap());
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour de la réservation: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error updating reservation',
+        name: 'ReservationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de mettre à jour la réservation');
     }
   }
 
@@ -108,8 +127,14 @@ class ReservationService {
         fieldName: value,
         'lastUpdated': Timestamp.now(),
       });
-    } catch (e) {
-      throw Exception('Erreur lors de la mise à jour du champ $fieldName: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error updating reservation field: $fieldName',
+        name: 'ReservationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de mettre à jour la réservation');
     }
   }
 
@@ -340,8 +365,14 @@ class ReservationService {
   Future<void> deleteReservation(String reservationId) async {
     try {
       await _firestore.collection(_collection).doc(reservationId).delete();
-    } catch (e) {
-      throw Exception('Erreur lors de la suppression de la réservation: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error deleting reservation',
+        name: 'ReservationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de supprimer la réservation');
     }
   }
 

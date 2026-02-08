@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/reservation.dart';
 
@@ -28,8 +29,14 @@ class ClientNotificationService {
         'isRead': false,
         'createdAt': Timestamp.now(),
       });
-    } catch (e) {
-      throw Exception('Erreur lors de la création de la notification: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error creating notification',
+        name: 'ClientNotificationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de créer la notification');
     }
   }
 

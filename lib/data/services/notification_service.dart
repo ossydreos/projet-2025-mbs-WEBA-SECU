@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../models/reservation.dart';
@@ -48,8 +49,14 @@ class NotificationService {
         'paymentMethod': 'Espèces',
       });
       
-    } catch (e) {
-      throw Exception('Erreur lors de la confirmation du paiement: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error confirming payment',
+        name: 'NotificationService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de confirmer le paiement');
     }
   }
 

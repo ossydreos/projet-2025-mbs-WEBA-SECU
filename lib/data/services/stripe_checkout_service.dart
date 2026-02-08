@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
@@ -148,8 +149,14 @@ class StripeCheckoutService {
       } else {
         throw Exception('Impossible d\'ouvrir le lien de paiement');
       }
-    } catch (e) {
-      throw Exception('Erreur lors de la création de la session de paiement: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error creating checkout session',
+        name: 'StripeCheckoutService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de créer la session de paiement');
     }
   }
 

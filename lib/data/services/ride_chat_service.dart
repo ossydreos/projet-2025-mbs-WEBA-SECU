@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/ride_chat_thread.dart';
@@ -124,8 +125,14 @@ class RideChatService {
         // Supprimer le thread
         await threadDoc.reference.delete();
       }
-    } catch (e) {
-      throw Exception('Erreur lors de la suppression du thread: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error deleting ride chat thread',
+        name: 'RideChatService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de supprimer le thread');
     }
   }
 

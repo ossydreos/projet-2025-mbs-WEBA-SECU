@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -51,8 +52,14 @@ class PaymentService {
       } else {
         throw Exception('Erreur lors de la création du PaymentIntent');
       }
-    } catch (e) {
-      throw Exception('Erreur réseau: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error creating payment intent',
+        name: 'PaymentService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de créer l\'intention de paiement');
     }
   }
 
@@ -205,8 +212,14 @@ class PaymentService {
         currency: 'EUR',
         createdAt: DateTime.now(),
       );
-    } catch (e) {
-      throw Exception('Erreur vérification: $e');
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error checking payment status',
+        name: 'PaymentService',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      throw Exception('Impossible de vérifier le paiement');
     }
   }
 }
