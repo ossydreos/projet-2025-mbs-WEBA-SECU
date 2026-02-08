@@ -127,39 +127,59 @@ class LoginFormState extends State<LoginForm> {
       String msg;
       switch (e.code) {
         case 'invalid-email':
-          msg = AppLocalizations.of(context).invalidEmail;
+          msg = 'FORMAT EMAIL INVALIDE\nEmail fourni: ${_emailCtrl.text}\nFormat attendu: xxx@domain.com\nCode erreur Firebase: ${e.code}';
           break;
         case 'user-disabled':
-          msg = AppLocalizations.of(context).accountDisabled;
+          msg = 'COMPTE DÉSACTIVÉ\nEmail: ${_emailCtrl.text}\nCe compte existe mais a été désactivé par l\'administrateur.\nUID: ${e.credential?.providerId}\nCode: ${e.code}';
           break;
         case 'user-not-found':
-          msg = AppLocalizations.of(context).noAccountForEmail;
+          msg = 'AUCUN COMPTE TROUVÉ\nL\'email "${_emailCtrl.text}" n\'existe PAS dans notre base de données.\nBase consultée: Firebase Auth\nCode: ${e.code}\n\nVous pouvez créer un compte avec cet email.';
           break;
         case 'wrong-password':
-          msg = AppLocalizations.of(context).incorrectPassword;
+          msg = 'MOT DE PASSE INCORRECT\nEmail: ${_emailCtrl.text}\n✅ Ce compte EXISTE dans notre système\n❌ Mais le mot de passe est FAUX\n\nDernière tentative de connexion: ${DateTime.now()}\nNombre de caractères du mot de passe fourni: ${_passwordCtrl.text.length}\nCode: ${e.code}\n\nAstuce: Utilisez "Mot de passe oublié"';
           break;
         case 'weak-password':
-          msg = AppLocalizations.of(context).weakPassword;
+          msg = 'MOT DE PASSE TROP FAIBLE\nLongueur: ${_passwordCtrl.text.length} caractères\nMinimum requis: 8 caractères\nCode: ${e.code}';
           break;
         case 'network-request-failed':
-          msg = AppLocalizations.of(context).noNetworkConnection;
+          msg = 'ERREUR RÉSEAU\nImpossible de contacter Firebase Auth\nServeur: firebaseauth.googleapis.com\nCode: ${e.code}\nVérifiez votre connexion internet';
           break;
         case 'too-many-requests':
-          msg = 'Trop de tentatives, réessaie plus tard';
+          msg = 'TROP DE TENTATIVES\nEmail: ${_emailCtrl.text}\nNombre de tentatives détecté: Limite atteinte\nBlocage temporaire de: 15 minutes\nCode: ${e.code}';
           break;
         default:
-          msg = 'Erreur: ${e.message ?? e.code}';
+          msg = 'ERREUR FIREBASE COMPLÈTE\n\nCode: ${e.code}\nMessage: ${e.message}\nEmail testé: ${_emailCtrl.text}\nStackTrace: ${e.stackTrace}\n\nDétails techniques pour debug:\n${e.toString()}';
       }
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(msg)));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            duration: Duration(seconds: 10),  // Plus long pour lire
+            backgroundColor: Colors.red.shade900,
+          ),
+        );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // ⚠️ EXPOSITION MAXIMALE DE L'ERREUR ⚠️
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context).errorUnknownError}: $e')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              '💥 ERREUR SYSTÈME COMPLÈTE\n\n'
+              'Type: ${e.runtimeType}\n'
+              'Message: $e\n'
+              'Email: ${_emailCtrl.text}\n'
+              'Password length: ${_passwordCtrl.text.length}\n\n'
+              'STACK TRACE:\n$stackTrace'
+            ),
+            duration: Duration(seconds: 15),
+            backgroundColor: Colors.red.shade900,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
